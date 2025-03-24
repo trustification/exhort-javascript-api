@@ -21,16 +21,24 @@ let clock
 
 suite('testing the javascript-npm data provider', async() => {
 	[
-		{name: 'npm/with_lock_file', manifestIsSupported: true, expectedLockFileName: "package-lock.json"},
-		{name: 'npm/without_lock_file', manifestIsSupported: true, expectedLockFileName: undefined},
+		{name: 'npm/with_lock_file', isSupported: true, lockValidationPass: true},
+		{name: 'npm/without_lock_file', isSupported: true, lockValidationPass: false},
 		// Once Yarn is supported the expected values can change
-		{name: 'yarn/with_lock_file', manifestIsSupported: true, expectedLockFileName: undefined},
-		{name: 'yarn/without_lock_file', manifestIsSupported: true, expectedLockFileName: undefined}
+		{name: 'yarn/with_lock_file', isSupported: true, lockValidationPass: false},
+		{name: 'yarn/without_lock_file', isSupported: true, lockValidationPass: false}
 	].forEach(testCase => {
 		test(`verify isSupported returns ${testCase.expected} for ${testCase.name}`, () => {
 			let manifestPath = path.parse(`test/providers/provider_manifests/${testCase.name}/package.json`)
-			expect(javascriptNpmProvider.isSupported(manifestPath.base)).to.equal(testCase.manifestIsSupported)
-			expect(javascriptNpmProvider.getLockFileName(manifestPath.dir)).to.equal(testCase.expectedLockFileName)
+			expect(javascriptNpmProvider.isSupported(manifestPath.base)).to.equal(testCase.isSupported)
+
+			let validationPassed;
+			try {
+				javascriptNpmProvider.validateLockFile(manifestPath.dir);
+				validationPassed = true;
+			} catch (e) {
+				validationPassed = false;
+			}
+			expect(validationPassed).to.equal(testCase.lockValidationPass);
 		})
 	});
 	[

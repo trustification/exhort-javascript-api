@@ -111,20 +111,9 @@ export default class Java_gradle extends Base_java {
 	}
 
 	/**
-	 * @param {string} manifestName - the subject manifest name-type
-	 * @returns {boolean} - return true having a lock file is required or optional
-	 */
-	requireLockFile() {
-		return false;
-	}
-
-	/**
 	 * @param {string} manifestDir - the directory where the manifest lies
-	 * @returns {string|undefined} - returns lock file name to use
- 	*/
-	getLockFileName() {
-		return undefined;
-	}
+ 	 */
+	validateLockFile() {}
 
 	/**
 	 * Provide content and content type for stack analysis.

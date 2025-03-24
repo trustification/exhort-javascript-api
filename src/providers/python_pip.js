@@ -14,7 +14,7 @@ import {PackageURL} from 'packageurl-js'
 import  {EOL} from 'os'
 import Python_controller from './python_controller.js'
 
-export default { isSupported, requireLockFile, getLockFileName, provideComponent, provideStack }
+export default { isSupported, validateLockFile, provideComponent, provideStack }
 
 const dummyVersionNotation = "dummy*=#?";
 
@@ -35,20 +35,9 @@ function isSupported(manifestName) {
 }
 
 /**
- * @param {string} manifestName - the subject manifest name-type
- * @returns {boolean} - return true having a lock file is required or optional
- */
-function requireLockFile() {
-	return false;
-}
-
-/**
  * @param {string} manifestDir - the directory where the manifest lies
- * @returns {string|undefined} - returns lock file name to use
  */
-function getLockFileName() {
-	return undefined;
-}
+function validateLockFile() {}
 
 /**
  * Provide content and content type for python-pip stack analysis.

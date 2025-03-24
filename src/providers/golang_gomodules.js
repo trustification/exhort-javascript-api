@@ -8,7 +8,7 @@ import path from 'node:path'
 import Sbom from '../sbom.js'
 import {PackageURL} from 'packageurl-js'
 
-export default { isSupported, requireLockFile, getLockFileName, provideComponent, provideStack }
+export default { isSupported, validateLockFile, provideComponent, provideStack }
 
 /** @typedef {import('../provider').Provider} */
 
@@ -33,20 +33,9 @@ function isSupported(manifestName) {
 }
 
 /**
- * @param {string} manifestName - the subject manifest name-type
- * @returns {boolean} - return true having a lock file is required or optional
- */
-function requireLockFile() {
-	return false;
-}
-
-/**
  * @param {string} manifestDir - the directory where the manifest lies
- * @returns {string|undefined} - returns lock file name to use
  */
-function getLockFileName() {
-	return undefined;
-}
+function validateLockFile() {}
 
 /**
  * Provide content and content type for maven-maven stack analysis.

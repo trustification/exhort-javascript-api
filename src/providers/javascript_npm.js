@@ -39,7 +39,7 @@ export var npmInteractions = {
 		}
 	}
 }
-export default { isSupported, requireLockFile, getLockFileName, provideComponent, provideStack, npmInteractions }
+export default { isSupported, validateLockFile, provideComponent, provideStack, npmInteractions }
 
 /** @typedef {import('../provider').Provider} */
 
@@ -65,22 +65,16 @@ function isSupported(manifestName) {
 }
 
 /**
- * @param {string} manifestName - the subject manifest name-type
- * @returns {boolean} - return true having a lock file is required or optional
- */
-function requireLockFile() {
-	return true;
-}
-
-/**
  * @param {string} manifestDir - the directory where the manifest lies
- * @returns {string|undefined} - returns lock file name to use
  */
-function getLockFileName(manifestDir) {
-	return ["package-lock.json"].find(expectedLockFileName => {
+function validateLockFile(manifestDir) {
+	const lockFileName = ["package-lock.json"].find(expectedLockFileName => {
 		const lock = path.join(manifestDir, expectedLockFileName);
 		return fs.existsSync(lock);
 	});
+	if (!lockFileName) {
+		throw new Error("Lock file does not exists or is not supported. Execute '<pkg manager> install' to generate it")
+	}
 }
 
 /**
