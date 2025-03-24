@@ -39,7 +39,7 @@ export var npmInteractions = {
 		}
 	}
 }
-export default { isSupported, provideComponent, provideStack, npmInteractions }
+export default { isSupported, validateLockFile, provideComponent, provideStack, npmInteractions }
 
 /** @typedef {import('../provider').Provider} */
 
@@ -61,7 +61,20 @@ const defaultVersion = 'v0.0.0'
  * @returns {boolean} - return true if `pom.xml` is the manifest name-type
  */
 function isSupported(manifestName) {
-	return 'package.json' === manifestName
+	return 'package.json' === manifestName;
+}
+
+/**
+ * @param {string} manifestDir - the directory where the manifest lies
+ */
+function validateLockFile(manifestDir) {
+	const lockFileName = ["package-lock.json"].find(expectedLockFileName => {
+		const lock = path.join(manifestDir, expectedLockFileName);
+		return fs.existsSync(lock);
+	});
+	if (!lockFileName) {
+		throw new Error("Lock file does not exists or is not supported. Execute '<pkg manager> install' to generate it")
+	}
 }
 
 /**

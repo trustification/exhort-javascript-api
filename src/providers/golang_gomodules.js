@@ -8,7 +8,7 @@ import path from 'node:path'
 import Sbom from '../sbom.js'
 import {PackageURL} from 'packageurl-js'
 
-export default { isSupported, provideComponent, provideStack }
+export default { isSupported, validateLockFile, provideComponent, provideStack }
 
 /** @typedef {import('../provider').Provider} */
 
@@ -31,6 +31,11 @@ const defaultMainModuleVersion = "v0.0.0";
 function isSupported(manifestName) {
 	return 'go.mod' === manifestName
 }
+
+/**
+ * @param {string} manifestDir - the directory where the manifest lies
+ */
+function validateLockFile() {}
 
 /**
  * Provide content and content type for maven-maven stack analysis.

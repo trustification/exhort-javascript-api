@@ -7,7 +7,7 @@ import path from 'node:path'
 import pythonPipProvider from './providers/python_pip.js'
 
 /** @typedef {{ecosystem: string, contentType: string, content: string}} Provided */
-/** @typedef {{isSupported: function(string): boolean, provideComponent: function(string, {}): Provided, provideStack: function(string, {}): Provided}} Provider */
+/** @typedef {{isSupported: function(string): boolean, validateLockFile: function(): void, provideComponent: function(string, {}): Provided, provideStack: function(string, {}): Provided}} Provider */
 
 /**
  * MUST include all providers here.
@@ -28,8 +28,13 @@ export const availableProviders = [new Java_maven(), new Java_gradle_groovy(), n
 export function match(manifest, providers) {
 	let manifestPath = path.parse(manifest)
 	let provider = providers.find(prov => prov.isSupported(manifestPath.base))
-	if (provider) {
-		return provider
+	if (!provider) {
+		throw new Error(`${manifestPath.base} is not supported`)
 	}
-	throw new Error(`${manifestPath.base} is not supported`)
+
+	if (provider) {
+		provider.validateLockFile(manifestPath.dir);
+	}
+
+	return provider
 }

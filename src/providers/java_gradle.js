@@ -111,6 +111,11 @@ export default class Java_gradle extends Base_java {
 	}
 
 	/**
+	 * @param {string} manifestDir - the directory where the manifest lies
+ 	 */
+	validateLockFile() {}
+
+	/**
 	 * Provide content and content type for stack analysis.
 	 * @param {string} manifest - the manifest path or name
 	 * @param {{}} [opts={}] - optional various options to pass along the application

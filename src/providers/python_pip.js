@@ -14,7 +14,7 @@ import {PackageURL} from 'packageurl-js'
 import  {EOL} from 'os'
 import Python_controller from './python_controller.js'
 
-export default { isSupported, provideComponent, provideStack }
+export default { isSupported, validateLockFile, provideComponent, provideStack }
 
 const dummyVersionNotation = "dummy*=#?";
 
@@ -33,6 +33,11 @@ const ecosystem = 'pip'
 function isSupported(manifestName) {
 	return 'requirements.txt' === manifestName
 }
+
+/**
+ * @param {string} manifestDir - the directory where the manifest lies
+ */
+function validateLockFile() {}
 
 /**
  * Provide content and content type for python-pip stack analysis.

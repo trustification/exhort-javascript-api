@@ -5,6 +5,7 @@ suite('testing the provider utility function', () => {
 	// create a dummy provider for 'dummy_file.typ'
 	let dummyProvider = {
 		isSupported: nameType => 'dummy_file.typ' === nameType,
+		validateLockFile: () => {}, // not required for this test
 		provideComponent: () => {}, // not required for this test
 		provideStack: () => {} // not required for this test
 	}
