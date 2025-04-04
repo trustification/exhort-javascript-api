@@ -134,12 +134,6 @@ function getNpmListing(npm, allFilter, manifestDir) {
 	return `${handleSpacesInPath(npm)} ls${allFilter} --omit=dev --package-lock-only --json --prefix ${manifestDir}`;
 }
 
-
-
-
-
-
-
 /**
  * Create SBOM json string for npm Package.
  * @param {string} manifest - path for package.json
@@ -168,7 +162,7 @@ function getSBOM(manifest, opts = {}, includeTransitive) {
 	let sbom = new Sbom();
 	sbom.addRoot(mainComponent)
 
-	let dependencies = depsObject["dependencies"];
+	let dependencies = depsObject["dependencies"] || {};
 	addAllDependencies(sbom,sbom.getRoot(),dependencies)
 	let packageJson = fs.readFileSync(manifest).toString()
 	let packageJsonObject = JSON.parse(packageJson);
@@ -178,9 +172,6 @@ function getSBOM(manifest, opts = {}, includeTransitive) {
 	}
 	return sbom.getAsJsonString(opts)
 }
-
-
-
 
 /**
  * Utility function for creating Purl String
@@ -225,5 +216,4 @@ function addAllDependencies(sbom, from, dependencies) {
 				addAllDependencies(sbom,sbom.purlToComponent(purl),transitiveDeps)
 			}
 		});
-
 }
