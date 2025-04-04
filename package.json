@@ -60,7 +60,7 @@
 	"devDependencies": {
 		"@babel/core": "^7.23.2",
 		"@openapitools/openapi-generator-cli": "^2.6.0",
-		"@types/node": "^20.3.1",
+		"@types/node": "^20.17.30",
 		"babel-plugin-rewire": "^1.2.0",
 		"c8": "^8.0.0",
 		"chai": "^4.3.7",

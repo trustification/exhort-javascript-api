@@ -1,5 +1,5 @@
-import {execSync} from "node:child_process"
-import {PackageURL} from 'packageurl-js'
+import { execFileSync, execSync } from "node:child_process"
+import { PackageURL } from 'packageurl-js'
 
 
 /** @typedef {import('../provider').Provider} */
@@ -17,21 +17,16 @@ import {PackageURL} from 'packageurl-js'
 export const ecosystem_maven = 'maven'
 export const ecosystem_gradle = 'gradle'
 export default class Base_Java {
-	constructor() {
-	}
-
-
-
 	DEP_REGEX = /(([-a-zA-Z0-9._]{2,})|[0-9])/g
 	CONFLICT_REGEX = /.*omitted for conflict with (\S+)\)/
 
 	/**
- * Recursively populates the SBOM instance with the parsed graph
- * @param {string} src - Source dependency to start the calculations from
- * @param {number} srcDepth - Current depth in the graph for the given source
- * @param {Array} lines - Array containing the text files being parsed
- * @param {Sbom} sbom - The SBOM where the dependencies are being added
- */
+	 * Recursively populates the SBOM instance with the parsed graph
+	 * @param {string} src - Source dependency to start the calculations from
+	 * @param {number} srcDepth - Current depth in the graph for the given source
+	 * @param {Array} lines - Array containing the text files being parsed
+	 * @param {Sbom} sbom - The SBOM where the dependencies are being added
+	 */
 	parseDependencyTree(src, srcDepth, lines, sbom) {
 		if (lines.length === 0) {
 			return;
@@ -61,11 +56,11 @@ export default class Base_Java {
 	}
 
 	/**
- * Calculates how deep in the graph is the given line
- * @param {string} line - line to calculate the depth from
- * @returns {number} The calculated depth
- * @private
- */
+	 * Calculates how deep in the graph is the given line
+	 * @param {string} line - line to calculate the depth from
+	 * @returns {number} The calculated depth
+	 * @private
+	 */
 	#getDepth(line) {
 		if (line === undefined) {
 			return -1;
@@ -74,10 +69,10 @@ export default class Base_Java {
 	}
 
 	/**
- * Create a PackageURL from any line in a Text Graph dependency tree for a manifest path.
- * @param {string} line - line to parse from a dependencies.txt file
- * @returns {PackageURL} The parsed packageURL
- */
+	 * Create a PackageURL from any line in a Text Graph dependency tree for a manifest path.
+	 * @param {string} line - line to parse from a dependencies.txt file
+	 * @returns {PackageURL} The parsed packageURL
+	 */
 	parseDep(line) {
 
 		let match = line.match(this.DEP_REGEX);
@@ -98,12 +93,12 @@ export default class Base_Java {
 	}
 
 	/**
- * Returns a PackageUrl For Java maven dependencies
- * @param group
- * @param artifact
- * @param version
- * @return {PackageURL}
- */
+	 * Returns a PackageUrl For Java maven dependencies
+	 * @param group
+	 * @param artifact
+	 * @param version
+	 * @return {PackageURL}
+	 */
 	toPurl(group, artifact, version) {
 		if (typeof version === "number") {
 			version = version.toString()
@@ -112,16 +107,17 @@ export default class Base_Java {
 	}
 
 	/** this method invokes command string in a process in a synchronous way.
-	 * @param cmdString - the command to be invoked
-	 * @param errorMessage - the message to print to an exception thrown to client in case of error
+	 * @param bin - the command to be invoked
+	 * @param args - the args to pass to the binary
+	 * @param callback - function to invoke if an error was thrown
 	 * @protected
 	 */
-	_invokeCommand(cmdString, errorMessage) {
-		execSync(cmdString, err => {
-			if (err) {
-				throw new Error(`${errorMessage}`)
-			}
-		})
+	_invokeCommand(bin, args, callback) {
+		try {
+			execFileSync(bin, args)
+		} catch(error) {
+			callback(error)
+		}
 	}
 
 	/** this method invokes command string in a process in a synchronous way.
@@ -137,6 +133,4 @@ export default class Base_Java {
 		}
 		return execSync(cmdString, opts)
 	}
-
-
 }
