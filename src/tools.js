@@ -103,14 +103,14 @@ function hasSpaces(path) {
  * @param callback - function to invoke if an error was thrown
  * @protected
  */
-export function invokeCommand(bin, args, callback) {
+export function invokeCommand(bin, args, callback, opts={}) {
 	// .bat and .cmd files can't be executed in windows with execFileSync, so we special case them
 	// to use execSync here to keep the amount of escaping we need to do to a minimum.
 	// https://nodejs.org/docs/latest-v20.x/api/child_process.html#spawning-bat-and-cmd-files-on-windows
 	if (process.platform === 'win32' && (bin.endsWith(".bat") || bin.endsWith(".cmd"))) {
 		try {
 			args = args.map(arg => handleSpacesInPath(arg))
-			execSync(`${handleSpacesInPath(bin)} ${args.join(" ")}`)
+			return execSync(`${handleSpacesInPath(bin)} ${args.join(" ")}`, opts)
 		} catch(error) {
 			callback(error)
 		}
@@ -118,22 +118,8 @@ export function invokeCommand(bin, args, callback) {
 	}
 
 	try {
-		execFileSync(bin, args)
+		return execFileSync(bin, args, opts)
 	} catch(error) {
 		callback(error)
 	}
-}
-
-/** this method invokes command string in a process in a synchronous way.
- * @param {string} cmdString - the command to be invoked
- * @param {string} workingDir - the directory in which the command will be invoked
- * @return the output of the command
- * @protected
- */
-export function invokeCommandGetOutput(cmdString, workingDir) {
-	let opts = {}
-	if(workingDir) {
-		opts.cwd = workingDir
-	}
-	return execSync(cmdString, opts)
 }

@@ -1,5 +1,5 @@
 import { PackageURL } from 'packageurl-js'
-import { invokeCommand, invokeCommandGetOutput } from "../tools.js"
+import { invokeCommand } from "../tools.js"
 
 
 /** @typedef {import('../provider').Provider} */
@@ -112,13 +112,5 @@ export default class Base_Java {
 	 * @param callback - function to invoke if an error was thrown
 	 * @protected
 	 */
-	_invokeCommand(bin, args, callback) { invokeCommand(bin, args, callback) }
-
-	/** this method invokes command string in a process in a synchronous way.
-	 * @param cmdString - the command to be invoked
-	 * @param workingDir - the directory in which the command will be invoked
-	 * @return the output of the command
-	 * @protected
-	 */
-	_invokeCommandGetOutput(cmdString, workingDir) { return invokeCommandGetOutput(cmdString, workingDir) }
+	_invokeCommand(bin, args, callback, opts={}) { return invokeCommand(bin, args, callback, opts) }
 }
