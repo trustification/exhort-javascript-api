@@ -1,34 +1,11 @@
-import {execSync} from "node:child_process";
-import fs from "node:fs";
-import path from 'node:path';
-import os, {EOL} from "os";
-import {environmentVariableIsPopulated,getCustom, handleSpacesInPath} from "../tools.js";
-
-
-function getPipFreezeOutput() {
-	return environmentVariableIsPopulated("EXHORT_PIP_FREEZE")  ? new Buffer(process.env["EXHORT_PIP_FREEZE"],'base64').toString('ascii') : execSync(`${handleSpacesInPath(this.pathToPipBin)} freeze --all`, err => {
-		if (err) {
-			throw new Error('fail invoking pip freeze to fetch all installed dependencies in environment --> ' + err.message)
-		}
-	}).toString();
-}
-
-function getPipShowOutput(depNames) {
-
-	return environmentVariableIsPopulated("EXHORT_PIP_SHOW")  ? new Buffer(process.env["EXHORT_PIP_SHOW"],'base64').toString('ascii')  : execSync(`${handleSpacesInPath(this.pathToPipBin)} show ${depNames}`, err => {
-		if (err) {
-			throw new Error('fail invoking pip show to fetch all installed dependencies metadata --> ' + err.message)
-		}
-	}).toString();
-}
+import fs from "node:fs"
+import path from 'node:path'
+import os, { EOL } from "os"
+import { environmentVariableIsPopulated, getCustom, invokeCommand } from "../tools.js"
 
 /** @typedef {{name: string, version: string, dependencies: DependencyEntry[]}} DependencyEntry */
 
-
-
 export default class Python_controller {
-
-	pythonEnvDir
 	pathToPipBin
 	pathToPythonBin
 	realEnvironment
@@ -43,7 +20,7 @@ export default class Python_controller {
 	 * @param {string} pathToRequirements
 	 * @
 	 */
-	constructor(realEnvironment,pathToPip,pathToPython,pathToRequirements,options={}) {
+	constructor(realEnvironment, pathToPip, pathToPython, pathToRequirements, options={}) {
 		this.pathToPythonBin = pathToPython
 		this.pathToPipBin = pathToPip
 		this.realEnvironment= realEnvironment
@@ -51,28 +28,25 @@ export default class Python_controller {
 		this.pathToRequirements = pathToRequirements
 		this.options = options
 	}
-	prepareEnvironment()
-	{
+
+	prepareEnvironment() {
 		if(!this.realEnvironment) {
-			this.pythonEnvDir = path.join(path.sep,"tmp","exhort_env_js")
-			execSync(`${handleSpacesInPath(this.pathToPythonBin)} -m venv ${handleSpacesInPath(this.pythonEnvDir)} `, err => {
-				if (err) {
-					throw new Error('failed creating virtual python environment - ' + err.message)
-				}
+			const pythonEnvDir = path.join(path.sep, "tmp", "exhort_env_js")
+			invokeCommand(this.pathToPythonBin, ['-m', 'venv', pythonEnvDir], error => {
+				throw new Error(`failed creating virtual python environment: ${error.message}`)
 			})
-			if(this.pathToPythonBin.includes("python3"))
-			{
-				this.pathToPipBin = path.join(path.sep,this.pythonEnvDir,os.platform() === 'win32' ? "Scripts" : "bin",this.#decideIfWindowsOrLinuxPath("pip3"))
-				this.pathToPythonBin = path.join(path.sep,this.pythonEnvDir,os.platform() === 'win32' ? "Scripts" : "bin",this.#decideIfWindowsOrLinuxPath("python3"))
+
+			if(this.pathToPythonBin.includes("python3")) {
+				this.pathToPipBin = path.join(path.sep, pythonEnvDir, os.platform() === 'win32' ? "Scripts" : "bin", this.#decideIfWindowsOrLinuxPath("pip3"))
+				this.pathToPythonBin = path.join(path.sep, pythonEnvDir, os.platform() === 'win32' ? "Scripts" : "bin", this.#decideIfWindowsOrLinuxPath("python3"))
 				if(os.platform() === 'win32') {
 					let driveLetter = path.parse(process.cwd()).root
 					this.pathToPythonBin = `${driveLetter}${this.pathToPythonBin.substring(1)}`
 					this.pathToPipBin = `${driveLetter}${this.pathToPipBin.substring(1)}`
 				}
-			}
-			else {
-				this.pathToPipBin = path.join(path.sep,this.pythonEnvDir,os.platform() === 'win32' ? "Scripts" : "bin",this.#decideIfWindowsOrLinuxPath("pip"));
-				this.pathToPythonBin = path.join(path.sep,this.pythonEnvDir,os.platform() === 'win32' ? "Scripts" : "bin",this.#decideIfWindowsOrLinuxPath("python"))
+			} else {
+				this.pathToPipBin = path.join(path.sep, pythonEnvDir, os.platform() === 'win32' ? "Scripts" : "bin", this.#decideIfWindowsOrLinuxPath("pip"))
+				this.pathToPythonBin = path.join(path.sep, pythonEnvDir, os.platform() === 'win32' ? "Scripts" : "bin", this.#decideIfWindowsOrLinuxPath("python"))
 				if(os.platform() === 'win32') {
 					let driveLetter = path.parse(process.cwd()).root
 					this.pathToPythonBin = `${driveLetter}${this.pathToPythonBin.substring(1)}`
@@ -80,28 +54,16 @@ export default class Python_controller {
 				}
 			}
 			// upgrade pip version to latest
-			execSync(`${handleSpacesInPath(this.pathToPythonBin)} -m pip install --upgrade pip `, err => {
-				if (err) {
-					throw new Error('failed upgrading pip version on virtual python environment - ' + err.message)
-				}
+			invokeCommand(this.pathToPythonBin, ['-m', 'pip', 'install', '--upgrade', 'pip'], error => {
+				throw new Error(`failed upgrading pip version on virtual python environment: ${error.message}`)
 			})
-		}
-		else{
-			if(this.pathToPythonBin.startsWith("python")) {
-				this.pythonEnvDir = process.cwd()
-			}
-			else
-			{
-				this.pythonEnvDir = path.dirname(this.pathToPythonBin)
-			}
 		}
 	}
 
 	#decideIfWindowsOrLinuxPath(fileName) {
 		if (os.platform() === "win32") {
 			return fileName + ".exe"
-		}
-		else {
+		} else {
 			return fileName
 		}
 	}
@@ -110,31 +72,24 @@ export default class Python_controller {
 	 * @param {boolean} includeTransitive - whether to return include in returned object transitive dependencies or not
 	 * @return {[DependencyEntry]}
 	 */
-	getDependencies(includeTransitive)
-	{
-		let startingTime
-		let endingTime
+	getDependencies(includeTransitive) {
 		if (process.env["EXHORT_DEBUG"] === "true") {
-			startingTime = new Date()
+			var startingTime = new Date()
 			console.log("Starting time to get requirements.txt dependency tree = " + startingTime)
 		}
 		if(!this.realEnvironment) {
-			let installBestEfforts = getCustom("EXHORT_PYTHON_INSTALL_BEST_EFFORTS","false",this.options);
-			if(installBestEfforts === "false")
-			{
-				execSync(`${handleSpacesInPath(this.pathToPipBin)} install -r ${handleSpacesInPath(this.pathToRequirements)}`, err =>{
-					if (err) {
-						throw new Error('fail installing requirements.txt manifest in created virtual python environment --> ' + err.message)
-					}
+			let installBestEfforts = getCustom("EXHORT_PYTHON_INSTALL_BEST_EFFORTS","false",this.options)
+			if(installBestEfforts === "false") {
+				invokeCommand(this.pathToPipBin, ['install', '-r', this.pathToRequirements], error => {
+					throw new Error(`failed installing requirements.txt manifest in created virtual python environment: ${error.message}`)
 				})
 			}
 			// make best efforts to install the requirements.txt on the virtual environment created from the python3 passed in.
 			// that means that it will install the packages without referring to the versions, but will let pip choose the version
 			// tailored for version of the python environment( and of pip package manager) for each package.
 			else {
-				let matchManifestVersions = getCustom("MATCH_MANIFEST_VERSIONS","true",this.options);
-				if(matchManifestVersions === "true")
-				{
+				let matchManifestVersions = getCustom("MATCH_MANIFEST_VERSIONS","true",this.options)
+				if(matchManifestVersions === "true") {
 					throw new Error("Conflicting settings, EXHORT_PYTHON_INSTALL_BEST_EFFORTS=true can only work with MATCH_MANIFEST_VERSIONS=false")
 				}
 				this.#installingRequirementsOneByOne()
@@ -143,68 +98,60 @@ export default class Python_controller {
 		let dependencies = this.#getDependenciesImpl(includeTransitive)
 		this.#cleanEnvironment()
 		if (process.env["EXHORT_DEBUG"] === "true") {
-			endingTime = new Date()
+			const endingTime = new Date()
 			console.log("Ending time to get requirements.txt dependency tree = " + endingTime)
-			let time = ( endingTime - startingTime ) / 1000
+			const time = ( endingTime - startingTime ) / 1000
 			console.log("total time to get requirements.txt dependency tree = " + time)
 		}
 		return dependencies
 	}
 
 	#installingRequirementsOneByOne() {
-		let requirementsContent = fs.readFileSync(this.pathToRequirements);
-		let requirementsRows = requirementsContent.toString().split(EOL);
+		let requirementsContent = fs.readFileSync(this.pathToRequirements)
+		let requirementsRows = requirementsContent.toString().split(EOL)
 		requirementsRows.filter((line) => !line.trim().startsWith("#")).filter((line) => line.trim() !== "").forEach( (dependency) => {
-			let dependencyName = getDependencyName(dependency);
-			execSync(`${handleSpacesInPath(this.pathToPipBin)} install ${dependencyName}`, err =>{
-				if (err) {
-					throw new Error(`Best efforts process - failed installing ${dependencyName}  in created virtual python environment --> error message: ` + err.message)
-				}
+			let dependencyName = getDependencyName(dependency)
+			invokeCommand(this.pathToPipBin, ['install', dependencyName], error => {
+				throw new Error(`Best efforts process - failed installing ${dependencyName} in created virtual python environment: ${error.message}`)
 			})
-		} )
+		})
 	}
+
 	/**
 	 * @private
 	 */
-	#cleanEnvironment()
-	{
-		if(!this.realEnvironment)
-		{
-			execSync(`${handleSpacesInPath(this.pathToPipBin)} uninstall -y -r ${handleSpacesInPath(this.pathToRequirements)}`, err =>{
-				if (err) {
-					throw new Error('fail uninstalling requirements.txt in created virtual python environment --> ' + err.message)
-				}
+	#cleanEnvironment() {
+		if(!this.realEnvironment) {
+			invokeCommand(this.pathToPipBin, ['uninstall', '-y', '-r', this.pathToRequirements], error => {
+				throw new Error(`fail uninstalling requirements.txt in created virtual python environment: ${error.message}`)
 			})
 		}
 	}
+
 	#getDependenciesImpl(includeTransitive) {
 		let dependencies = new Array()
-		let usePipDepTree = getCustom("EXHORT_PIP_USE_DEP_TREE","false",this.options);
-		let freezeOutput
-		let lines
+		let usePipDepTree = getCustom("EXHORT_PIP_USE_DEP_TREE","false",this.options)
 		let depNames
-		let pipShowOutput
 		let allPipShowDeps
 		let pipDepTreeJsonArrayOutput
 		if(usePipDepTree !== "true") {
-			freezeOutput = getPipFreezeOutput.call(this);
-			lines = freezeOutput.split(EOL)
-			depNames = lines.map( line => getDependencyName(line)).join(" ")
-		}
-		else {
+			const freezeOutput = this.getPipFreezeOutput()
+			const lines = freezeOutput.split(EOL)
+			depNames = lines.map(line => getDependencyName(line)).join(" ")
+		} else {
 			pipDepTreeJsonArrayOutput = getDependencyTreeJsonFromPipDepTree(this.pathToPipBin,this.pathToPythonBin)
 		}
 
 
 		if(usePipDepTree !== "true") {
-			pipShowOutput = getPipShowOutput.call(this, depNames);
-			allPipShowDeps = pipShowOutput.split( EOL +"---" + EOL);
+			const pipShowOutput = this.getPipShowOutput(depNames)
+			allPipShowDeps = pipShowOutput.split(EOL + "---" + EOL)
 		}
 		//debug
 		// pipShowOutput = "alternative pip show output goes here for debugging"
 
-		let matchManifestVersions = getCustom("MATCH_MANIFEST_VERSIONS","true",this.options);
-		let linesOfRequirements = fs.readFileSync(this.pathToRequirements).toString().split(EOL).filter( (line) => !line.startsWith("#")).map(line => line.trim())
+		let matchManifestVersions = getCustom("MATCH_MANIFEST_VERSIONS","true",this.options)
+		let linesOfRequirements = fs.readFileSync(this.pathToRequirements).toString().split(EOL).filter(line => !line.startsWith("#")).map(line => line.trim())
 		let CachedEnvironmentDeps = {}
 		if(usePipDepTree !== "true") {
 			allPipShowDeps.forEach((record) => {
@@ -213,44 +160,36 @@ export default class Python_controller {
 				CachedEnvironmentDeps[dependencyName.replace("-", "_")] = record
 				CachedEnvironmentDeps[dependencyName.replace("_", "-")] = record
 			})
-		}
-		else {
+		} else {
 			pipDepTreeJsonArrayOutput.forEach( depTreeEntry => {
 				let packageName = depTreeEntry["package"]["package_name"].toLowerCase()
 				let pipDepTreeEntryForCache = {
 					name: packageName,
 					version: depTreeEntry["package"]["installed_version"],
 					dependencies: depTreeEntry["dependencies"].map(dep => dep["package_name"])
-				};
+				}
 				CachedEnvironmentDeps[packageName] = pipDepTreeEntryForCache
 				CachedEnvironmentDeps[packageName.replace("-", "_")] = pipDepTreeEntryForCache
 				CachedEnvironmentDeps[packageName.replace("_", "-")] = pipDepTreeEntryForCache
 			})
 		}
-		linesOfRequirements.forEach( (dep) => {
+		linesOfRequirements.forEach(dep => {
 			// if matchManifestVersions setting is turned on , then
-			if(matchManifestVersions === "true")
-			{
-				let dependencyName
-				let manifestVersion
-				let installedVersion
-				let doubleEqualSignPosition
-				if(dep.includes("=="))
-				{
-					doubleEqualSignPosition = dep.indexOf("==")
-					manifestVersion = dep.substring(doubleEqualSignPosition + 2).trim()
-					if(manifestVersion.includes("#"))
-					{
-						let hashCharIndex = manifestVersion.indexOf("#");
+			if(matchManifestVersions === "true") {
+				if(dep.includes("==")) {
+					const doubleEqualSignPosition = dep.indexOf("==")
+					let manifestVersion = dep.substring(doubleEqualSignPosition + 2).trim()
+					if(manifestVersion.includes("#")) {
+						let hashCharIndex = manifestVersion.indexOf("#")
 						manifestVersion = manifestVersion.substring(0,hashCharIndex)
 					}
-					dependencyName = getDependencyName(dep)
+					const dependencyName = getDependencyName(dep)
+					let installedVersion
 					// only compare between declared version in manifest to installed version , if the package is installed.
 					if(CachedEnvironmentDeps[dependencyName.toLowerCase()] !== undefined) {
 						if(usePipDepTree !== "true") {
 							installedVersion = getDependencyVersion(CachedEnvironmentDeps[dependencyName.toLowerCase()])
-						}
-						else {
+						} else {
 							installedVersion = CachedEnvironmentDeps[dependencyName.toLowerCase()].version
 						}
 					}
@@ -259,27 +198,46 @@ export default class Python_controller {
 							throw new Error(`Can't continue with analysis - versions mismatch for dependency name ${dependencyName}, manifest version=${manifestVersion}, installed Version=${installedVersion}, if you want to allow version mismatch for analysis between installed and requested packages, set environment variable/setting - MATCH_MANIFEST_VERSIONS=false`)
 						}
 					}
-
 				}
 			}
 			let path = new Array()
 			let depName = getDependencyName(dep)
 			//array to track a path for each branch in the dependency tree
 			path.push(depName.toLowerCase())
-			bringAllDependencies(dependencies,depName,CachedEnvironmentDeps,includeTransitive,path,usePipDepTree)
+			bringAllDependencies(dependencies, depName, CachedEnvironmentDeps, includeTransitive, path, usePipDepTree)
 		})
-		dependencies.sort((dep1,dep2) =>{
+		dependencies.sort((dep1, dep2) =>{
 			const DEP1 = dep1.name.toLowerCase()
 			const DEP2 = dep2.name.toLowerCase()
 			if(DEP1 < DEP2) {
-				return -1;
+				return -1
 			}
-			if(DEP1 > DEP2)
-			{
-				return 1;
+			if(DEP1 > DEP2) {
+				return 1
 			}
-			return 0;})
+			return 0
+		})
 		return dependencies
+	}
+
+	getPipFreezeOutput() {
+		if (environmentVariableIsPopulated("EXHORT_PIP_FREEZE")) {
+			return Buffer.from(process.env["EXHORT_PIP_FREEZE"], 'base64').toString('ascii')
+		} else {
+			return invokeCommand(this.pathToPipBin, ['freeze', '--all'], error => {
+				throw new Error(`fail invoking pip freeze to fetch all installed dependencies in environment: ${error.message}`)
+			}).toString()
+		}
+	}
+
+	getPipShowOutput(depNames) {
+		if(environmentVariableIsPopulated("EXHORT_PIP_SHOW")) {
+			return Buffer.from(process.env["EXHORT_PIP_SHOW"], 'base64').toString('ascii')
+		} else {
+			return invokeCommand(this.pathToPipBin, ['show', depNames], error => {
+				throw new Error(`fail invoking pip show to fetch all installed dependencies metadata: ${error.message}`)
+			}).toString()
+		}
 	}
 }
 
@@ -313,16 +271,15 @@ function getDependencyVersion(record) {
  * @return {string} the name of dependency
  */
 function getDependencyName(depLine) {
-	const regex = /[^\w\s-_.]/g;
-	let endIndex = depLine.search(regex);
-	let result =  depLine.substring(0,endIndex);
+	const regex = /[^\w\s-_.]/g
+	let endIndex = depLine.search(regex)
+	let result =  depLine.substring(0,endIndex)
 	// In case package in requirements text only contain package name without version
 	if(result.trim() === "") {
-		const regex = /[\w\s-_.]+/g;
+		const regex = /[\w\s-_.]+/g
 		if(depLine.match(regex)) {
 			result = depLine.match(regex)[0]
-		}
-		else {
+		} else {
 			result = depLine
 		}
 	}
@@ -359,28 +316,27 @@ function bringAllDependencies(dependencies, dependencyName, cachedEnvironmentDep
 	let record = cachedEnvironmentDeps[dependencyName.toLowerCase()]
 	if(record === null || record  === undefined) {
 		throw new Error(`Package name=>${dependencyName} is not installed in your python environment,
-		                         either install it ( better to install requirements.txt altogether) or set
+		                         either install it (better to install requirements.txt altogether) or set
 		                         the setting EXHORT_PYTHON_VIRTUAL_ENV to true to automatically install
-		                          it in virtual environment (please note that this may slow down the analysis) `)
+		                         it in virtual environment (please note that this may slow down the analysis)`)
 	}
 	let depName
-	let version;
+	let version
 	let directDeps
 	if(usePipDepTree !== "true") {
 		depName = getDependencyNameShow(record)
-		version = getDependencyVersion(record);
+		version = getDependencyVersion(record)
 		directDeps = getDepsList(record)
-	}
-	else {
+	} else {
 		depName = record.name
 		version = record.version
 		directDeps = record.dependencies
 	}
 	let targetDeps = new Array()
 
-	let entry = { "name" : depName , "version" : version, "dependencies" : [] }
+	let entry = {"name": depName, "version": version, "dependencies": []}
 	dependencies.push(entry)
-	directDeps.forEach( (dep) => {
+	directDeps.forEach(dep => {
 		let depArray = new Array()
 		// to avoid infinite loop, check if the dependency not already on current path, before going recursively resolving its dependencies.
 		if(!path.includes(dep.toLowerCase())) {
@@ -396,13 +352,13 @@ function bringAllDependencies(dependencies, dependencyName, cachedEnvironmentDep
 			const DEP1 = dep1.name.toLowerCase()
 			const DEP2 = dep2.name.toLowerCase()
 			if(DEP1 < DEP2) {
-				return -1;
+				return -1
 			}
-			if(DEP1 > DEP2)
-			{
-				return 1;
+			if(DEP1 > DEP2) {
+				return 1
 			}
-			return 0;})
+			return 0
+		})
 
 		entry["dependencies"] = targetDeps
 	})
@@ -410,28 +366,22 @@ function bringAllDependencies(dependencies, dependencyName, cachedEnvironmentDep
 
 /**
  * This function install tiny pipdeptree tool using pip ( if it's not already installed on python environment), and use it to fetch the dependency tree in json format.
- * @param {string }pipPath - the filesystem path location of pip binary
- * @param {string }pythonPath - the filesystem path location of python binary
- * @return {Object[] } json array containing objects with the packages and their dependencies from pipdeptree utility
+ * @param {string} pipPath - the filesystem path location of pip binary
+ * @param {string} pythonPath - the filesystem path location of python binary
+ * @return {Object[]} json array containing objects with the packages and their dependencies from pipdeptree utility
  * @private
  */
-function getDependencyTreeJsonFromPipDepTree(pipPath,pythonPath) {
+function getDependencyTreeJsonFromPipDepTree(pipPath, pythonPath) {
 	let dependencyTree
-	try {
-		execSync(`${handleSpacesInPath(pipPath)} install pipdeptree`)
-	} catch (e) {
-		throw new Error(`Couldn't install pipdeptree utility, reason: ${e.getMessage}`)
-	}
+	invokeCommand(pipPath, ['install', 'pipdeptree'], error => {
+		throw new Error(`Couldn't install pipdeptree utility, reason: ${error.getMessage}`)
+	})
 
-	try {
-		if(pythonPath.startsWith("python")) {
-			dependencyTree = execSync(`pipdeptree  --json`).toString()
-		}
-		else {
-			dependencyTree = execSync(`pipdeptree  --json --python  ${handleSpacesInPath(pythonPath)} `).toString()
-		}
-	} catch (e) {
-		throw new Error(`couldn't produce dependency tree using pipdeptree tool, stop analysis, message -> ${e.getMessage}`)
+	const cb = (error) => { throw new Error(`couldn't produce dependency tree using pipdeptree tool, stop analysis, message -> ${error.getMessage}`) }
+	if(pythonPath.startsWith("python")) {
+		dependencyTree = invokeCommand('pipdeptree', ['--json'], cb).toString()
+	} else {
+		dependencyTree = invokeCommand('pipdeptree', ['--json', '--python', pythonPath], cb).toString()
 	}
 
 	return JSON.parse(dependencyTree)
