@@ -78,12 +78,12 @@ export default class Java_maven extends Base_java {
 			if (error.code === 'ENOENT') {
 				throw new Error(`maven not accessible at "${mvn}"`)
 			} else {
-				throw new Error(`failed to check for maven: ${error.stderr}`)
+				throw new Error(`failed to check for maven`, {cause: error})
 			}
 		})
 		// clean maven target
 		this._invokeCommand(mvn, ['-q', 'clean', '-f', manifest], error => {
-			throw new Error(`failed to clean maven target: ${error.stderr}`)
+			throw new Error(`failed to clean maven target`, {cause: error})
 		})
 
 		// create dependency graph in a temp file
@@ -102,7 +102,7 @@ export default class Java_maven extends Base_java {
 		})
 		// execute dependency tree command
 		this._invokeCommand(mvn, depTreeCmdArgs, error => {
-			throw new Error(`failed creating maven dependency tree: ${error.stderr}`)
+			throw new Error(`failed creating maven dependency tree`, {cause: error})
 		})
 		// read dependency tree from temp file
 		let content = fs.readFileSync(`${tmpDepTree}`)
@@ -149,7 +149,7 @@ export default class Java_maven extends Base_java {
 			if (error.code === 'ENOENT') {
 				throw new Error(`maven not accessible at "${mvn}"`)
 			} else {
-				throw new Error(`failed to check for maven: ${error.stderr}`)
+				throw new Error(`failed to check for maven`, {cause: error})
 			}
 		})
 		// create temp files for pom and effective pom
@@ -170,7 +170,7 @@ export default class Java_maven extends Base_java {
 
 		// create effective pom and save to temp file
 		this._invokeCommand(mvn, ['-q', 'help:effective-pom', `-Doutput=${tmpEffectivePom}`, '-f', targetPom], error => {
-			throw new Error(`failed creating maven effective pom: ${error.stderr}`)
+			throw new Error(`failed creating maven effective pom`, {cause: error})
 		})
 		// iterate over all dependencies in original pom and collect all ignored ones
 		let ignored = this.#getDependencies(targetPom).filter(d => d.ignore)
