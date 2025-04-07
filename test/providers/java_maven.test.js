@@ -134,7 +134,7 @@ suite('testing the java-maven data provider with modules', () => {
 			let javaMvnProvider = new Java_maven()
 			Object.getPrototypeOf(Object.getPrototypeOf(javaMvnProvider))._invokeCommand = mockedExecFunction
 			// invoke sut component analysis for scenario manifest
-			let provideDataForComponent = await javaMvnProvider.provideComponent("",{},`test/providers/tst_manifests/maven/${testCase}/pom.xml`)
+			let provideDataForComponent = javaMvnProvider.provideComponent("",{},`test/providers/tst_manifests/maven/${testCase}/pom.xml`)
 			// verify returned data matches expectation
 			expect(provideDataForComponent).to.deep.equal({
 				ecosystem: 'maven',

@@ -1,5 +1,5 @@
-import { execFileSync, execSync } from "node:child_process"
 import { PackageURL } from 'packageurl-js'
+import { invokeCommand, invokeCommandGetOutput } from "../tools.js"
 
 
 /** @typedef {import('../provider').Provider} */
@@ -112,13 +112,7 @@ export default class Base_Java {
 	 * @param callback - function to invoke if an error was thrown
 	 * @protected
 	 */
-	_invokeCommand(bin, args, callback) {
-		try {
-			execFileSync(bin, args)
-		} catch(error) {
-			callback(error)
-		}
-	}
+	_invokeCommand(bin, args, callback) { invokeCommand(bin, args, callback) }
 
 	/** this method invokes command string in a process in a synchronous way.
 	 * @param cmdString - the command to be invoked
@@ -126,11 +120,5 @@ export default class Base_Java {
 	 * @return the output of the command
 	 * @protected
 	 */
-	_invokeCommandGetOutput(cmdString, workingDir) {
-		let opts = {}
-		if(workingDir) {
-			opts.cwd = workingDir
-		}
-		return execSync(cmdString, opts)
-	}
+	_invokeCommandGetOutput(cmdString, workingDir) { return invokeCommandGetOutput(cmdString, workingDir) }
 }

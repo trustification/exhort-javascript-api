@@ -1,5 +1,6 @@
-import {EOL} from "os";
+import { EOL } from "os";
 import os from 'os';
+import { execFileSync, execSync } from "child_process";
 
 export const RegexNotToBeLogged = /EXHORT_.*_TOKEN|ex-.*-token/
 /**
@@ -93,5 +94,46 @@ export function handleSpacesInPath(path) {
  */
 function hasSpaces(path) {
 	return path.trim().includes(" ")
+}
 
+
+/** this method invokes command string in a process in a synchronous way.
+ * @param {string} bin - the command to be invoked
+ * @param {Array<string>} args - the args to pass to the binary
+ * @param callback - function to invoke if an error was thrown
+ * @protected
+ */
+export function invokeCommand(bin, args, callback) {
+	// .bat and .cmd files can't be executed in windows with execFileSync, so we special case them
+	// to use execSync here to keep the amount of escaping we need to do to a minimum.
+	// https://nodejs.org/docs/latest-v20.x/api/child_process.html#spawning-bat-and-cmd-files-on-windows
+	if (process.platform === 'win32' && (bin.endsWith(".bat") || bin.endsWith(".cmd"))) {
+		try {
+			args = args.map(arg => handleSpacesInPath(arg))
+			execSync(`${handleSpacesInPath(bin)} ${args.join(" ")}`)
+		} catch(error) {
+			callback(error)
+		}
+		return
+	}
+
+	try {
+		execFileSync(bin, args)
+	} catch(error) {
+		callback(error)
+	}
+}
+
+/** this method invokes command string in a process in a synchronous way.
+ * @param {string} cmdString - the command to be invoked
+ * @param {string} workingDir - the directory in which the command will be invoked
+ * @return the output of the command
+ * @protected
+ */
+export function invokeCommandGetOutput(cmdString, workingDir) {
+	let opts = {}
+	if(workingDir) {
+		opts.cwd = workingDir
+	}
+	return execSync(cmdString, opts)
 }
