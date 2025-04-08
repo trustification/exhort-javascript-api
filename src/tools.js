@@ -110,9 +110,7 @@ export function invokeCommand(bin, args, callback, opts={}) {
 	if (process.platform === 'win32' && (bin.endsWith(".bat") || bin.endsWith(".cmd"))) {
 		try {
 			args = args.map(arg => handleSpacesInPath(arg))
-			return execSync(`${handleSpacesInPath(bin)} ${args.join(" ")}`, opts & {
-				stdio: 'pipe'
-			})
+			return execSync(`${handleSpacesInPath(bin)} ${args.join(" ")}`, {...{stdio: 'pipe'}, ...opts})
 		} catch(error) {
 			callback(error)
 		}
@@ -120,9 +118,7 @@ export function invokeCommand(bin, args, callback, opts={}) {
 	}
 
 	try {
-		return execFileSync(bin, args, opts & {
-			stdio: 'pipe'
-		})
+		return execFileSync(bin, args, {...{stdio: 'pipe'}, ...opts})
 	} catch(error) {
 		callback(error)
 	}
