@@ -7,21 +7,19 @@ let clock
 
 /** this function is parsing the outputfile path from the given command, and write that file the providerContent supplied.
  *
- * @param {string}command - the command string to be executed
+ * @param {Array<string>}args - the args passed to the binary
  * @param {string}providerContent - the content of the mocked data to replace original content in intercepted temp file
  * @param {string} outputFileParameter - name of the parameter indicating the output file of the command invocation, including '='.
  * @private
  */
 
-function getStubbedResponse(command, dependencyTreeTextContent, gradleProperties) {
-	if (command.includes("dependencies")) {
+function getStubbedResponse(args, dependencyTreeTextContent, gradleProperties) {
+	if (args.includes("dependencies")) {
 		return dependencyTreeTextContent
-	} else {
-		if (command.includes("properties")) {
-			return gradleProperties
-		}
+	} else if (args.includes("properties")) {
+		return gradleProperties
 	}
-	return undefined
+	return ''
 }
 
 suite('testing the java-gradle-groovy data provider', () => {
@@ -50,11 +48,11 @@ suite('testing the java-gradle-groovy data provider', () => {
 			let dependencyTreeTextContent = fs.readFileSync(`test/providers/tst_manifests/gradle/${testCase}/depTree.txt`,).toString()
 			let gradleProperties = fs.readFileSync(`test/providers/tst_manifests/gradle/${testCase}/gradle.properties`,).toString()
 			expectedSbom = JSON.stringify(JSON.parse(expectedSbom),null, 4)
-			let mockedExecFunction = function(command){
-				return getStubbedResponse(command, dependencyTreeTextContent, gradleProperties);
+			let mockedExecFunction = function(bin, args){
+				return getStubbedResponse(args, dependencyTreeTextContent, gradleProperties);
 			}
 			let javGradleProvider = new Java_gradle_groovy()
-			Object.getPrototypeOf(Object.getPrototypeOf(javGradleProvider))._invokeCommandGetOutput = mockedExecFunction
+			Object.getPrototypeOf(Object.getPrototypeOf(javGradleProvider))._invokeCommand = mockedExecFunction
 			// invoke sut stack analysis for scenario manifest
 			let providedDataForStack =  javGradleProvider.provideStack(`test/providers/tst_manifests/gradle/${testCase}/build.gradle`)
 			// verify returned data matches expectation
@@ -76,11 +74,11 @@ suite('testing the java-gradle-groovy data provider', () => {
 			expectedSbom = JSON.stringify(JSON.parse(expectedSbom),null, 4)
 			let dependencyTreeTextContent = fs.readFileSync(`test/providers/tst_manifests/gradle/${testCase}/depTree.txt`,).toString()
 			let gradleProperties = fs.readFileSync(`test/providers/tst_manifests/gradle/${testCase}/gradle.properties`,).toString()
-			let mockedExecFunction = function(command){
-				return getStubbedResponse(command, dependencyTreeTextContent, gradleProperties);
+			let mockedExecFunction = function(bin, args){
+				return getStubbedResponse(args, dependencyTreeTextContent, gradleProperties);
 			}
 			let javaGradleProvider = new Java_gradle_groovy()
-			Object.getPrototypeOf(Object.getPrototypeOf(javaGradleProvider))._invokeCommandGetOutput = mockedExecFunction
+			Object.getPrototypeOf(Object.getPrototypeOf(javaGradleProvider))._invokeCommand = mockedExecFunction
 			// invoke sut component analysis for scenario manifest
 			let provdidedForComponent = javaGradleProvider.provideComponent("",{},`test/providers/tst_manifests/gradle/${testCase}/build.gradle`)
 			// verify returned data matches expectation

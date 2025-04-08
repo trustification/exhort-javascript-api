@@ -1,12 +1,11 @@
-import {XMLParser} from 'fast-xml-parser'
+import { XMLParser } from 'fast-xml-parser'
 import fs from 'node:fs'
-import {getCustomPath,handleSpacesInPath} from "../tools.js";
+import { getCustomPath } from "../tools.js";
 import os from 'node:os'
 import path from 'node:path'
 import Sbom from '../sbom.js'
-import {EOL} from 'os'
-import Base_java, {ecosystem_maven} from "./base_java.js";
-
+import { EOL } from 'os'
+import Base_java, { ecosystem_maven } from "./base_java.js";
 
 
 /** @typedef {import('../provider').Provider} */
@@ -16,8 +15,6 @@ import Base_java, {ecosystem_maven} from "./base_java.js";
 /** @typedef {{name: string, version: string}} Package */
 
 /** @typedef {{groupId: string, artifactId: string, version: string, scope: string, ignore: boolean}} Dependency */
-
-
 
 export default class Java_maven extends Base_java {
 
@@ -77,25 +74,36 @@ export default class Java_maven extends Base_java {
 		// get custom maven path
 		let mvn = getCustomPath('mvn', opts)
 		// verify maven is accessible
-		this._invokeCommand(`${handleSpacesInPath(mvn)} --version`,'mvn is not accessible')
+		this._invokeCommand(mvn, ['--version'], error => {
+			if (error.code === 'ENOENT') {
+				throw new Error(`maven not accessible at "${mvn}"`)
+			} else {
+				throw new Error(`failed to check for maven`, {cause: error})
+			}
+		})
 		// clean maven target
-		this._invokeCommand(`${handleSpacesInPath(mvn)} -q clean -f ${handleSpacesInPath(manifest)}`,'failed cleaning maven target')
+		this._invokeCommand(mvn, ['-q', 'clean', '-f', manifest], error => {
+			throw new Error(`failed to clean maven target`, {cause: error})
+		})
+
 		// create dependency graph in a temp file
 		let tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'exhort_'))
 		let tmpDepTree = path.join(tmpDir, 'mvn_deptree.txt')
 		// build initial command (dot outputType is not available for verbose mode)
-		let depTreeCmd = `${handleSpacesInPath(mvn)} -q org.apache.maven.plugins:maven-dependency-plugin:3.6.0:tree -Dverbose -DoutputType=text -DoutputFile=${handleSpacesInPath(tmpDepTree)} -f ${handleSpacesInPath(manifest)}`
+		let depTreeCmdArgs = ['-q', 'org.apache.maven.plugins:maven-dependency-plugin:3.6.0:tree', '-Dverbose', '-DoutputType=text', `-DoutputFile=${tmpDepTree}`, '-f', manifest]
 		// exclude ignored dependencies, exclude format is groupId:artifactId:scope:version.
 		// version and scope are marked as '*' if not specified (we do not use scope yet)
 		let ignoredDeps = new Array()
 		this.#getDependencies(manifest).forEach(dep => {
 			if (dep.ignore) {
-				depTreeCmd += ` -Dexcludes=${dep['groupId']}:${dep['artifactId']}:${dep['scope']}:${dep['version']}`
+				depTreeCmdArgs.push(`-Dexcludes=${dep['groupId']}:${dep['artifactId']}:${dep['scope']}:${dep['version']}`)
 				ignoredDeps.push(this.toPurl(dep.groupId, dep.artifactId, dep.version).toString())
 			}
 		})
 		// execute dependency tree command
-		this._invokeCommand(depTreeCmd,"failed creating maven dependency tree");
+		this._invokeCommand(mvn, depTreeCmdArgs, error => {
+			throw new Error(`failed creating maven dependency tree`, {cause: error})
+		})
 		// read dependency tree from temp file
 		let content = fs.readFileSync(`${tmpDepTree}`)
 		if (process.env["EXHORT_DEBUG"] === "true") {
@@ -137,7 +145,13 @@ export default class Java_maven extends Base_java {
 		// get custom maven path
 		let mvn = getCustomPath('mvn', opts)
 		// verify maven is accessible
-		this._invokeCommand(`${handleSpacesInPath(mvn)} --version`,'mvn is not accessible')
+		this._invokeCommand(mvn, ['--version'], error => {
+			if (error.code === 'ENOENT') {
+				throw new Error(`maven not accessible at "${mvn}"`)
+			} else {
+				throw new Error(`failed to check for maven`, {cause: error})
+			}
+		})
 		// create temp files for pom and effective pom
 		let tmpDir
 		let tmpEffectivePom
@@ -155,7 +169,9 @@ export default class Java_maven extends Base_java {
 		}
 
 		// create effective pom and save to temp file
-		this._invokeCommand(`${handleSpacesInPath(mvn)} -q help:effective-pom -Doutput=${handleSpacesInPath(tmpEffectivePom)} -f ${handleSpacesInPath(targetPom)}`,'failed creating maven effective pom')
+		this._invokeCommand(mvn, ['-q', 'help:effective-pom', `-Doutput=${tmpEffectivePom}`, '-f', targetPom], error => {
+			throw new Error(`failed creating maven effective pom`, {cause: error})
+		})
 		// iterate over all dependencies in original pom and collect all ignored ones
 		let ignored = this.#getDependencies(targetPom).filter(d => d.ignore)
 		// iterate over all dependencies and create a package for every non-ignored one

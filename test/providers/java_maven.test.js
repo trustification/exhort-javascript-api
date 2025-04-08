@@ -7,17 +7,13 @@ let clock
 
 /** this function is parsing the outputfile path from the given command, and write that file the providerContent supplied.
  *
- * @param {string}command - the command string to be executed
+ * @param {Array<string>}args - the arguments to pass to the binary
  * @param {string}providerContent - the content of the mocked data to replace original content in intercepted temp file
- * @param {string} outputFileParameter - name of the parameter indicating the output file of the command invocation, including '='.
+ * @param {string}outputFileParameter - name of the parameter indicating the output file of the command invocation, including '='.
  * @private
  */
-function interceptAndOverwriteDataWithMock(command, providerContent, outputFileParameter) {
-	let length = outputFileParameter.length;
-	let indexOf = command.indexOf(outputFileParameter);
-	let outputFileTokenPlusRest = command.substring(indexOf + length);
-	let endOfOutputFile = outputFileTokenPlusRest.indexOf("-f");
-	let interceptedFilePath = outputFileTokenPlusRest.substring(0, endOfOutputFile).trim()
+function interceptAndOverwriteDataWithMock(args, providerContent, outputFileParameter) {
+	const interceptedFilePath = args.find(arg => arg.includes(outputFileParameter)).split("=")[1]
 	fs.writeFileSync(interceptedFilePath, providerContent)
 }
 
@@ -67,9 +63,9 @@ suite('testing the java-maven data provider', () => {
 			let expectedSbom = fs.readFileSync(`test/providers/tst_manifests/maven/${testCase}/stack_analysis_expected_sbom.json`,).toString().trim()
 			let dependencyTreeTextContent = fs.readFileSync(`test/providers/tst_manifests/maven/${testCase}/dep-tree.txt`,).toString()
 			expectedSbom = JSON.stringify(JSON.parse(expectedSbom),null, 4)
-			let mockedExecFunction = function(command){
-				if(command.includes(":tree")){
-					interceptAndOverwriteDataWithMock(command,dependencyTreeTextContent,"DoutputFile=")
+			let mockedExecFunction = function(bin, args){
+				if (args.find(arg => arg.includes(":tree"))) {
+					interceptAndOverwriteDataWithMock(args, dependencyTreeTextContent, "DoutputFile=")
 				}
 			}
 			let javaMvnProvider = new Java_maven()
@@ -95,9 +91,9 @@ suite('testing the java-maven data provider', () => {
 			expectedSbom = JSON.stringify(JSON.parse(expectedSbom))
 			let effectivePomContent = fs.readFileSync(`test/providers/tst_manifests/maven/${testCase}/effective-pom.xml`,).toString()
 			let manifestContent = fs.readFileSync(`test/providers/tst_manifests/maven/${testCase}/pom.xml`).toString()
-			let mockedExecFunction = function(command){
-				if(command.includes(":effective-pom")){
-					interceptAndOverwriteDataWithMock(command, effectivePomContent,"Doutput=");
+			let mockedExecFunction = function(bin, args){
+				if (args.find(arg => arg.includes(":effective-pom"))){
+					interceptAndOverwriteDataWithMock(args, effectivePomContent, "Doutput=");
 				}
 			}
 			let javaMvnProvider = new Java_maven()
@@ -130,15 +126,15 @@ suite('testing the java-maven data provider with modules', () => {
 			// read target manifest file
 			expectedSbom = JSON.stringify(JSON.parse(expectedSbom))
 			let effectivePomContent = fs.readFileSync(`test/providers/tst_manifests/maven/${testCase}/effectivePom.xml`,).toString()
-			let mockedExecFunction = function(command){
-				if(command.includes(":effective-pom")){
-					interceptAndOverwriteDataWithMock(command, effectivePomContent,"Doutput=");
+			let mockedExecFunction = function(command, args){
+				if (args.find(arg => arg.includes(":effective-pom"))){
+					interceptAndOverwriteDataWithMock(args, effectivePomContent, "Doutput=");
 				}
 			}
 			let javaMvnProvider = new Java_maven()
 			Object.getPrototypeOf(Object.getPrototypeOf(javaMvnProvider))._invokeCommand = mockedExecFunction
 			// invoke sut component analysis for scenario manifest
-			let provideDataForComponent = await javaMvnProvider.provideComponent("",{},`test/providers/tst_manifests/maven/${testCase}/pom.xml`)
+			let provideDataForComponent = javaMvnProvider.provideComponent("",{},`test/providers/tst_manifests/maven/${testCase}/pom.xml`)
 			// verify returned data matches expectation
 			expect(provideDataForComponent).to.deep.equal({
 				ecosystem: 'maven',
