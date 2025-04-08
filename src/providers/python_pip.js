@@ -1,11 +1,9 @@
-
-import {execSync} from "node:child_process";
 import fs from 'node:fs'
 import {
 	environmentVariableIsPopulated,
 	getCustom,
 	getCustomPath,
-	handleSpacesInPath
+	invokeCommand
 } from "../tools.js";
 import os from 'node:os'
 import path from 'node:path'
@@ -158,25 +156,30 @@ function handleIgnoredDependencies(requirementTxtContent, sbom,opts ={}) {
  * @param {{}} [opts={}]
  */
 function getPythonPipBinaries(binaries,opts) {
-	let python = getCustomPath("python3",opts)
-	let pip = getCustomPath("pip3",opts)
-	try {
-		execSync(`${handleSpacesInPath(python)} --version`)
-		execSync(`${handleSpacesInPath(pip)} --version`)
-	} catch (e) {
-		python = getCustomPath("python",opts)
-		pip = getCustomPath("pip",opts)
-		try {
-			execSync(`${handleSpacesInPath(python)} --version`)
-			execSync(`${handleSpacesInPath(pip)} --version`)
-		} catch (e) {
-			throw new Error(`Couldn't get python binaries from supplied environment variables ${e.getMessage}`)
+	let python = getCustomPath("python3", opts)
+	let pip = getCustomPath("pip3", opts)
+
+	const noPython3cb = (error) => {
+		if (error.code === 'ENOENT') {
+			python = getCustomPath("python", opts)
+			pip = getCustomPath("pip", opts)
+
+			const noPython2cb = (error) => {
+				throw new Error(`Couldn't get python binaries from supplied environment variables ${error.message}`)
+			}
+
+			invokeCommand(python, ['--version'], noPython2cb)
+			invokeCommand(pip, ['--version'], noPython2cb)
+		} else {
+			throw new Error(`Error checking for python3/pip3: ${error.message}`)
 		}
 	}
+
+	invokeCommand(python, ['--version'], noPython3cb)
+	invokeCommand(pip, ['--version'], noPython3cb)
+
 	binaries.pip = pip
 	binaries.python = python
-
-
 }
 
 /**

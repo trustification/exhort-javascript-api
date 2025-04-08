@@ -374,10 +374,10 @@ function bringAllDependencies(dependencies, dependencyName, cachedEnvironmentDep
 function getDependencyTreeJsonFromPipDepTree(pipPath, pythonPath) {
 	let dependencyTree
 	invokeCommand(pipPath, ['install', 'pipdeptree'], error => {
-		throw new Error(`Couldn't install pipdeptree utility, reason: ${error.getMessage}`)
+		throw new Error(`Couldn't install pipdeptree utility, reason: ${error.message}`)
 	})
 
-	const cb = (error) => { throw new Error(`couldn't produce dependency tree using pipdeptree tool, stop analysis, message -> ${error.getMessage}`) }
+	const cb = (error) => { throw new Error(`couldn't produce dependency tree using pipdeptree tool, stop analysis, message -> ${error.message}`) }
 	if(pythonPath.startsWith("python")) {
 		dependencyTree = invokeCommand('pipdeptree', ['--json'], cb).toString()
 	} else {
