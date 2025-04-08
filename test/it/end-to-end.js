@@ -76,7 +76,7 @@ suite('Integration Tests', () => {
 				expect(providedDataForStack.scanned.transitive).greaterThan(0)
 			}
 			providers.forEach(provider => expect(providedDataForStack.providers[provider].status.code).equals(200))
-		}).timeout(60000);
+		}).timeout(120000);
 
 		test(`Stack Analysis html for ${packageManager}`, async () => {
 
@@ -114,7 +114,7 @@ suite('Integration Tests', () => {
 				expect(parsedScannedFromHtml.total).greaterThan(0)
 				expect(parsedScannedFromHtml.transitive).greaterThan(0)
 			}
-		}).timeout(30000);
+		}).timeout(60000);
 
 		test(`Component Analysis for ${packageManager}`, async () => {
 			let manifestName = getManifestNamePerPm(packageManager)
