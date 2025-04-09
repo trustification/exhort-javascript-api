@@ -1,6 +1,8 @@
-import { EOL } from "os";
-import os from 'os';
-import { execFileSync, execSync } from "child_process";
+import { EOL } from "os"
+import os from 'os'
+import { execFileSync, execSync } from "child_process"
+
+/** @typedef { import("child_process").ExecSyncOptionsWithBufferEncoding } ExecSyncOptionsWithBufferEncoding */
 
 export const RegexNotToBeLogged = /EXHORT_.*_TOKEN|ex-.*-token/
 /**
@@ -9,19 +11,15 @@ export const RegexNotToBeLogged = /EXHORT_.*_TOKEN|ex-.*-token/
  * @param {{}} [opts={}] different options of application, if key in it, log it.
  * @param {string }defValue default value of key in case there is no option and environment variable values for key
  */
-export function logValueFromObjects(key,opts, defValue) {
+export function logValueFromObjects(key, opts, defValue) {
 	if(key in opts) {
 		console.log(`value of option with key ${key} = ${opts[key]} ${EOL}`)
-	}
-	else
-	{
+	} else {
 		console.log(`key ${key} doesn't exists on opts object ${EOL}`)
 	}
 	if(key in process.env) {
 		console.log(`value of environment variable ${key} = ${process.env[key]} ${EOL}`)
-	}
-	else
-	{
+	} else {
 		console.log(`environment variable ${key} doesn't exists ${EOL}`)
 	}
 	console.log(`default value for ${key} = ${defValue} ${EOL}`)
@@ -38,8 +36,7 @@ export function logValueFromObjects(key,opts, defValue) {
  * 		default supplied
  */
 export function getCustom(key, def = null, opts = {}) {
-	if (process.env["EXHORT_DEBUG"] === "true" && !key.match(RegexNotToBeLogged))
-	{
+	if (process.env["EXHORT_DEBUG"] === "true" && !key.match(RegexNotToBeLogged)) {
 		logValueFromObjects(key,opts,def)
 	}
 	return key in process.env ? process.env[key] : key in opts && typeof opts[key] === 'string' ? opts[key] : def
@@ -60,7 +57,7 @@ export function getCustomPath(name, opts = {}) {
 }
 
 export function environmentVariableIsPopulated(envVariableName) {
-	return envVariableName in process.env && process.env[envVariableName].trim() !== "";
+	return envVariableName in process.env && process.env[envVariableName].trim() !== ""
 }
 
 /**
@@ -96,11 +93,12 @@ function hasSpaces(path) {
 	return path.trim().includes(" ")
 }
 
-
 /** this method invokes command string in a process in a synchronous way.
  * @param {string} bin - the command to be invoked
  * @param {Array<string>} args - the args to pass to the binary
  * @param callback - function to invoke if an error was thrown
+ * @param {ExecSyncOptionsWithBufferEncoding} [opts={}] options to pass to exec
+ * @return the output of the command
  * @protected
  */
 export function invokeCommand(bin, args, callback, opts={}) {
