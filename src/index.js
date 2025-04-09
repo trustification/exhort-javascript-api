@@ -1,10 +1,10 @@
 import path from "node:path";
-import {EOL} from "os";
+import { EOL } from "os";
 import { availableProviders, match } from './provider.js'
-import {AnalysisReport} from '../generated/backend/AnalysisReport.js'
+import { AnalysisReport } from '../generated/backend/AnalysisReport.js'
 import analysis from './analysis.js'
 import fs from 'node:fs'
-import {getCustom} from "./tools.js";
+import { getCustom } from "./tools.js";
 import.meta.dirname
 import * as url from 'url';
 // const packageJson = await import ('../package.json',{ with: { type: 'json' } })
@@ -21,7 +21,6 @@ function logOptionsAndEnvironmentsVariables(alongsideText,valueToBePrinted) {
 	if (process.env["EXHORT_DEBUG"] === "true") {
 		console.log(`${alongsideText}: ${valueToBePrinted} ${EOL}`)
 	}
-
 }
 
 function readAndPrintVersionFromPackageJson() {
@@ -66,9 +65,7 @@ function selectExhortBackend(opts= {}) {
 	let exhortDevMode = getCustom("EXHORT_DEV_MODE",exhortDevModeBundled,opts)
 	if(exhortDevMode !== null && exhortDevMode.toString() === "true") {
 		result = getCustom('DEV_EXHORT_BACKEND_URL',exhortDevDefaultUrl,opts);
-	}
-	else
-	{
+	} else {
 		result = exhortDefaultUrl
 	}
 
@@ -82,8 +79,7 @@ function selectExhortBackend(opts= {}) {
  * @param opts
  * @return {string}
  */
-export function testSelectExhortBackend(opts)
-{
+export function testSelectExhortBackend(opts) {
 	return selectExhortBackend(opts)
 }
 
@@ -111,17 +107,17 @@ async function stackAnalysis(manifest, html = false, opts = {}) {
 
 /**
  * Get component analysis report for a manifest content.
- * @param {string} manifestType - the name and type of the manifest
- * @param {string} data - the content of the manifest
+ * @param {string} manifest - path to the manifest
  * @param {{}} [opts={}] - optional various options to pass along the application
  * @returns {Promise<AnalysisReport>}
  * @throws {Error} if no matching provider, failed to get create content, or backend request failed
  */
-async function componentAnalysis(manifestType, data, opts = {}, path = '') {
+async function componentAnalysis(manifest, opts = {}) {
 	theUrl = selectExhortBackend(opts)
-	opts["manifest-type"] = manifestType
-	let provider = match(manifestType, availableProviders) // throws error if no matching provider
-	return await analysis.requestComponent(provider, data, theUrl, opts,path) // throws error request sending failed
+	fs.accessSync(manifest, fs.constants.R_OK)
+	opts["manifest-type"] = path.basename(manifest)
+	let provider = match(manifest, availableProviders) // throws error if no matching provider
+	return await analysis.requestComponent(provider, manifest, theUrl, opts) // throws error request sending failed
 }
 
 async function validateToken(opts = {}) {

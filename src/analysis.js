@@ -68,21 +68,16 @@ async function requestStack(provider, manifest, url, html = false, opts = {}) {
 /**
  * Send a component analysis request and get the report as 'application/json'.
  * @param {import('./provider').Provider} provider - the provided data for constructing the request
- * @param {string} data - the content or the path of the manifest
+ * @param {string} manifest - path for the manifest
  * @param {string} url - the backend url to send the request to
  * @param {{}} [opts={}] - optional various options to pass along the application
  * @returns {Promise<import('../generated/backend/AnalysisReport').AnalysisReport>}
  */
-async function requestComponent(provider, data, url, opts = {}, path = '') {
-	if(data.trim() !== "") {
-		opts["source-manifest"]= Buffer.from(data).toString('base64')
-		// for gradle component analysis is an exception and requires only path exclusively, and not data content.
-	}else {
-		opts["source-manifest"]= Buffer.from(fs.readFileSync(path).toString()).toString('base64')
-	}
+async function requestComponent(provider, manifest, url, opts = {}) {
+	opts["source-manifest"] = Buffer.from(fs.readFileSync(path).toString()).toString('base64')
 
-	let provided = provider.provideComponent(data, opts,path) // throws error if content providing failed
-	opts["source-manifest"]= ""
+	let provided = provider.provideComponent(path, opts) // throws error if content providing failed
+	opts["source-manifest"] = ""
 	opts[rhdaOperationTypeHeader.toUpperCase().replaceAll("-","_")] = "component-analysis"
 	if (process.env["EXHORT_DEBUG"] === "true") {
 		console.log("Starting time of sending component analysis request to exhort server= " + new Date())

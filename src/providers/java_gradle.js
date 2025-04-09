@@ -2,8 +2,8 @@ import fs from 'node:fs'
 import {getCustomPath} from "../tools.js";
 import path from 'node:path'
 import Sbom from '../sbom.js'
-import {EOL} from 'os'
-import Base_java, {ecosystem_gradle} from "./base_java.js";
+import { EOL } from 'os'
+import Base_java, { ecosystem_gradle } from "./base_java.js";
 import TOML from 'fast-toml'
 
 
@@ -137,15 +137,15 @@ export default class Java_gradle extends Base_java {
 
 	/**
 	 * Provide content and content type for maven-maven component analysis.
-	 * @param {string} data - content of pom.xml for component report
+	 * @param {string} manifest - path to pom.xml for component report
 	 * @param {{}} [opts={}] - optional various options to pass along the application
 	 * @returns {Provided}
 	 */
 
-	provideComponent(data, opts = {}, path = '') {
+	provideComponent(manifest, opts = {}) {
 		return {
 			ecosystem: ecosystem_gradle,
-			content: this.#getSbomForComponentAnalysis(opts, path),
+			content: this.#getSbomForComponentAnalysis(manifest, opts),
 			contentType: 'application/vnd.cyclonedx+json'
 		}
 	}
@@ -212,7 +212,7 @@ export default class Java_gradle extends Base_java {
 	 * @returns {string} - sbom string of the direct dependencies of build.gradle
 	 * @private
 	 */
-	#getSbomForComponentAnalysis(opts = {}, manifestPath) {
+	#getSbomForComponentAnalysis(manifestPath, opts = {}) {
 		let content = this.#getDependencies(manifestPath)
 		let properties = this.#extractProperties(manifestPath, opts)
 		let configurationNames = componentAnalysisConfigs

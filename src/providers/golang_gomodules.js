@@ -1,12 +1,11 @@
 // import {exec} from "child_process";
 import { execSync } from "node:child_process"
 import fs from 'node:fs'
-import os from "node:os";
-import {EOL} from "os";
-import {getCustom, getCustomPath, handleSpacesInPath} from "../tools.js";
+import { EOL } from "os";
+import { getCustom, getCustomPath, handleSpacesInPath } from "../tools.js";
 import path from 'node:path'
 import Sbom from '../sbom.js'
-import {PackageURL} from 'packageurl-js'
+import { PackageURL } from 'packageurl-js'
 
 export default { isSupported, validateLockFile, provideComponent, provideStack }
 
@@ -51,30 +50,19 @@ function provideStack(manifest, opts = {}) {
 	}
 }
 
-function getComponent(data, opts) {
-	let tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'exhort_'))
-	let tmpGoMod = path.join(tmpDir, 'go.mod')
-	fs.writeFileSync(tmpGoMod, data)
-	let sbom = getSBOM(tmpGoMod,opts,false);
-	fs.rmSync(tmpDir, {recursive: true, force: true})
-	return sbom
-
-}
-
 /**
  * Provide content and content type for maven-maven component analysis.
- * @param {string} data - content of go.mod for component report
+ * @param {string} manifest - path to go.mod for component report
  * @param {{}} [opts={}] - optional various options to pass along the application
  * @returns {Provided}
  */
-function provideComponent(data, opts = {}) {
+function provideComponent(manifest, opts = {}) {
 	return {
 		ecosystem,
-		content: getComponent(data,opts),
+		content: getSBOM(manifest, opts, false),
 		contentType: 'application/vnd.cyclonedx+json'
 	}
 }
-
 
 function getGoGraphCommand(goBin) {
 	return `${handleSpacesInPath(goBin)} mod graph `;

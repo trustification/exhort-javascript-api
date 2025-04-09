@@ -44,10 +44,8 @@ suite('testing the golang-go-modules data provider', () => {
 			// load the expected list for the scenario
 			let expectedSbom = fs.readFileSync(`test/providers/tst_manifests/golang/${testCase}/expected_sbom_component_analysis.json`,).toString().trimEnd()
 			expectedSbom = JSON.stringify(JSON.parse(expectedSbom),null, 4)
-			// read target manifest file
-			let manifestContent = fs.readFileSync(`test/providers/tst_manifests/golang/${testCase}/go.mod`).toString()
 			// invoke sut stack analysis for scenario manifest
-			let providedDataForComponent = await golangGoModules.provideComponent(manifestContent)
+			let providedDataForComponent = await golangGoModules.provideComponent(`test/providers/tst_manifests/golang/${testCase}/go.mod`)
 			// verify returned data matches expectation
 			expect(providedDataForComponent.ecosystem).equal('golang')
 			expect(providedDataForComponent.contentType).equal('application/vnd.cyclonedx+json')

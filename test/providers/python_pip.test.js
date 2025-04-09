@@ -5,19 +5,15 @@ import sinon from "sinon";
 import pythonPip from "../../src/providers/python_pip.js"
 import {getCustomPath } from "../../src/tools.js"
 
-
-
 let clock
 
 async function sharedComponentAnalysisTestFlow(testCase,usePipDepTreeUtility) {
 	// load the expected list for tsharedComponentAnalysisTestFlowhe scenario
 	let expectedSbom = fs.readFileSync(`test/providers/tst_manifests/pip/${testCase}/expected_component_sbom.json`,).toString().trim()
 	expectedSbom = JSON.stringify(JSON.parse(expectedSbom))
-	// read target manifest file
-	let manifestContent = fs.readFileSync(`test/providers/tst_manifests/pip/${testCase}/requirements.txt`).toString()
 	// invoke sut stack analysis for scenario manifest
 	let opts = { "EXHORT_PIP_USE_DEP_TREE" : usePipDepTreeUtility }
-	let providedDatForComponent = await pythonPip.provideComponent(manifestContent,opts)
+	let providedDatForComponent = await pythonPip.provideComponent(`test/providers/tst_manifests/pip/${testCase}/requirements.txt`, opts)
 	// verify returned data matches expectation
 	expect(providedDatForComponent).to.deep.equal({
 		ecosystem: 'pip',

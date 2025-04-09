@@ -4,7 +4,7 @@ import os from "node:os";
 import { getCustomPath, handleSpacesInPath } from "../tools.js";
 import path from 'node:path'
 import Sbom from '../sbom.js'
-import {PackageURL} from 'packageurl-js'
+import { PackageURL } from 'packageurl-js'
 
 export var npmInteractions = {
 	listing: function runNpmListing(npmListing) {
@@ -91,34 +91,16 @@ function provideStack(manifest, opts = {}) {
 	}
 }
 
-function getComponent(data, opts,manifestPath) {
-	let sbom
-	if(manifestPath.trim() === '') {
-		let tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'exhort_'))
-		let tmpPackageJson = path.join(tmpDir, 'package.json')
-		fs.writeFileSync(tmpPackageJson, data)
-		sbom = getSBOM(tmpPackageJson,opts,false);
-		fs.rmSync(tmpDir, {recursive: true, force: true})
-	}
-	else {
-		sbom = getSBOM(manifestPath,opts,false);
-	}
-
-
-	return sbom
-
-}
-
 /**
  * Provide content and content type for maven-maven component analysis.
- * @param {string} data - content of pom.xml for component report
+ * @param {string} manifest - path to pom.xml for component report
  * @param {{}} [opts={}] - optional various options to pass along the application
  * @returns {Provided}
  */
-function provideComponent(data, opts = {}, path = '') {
+function provideComponent(manifest, opts = {}) {
 	return {
 		ecosystem,
-		content: getComponent(data,opts,path),
+		content: getSBOM(manifest, opts,false),
 		contentType: 'application/vnd.cyclonedx+json'
 	}
 }

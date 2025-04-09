@@ -59,6 +59,10 @@ export function getCustomPath(name, opts = {}) {
 	return getCustom(`EXHORT_${name.toUpperCase()}_PATH`, name, opts)
 }
 
+export function getWrapperPreference(name, opts = {}) {
+	return getCustom(`EXHORT_PREFER_${name.toUpperCase()}W`, true, opts)
+}
+
 export function environmentVariableIsPopulated(envVariableName) {
 	return envVariableName in process.env && process.env[envVariableName].trim() !== "";
 }
