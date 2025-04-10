@@ -79,8 +79,6 @@ suite('testing the javascript-npm data provider', async() => {
 			let expectedSbom = fs.readFileSync(`test/providers/tst_manifests/npm/${testCase}/component_expected_sbom.json`,).toString().trim()
 			expectedSbom = JSON.stringify(JSON.parse(expectedSbom))
 			let npmListing = fs.readFileSync(`test/providers/tst_manifests/npm/${testCase}/npm_listing_component.json`,).toString()
-			// read target manifest file
-			let manifestContent = fs.readFileSync(`test/providers/tst_manifests/npm/${testCase}/package.json`).toString()
 			// sinon.stub(javascriptNpmProviderSource,'runNpmListing').callsFake(() => npmListing)
 			let mpmMockedInteractions = {
 				listing: () => npmListing,
@@ -89,7 +87,7 @@ suite('testing the javascript-npm data provider', async() => {
 			}
 			javascriptNpmProviderRewire.__set__('npmInteractions', mpmMockedInteractions)
 			// invoke sut stack analysis for scenario manifest
-			let providedDataForStack = await javascriptNpmProviderRewire.__get__("provideComponent")(manifestContent)
+			let providedDataForStack = await javascriptNpmProviderRewire.__get__("provideComponent")(`test/providers/tst_manifests/npm/${testCase}/package.json`)
 			// verify returned data matches expectation
 			expect(providedDataForStack).to.deep.equal({
 				ecosystem: 'npm',
