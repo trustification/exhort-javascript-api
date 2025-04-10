@@ -1,12 +1,7 @@
-import fs from "node:fs";
 // import {AnalysisReport} from '../../generated/backend/AnalysisReport.js'
 import index from "../../src/index.js"
 import { expect } from 'chai'
 // import fs from 'node:fs'
-
-function getManifestNamePerPm(packageManager) {
-	return packageManagersDict[packageManager];
-}
 
 const packageManagersDict =
 	{
@@ -27,8 +22,7 @@ function getParsedKeyFromHtml(html, key,keyLength) {
 function extractTotalsGeneralOrFromProvider(providedDataForStack, provider) {
 	if(providedDataForStack.providers[provider].sources.length > 0) {
 		return providedDataForStack.providers[provider].sources[provider].summary.total;
-	}
-	else {
+	} else {
 		return providedDataForStack.scanned.total;
 	}
 }
@@ -54,16 +48,13 @@ suite('Integration Tests', () => {
 			// process.env["RHDA_TOKEN"] = "34JKLDS-4234809-66666666666"
 			// process.env["RHDA_SOURCE"] = "Zvika Client"
 			// let result = await index.stackAnalysis("/tmp/rajan-0410/go.mod", false, opts);
-			if(packageManager === "pip")
-			{
+			if(packageManager === "pip") {
 				process.env["EXHORT_PYTHON_VIRTUAL_ENV"] = "true"
-			}
-			else
-			{
+			} else {
 				process.env["EXHORT_PYTHON_VIRTUAL_ENV"] = ""
 			}
 			process.env["EXHORT_DEV_MODE"] = "true"
-			let manifestName = getManifestNamePerPm(packageManager)
+			let manifestName = packageManagersDict[packageManager]
 			let pomPath = `test/it/test_manifests/${packageManager}/${manifestName}`
 			let providedDataForStack = await index.stackAnalysis(pomPath)
 			console.log(JSON.stringify(providedDataForStack,null , 4))
@@ -71,24 +62,19 @@ suite('Integration Tests', () => {
 			providers.forEach(provider => expect(extractTotalsGeneralOrFromProvider(providedDataForStack, provider)).greaterThan(0))
 			//TO DO - if sources doesn't exists, add "scanned" instead
 			// python transitive count for stack analysis is awaiting fix in exhort backend
-			if(packageManager !== "pip")
-			{
+			if(packageManager !== "pip") {
 				expect(providedDataForStack.scanned.transitive).greaterThan(0)
 			}
 			providers.forEach(provider => expect(providedDataForStack.providers[provider].status.code).equals(200))
 		}).timeout(120000);
 
 		test(`Stack Analysis html for ${packageManager}`, async () => {
-
-			let manifestName = getManifestNamePerPm(packageManager)
+			let manifestName = packageManagersDict[packageManager]
 			let pomPath = `test/it/test_manifests/${packageManager}/${manifestName}`
 			let html = await index.stackAnalysis(pomPath,true)
-			if(packageManager === "pip")
-			{
+			if(packageManager === "pip") {
 				process.env["EXHORT_PYTHON_VIRTUAL_ENV"] = "true"
-			}
-			else
-			{
+			} else {
 				process.env["EXHORT_PYTHON_VIRTUAL_ENV"] = ""
 			}
 			let reportParsedFromHtml
@@ -103,9 +89,7 @@ suite('Integration Tests', () => {
 				let startOfJson = html.substring(html.indexOf("\"report\" :"))
 				reportParsedFromHtml = JSON.parse("{" + startOfJson.substring(0,startOfJson.indexOf("};") + 1))
 				reportParsedFromHtml = reportParsedFromHtml.report
-			}
-			finally
-			{
+			} finally {
 				parsedStatusFromHtmlOsvNvd = reportParsedFromHtml.providers["osv"].status
 				expect(parsedStatusFromHtmlOsvNvd.code).equals(200)
 				parsedScannedFromHtml = reportParsedFromHtml.scanned
@@ -117,21 +101,14 @@ suite('Integration Tests', () => {
 		}).timeout(60000);
 
 		test(`Component Analysis for ${packageManager}`, async () => {
-			let manifestName = getManifestNamePerPm(packageManager)
+			let manifestName = packageManagersDict[packageManager]
 			let manifestPath = `test/it/test_manifests/${packageManager}/${manifestName}`
-			let analysisReport;
-			// gradle is the only package manager the supports only path for component analysis.
-			if(packageManager.startsWith('gradle')) {
-				analysisReport = await index.componentAnalysis(manifestName,"",{},manifestPath)
-			}
-			else {
-				analysisReport = await index.componentAnalysis(manifestName, fs.readFileSync(manifestPath).toString());
-			}
+			const analysisReport = await index.componentAnalysis(manifestPath)
 
 			expect(analysisReport.scanned.total).greaterThan(0)
 			expect(analysisReport.scanned.transitive).equal(0)
 			let providers = ["osv"]
-			providers.forEach(provider => expect(extractTotalsGeneralOrFromProvider(analysisReport,provider)).greaterThan(0))
+			providers.forEach(provider => expect(extractTotalsGeneralOrFromProvider(analysisReport, provider)).greaterThan(0))
 			providers.forEach(provider => expect(analysisReport.providers[provider].status.code).equals(200))
 		}).timeout(20000);
 

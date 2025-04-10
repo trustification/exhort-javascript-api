@@ -54,13 +54,8 @@ import fs from 'node:fs'
 let stackAnalysis = await exhort.stackAnalysis('/path/to/pom.xml')
 // Get stack analysis in HTML format (string)
 let stackAnalysisHtml = await exhort.stackAnalysis('/path/to/pom.xml', true)
-
 // Get component analysis in JSON format
-let buffer = fs.readFileSync('/path/to/pom.xml')
-let componentAnalysis = await exhort.componentAnalysis('pom.xml', buffer.toString())
-
-// Get Component Analysis in JSON Format for gradle
-let caGradle = await exhort.componentAnalysis("build.gradle","",{},"path/to/build.gradle")
+let componentAnalysis = await exhort.componentAnalysis('/path/to/pom.xml')
 ```
 </li>
 </ul>
@@ -108,7 +103,7 @@ Usage: exhort-javascript-api {component|stack}
 
 Commands:
   exhort-javascript-api stack </path/to/manifest> [--html|--summary]               produce stack report for manifest path
-  exhort-javascript-api component <manifest-name> <manifest-content> [--summary]   produce component report for a manifest type and content
+  exhort-javascript-api component <path/to/manifest> [--summary]   produce component report for a manifest type and content
 
 Options:
   --help  Show help                                                    [boolean]
@@ -126,7 +121,7 @@ $ npx @RHEcosystemAppEng/exhort-javascript-api stack /path/to/pom.xml --summary
 $ npx @RHEcosystemAppEng/exhort-javascript-api stack /path/to/pom.xml --html
 
 # get component analysis
-$ npx @RHEcosystemAppEng/exhort-javascript-api component pom.xml "$(</path/to/pom.xml)"
+$ npx @RHEcosystemAppEng/exhort-javascript-api component /path/to/pom.xml
 ```
 </li>
 
@@ -148,7 +143,7 @@ $ exhort-javascript-api stack /path/to/pom.xml --summary
 $ exhort-javascript-api stack /path/to/pom.xml --html
 
 # get component analysis
-$ exhort-javascript-api component pom.xml "$(</path/to/pom.xml)"
+$ exhort-javascript-api component /path/to/pom.xml
 ```
 </li>
 </ul>
@@ -319,11 +314,7 @@ let stackAnalysis = await exhort.stackAnalysis('/path/to/pom.xml', false, option
 let stackAnalysisHtml = await exhort.stackAnalysis('/path/to/pom.xml', true, options)
 
 // Get component analysis in JSON format
-let buffer = fs.readFileSync('/path/to/pom.xml')
-let componentAnalysis = await exhort.componentAnalysis('pom.xml', buffer.toString(), options)
-
-// Get component analysis in JSON format For gradle
-let caGradle = await exhort.componentAnalysis("build.gradle","",{},"path/to/build.gradle")
+let componentAnalysis = await exhort.componentAnalysis('/path/to/pom.xml', options)
 ```
  **_Environment variables takes precedence._**
 </p>

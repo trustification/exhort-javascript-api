@@ -7,27 +7,19 @@ import * as path from "path";
 
 // command for component analysis take manifest type and content
 const component = {
-	command: 'component <manifest-name> <manifest-content>',
-	desc: 'produce component report for a manifest type and content',
+	command: 'component </path/to/manifest>',
+	desc: 'produce component report for manifest path',
 	builder: yargs => yargs.positional(
-		'manifest-name',
+		'/path/to/manifest',
 		{
-			desc: 'manifest name and type',
+			desc: 'manifest path for analyzing',
 			type: 'string',
-			choices: ['pom.xml','package.json', 'go.mod', 'requirements.txt']
-
-		}
-	).positional(
-		'manifest-content',
-		{
-			desc: 'content of the manifest',
-			type: 'string',
+			normalize: true,
 		}
 	),
 	handler: async args => {
-		let manifestName = args['manifest-name']
-		let manifestContent = args['manifest-content']
-		let res = await exhort.componentAnalysis(manifestName, manifestContent)
+		let manifestName = args['/path/to/manifest']
+		let res = await exhort.componentAnalysis(manifestName)
 		console.log(JSON.stringify(res, null, 2))
 	}
 }
@@ -67,7 +59,7 @@ const stack = {
 	builder: yargs => yargs.positional(
 		'/path/to/manifest',
 		{
-			desc: 'manifest path for analysing',
+			desc: 'manifest path for analyzing',
 			type: 'string',
 			normalize: true,
 		}

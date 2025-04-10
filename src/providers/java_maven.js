@@ -152,7 +152,7 @@ export default class Java_maven extends Base_java {
 			}
 		})
 
-		const tmpEffectivePom = path.join(path.dirname(manifestPath), 'effective-pom.xml')
+		const tmpEffectivePom = path.resolve(path.join(path.dirname(manifestPath), 'effective-pom.xml'))
 		const targetPom = manifestPath
 
 		// create effective pom and save to temp file
@@ -174,7 +174,7 @@ export default class Java_maven extends Base_java {
 			let currentPurl = this.toPurl(dep.groupId, dep.artifactId, dep.version)
 			sbom.addDependency(rootComponent, currentPurl)
 		})
-		fs.rmSync(path.join(path.dirname(manifestPath), 'effective-pom.xml'))
+		fs.rmSync(tmpEffectivePom)
 
 		// return dependencies list
 		return sbom.getAsJsonString(opts)
@@ -204,7 +204,6 @@ export default class Java_maven extends Base_java {
 					pomRoot = proj
 				}
 			}
-
 		}
 		/** @type Dependency */
 		let rootDependency = {
@@ -223,8 +222,6 @@ export default class Java_maven extends Base_java {
 	 * @returns {[Dependency]} an array of dependencies
 	 * @private
 	 */
-
-
 	#getDependencies(manifest) {
 		/** @type [Dependency] */
 		let ignored = []

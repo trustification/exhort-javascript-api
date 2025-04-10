@@ -74,9 +74,9 @@ async function requestStack(provider, manifest, url, html = false, opts = {}) {
  * @returns {Promise<import('../generated/backend/AnalysisReport').AnalysisReport>}
  */
 async function requestComponent(provider, manifest, url, opts = {}) {
-	opts["source-manifest"] = Buffer.from(fs.readFileSync(path).toString()).toString('base64')
+	opts["source-manifest"] = Buffer.from(fs.readFileSync(manifest).toString()).toString('base64')
 
-	let provided = provider.provideComponent(path, opts) // throws error if content providing failed
+	let provided = provider.provideComponent(manifest, opts) // throws error if content providing failed
 	opts["source-manifest"] = ""
 	opts[rhdaOperationTypeHeader.toUpperCase().replaceAll("-","_")] = "component-analysis"
 	if (process.env["EXHORT_DEBUG"] === "true") {

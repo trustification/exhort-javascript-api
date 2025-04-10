@@ -56,20 +56,20 @@ function readAndPrintVersionFromPackageJson() {
  * @return {string} - The selected exhort backend
  * @private
  */
-function selectExhortBackend(opts= {}) {
+function selectExhortBackend(opts = {}) {
 	let result
 	if (process.env["EXHORT_DEBUG"] === "true") {
 		let packageJson = readAndPrintVersionFromPackageJson();
 	}
 	let exhortDevModeBundled = "false"
-	let exhortDevMode = getCustom("EXHORT_DEV_MODE",exhortDevModeBundled,opts)
+	let exhortDevMode = getCustom("EXHORT_DEV_MODE", exhortDevModeBundled, opts)
 	if(exhortDevMode !== null && exhortDevMode.toString() === "true") {
-		result = getCustom('DEV_EXHORT_BACKEND_URL',exhortDevDefaultUrl,opts);
+		result = getCustom('DEV_EXHORT_BACKEND_URL', exhortDevDefaultUrl, opts);
 	} else {
 		result = exhortDefaultUrl
 	}
 
-	logOptionsAndEnvironmentsVariables("Chosen exhort backend URL:",result)
+	logOptionsAndEnvironmentsVariables("Chosen exhort backend URL:", result)
 
 	return result;
 }
