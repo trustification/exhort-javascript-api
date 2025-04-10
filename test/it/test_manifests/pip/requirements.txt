@@ -1,3 +1,6 @@
 anyio==3.6.2
+	# fakepackage==11.69
 click==8.0.4
+	# sample comment that should definitely not be resolved
 Flask==2.0.3
+# another sample comment

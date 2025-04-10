@@ -204,7 +204,7 @@ export default class Python_controller {
 		// pipShowOutput = "alternative pip show output goes here for debugging"
 
 		let matchManifestVersions = getCustom("MATCH_MANIFEST_VERSIONS","true",this.options);
-		let linesOfRequirements = fs.readFileSync(this.pathToRequirements).toString().split(EOL).filter( (line) => !line.startsWith("#")).map(line => line.trim())
+		let linesOfRequirements = fs.readFileSync(this.pathToRequirements).toString().split(EOL).filter( (line) => !line.trim().startsWith("#")).map(line => line.trim())
 		let CachedEnvironmentDeps = {}
 		if(usePipDepTree !== "true") {
 			allPipShowDeps.forEach((record) => {
