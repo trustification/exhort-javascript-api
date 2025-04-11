@@ -3,7 +3,7 @@
 manifest_file_path="$1"
 output_file_path="$2"
 
-printf "Analysing the stack. Please wait..\n\n"
+printf "Analyzing the stack. Please wait..\n\n"
 
 # Getting RHDA stack analysis report using Exhort Javascript CLI.
 report=$(exhort-javascript-api stack $manifest_file_path 2>error.log)
@@ -40,7 +40,7 @@ for provider in $providers; do
   printf "  Provider Status    :"
   printf "%+40s" $message $'\n'  | sed 's/  */ /g'
 
-  code=$(echo $provider_status | jq -r '.code')  
+  code=$(echo $provider_status | jq -r '.code')
   if [ "$code" -eq 200 ]; then
     sources=$(jq -r --arg provider "$provider" '.providers[$provider].sources | keys[]' <<< "$report")
     for source in $sources; do

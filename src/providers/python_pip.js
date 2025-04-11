@@ -1,5 +1,5 @@
 
-import {execSync} from "node:child_process";
+import { execSync } from "node:child_process";
 import fs from 'node:fs'
 import {
 	environmentVariableIsPopulated,
@@ -7,11 +7,9 @@ import {
 	getCustomPath,
 	handleSpacesInPath
 } from "../tools.js";
-import os from 'node:os'
-import path from 'node:path'
 import Sbom from '../sbom.js'
-import {PackageURL} from 'packageurl-js'
-import  {EOL} from 'os'
+import { PackageURL } from 'packageurl-js'
+import { EOL } from 'os'
 import Python_controller from './python_controller.js'
 
 export default { isSupported, validateLockFile, provideComponent, provideStack }
@@ -55,14 +53,14 @@ function provideStack(manifest, opts = {}) {
 
 /**
  * Provide content and content type for python-pip component analysis.
- * @param {string} data - content of requirements.txt for component report
+ * @param {string} manifest - path to requirements.txt for component report
  * @param {{}} [opts={}] - optional various options to pass along the application
  * @returns {Provided}
  */
-function provideComponent(data, opts = {}) {
+function provideComponent(manifest, opts = {}) {
 	return {
 		ecosystem,
-		content: getSbomForComponentAnalysis(data, opts),
+		content: getSbomForComponentAnalysis(manifest, opts),
 		contentType: 'application/vnd.cyclonedx+json'
 	}
 }
@@ -83,27 +81,21 @@ function addAllDependencies(source, dep, sbom) {
 	if (directDeps !== undefined && directDeps.length > 0) {
 		directDeps.forEach( (dependency) =>{ addAllDependencies(toPurl(dep["name"],dep["version"]),dependency,sbom)})
 	}
-
-
 }
-
-
 
 /**
  *
  * @param nameVersion
  * @return {string}
  */
-function splitToNameVersion(nameVersion)
-{
+function splitToNameVersion(nameVersion) {
 	let result = []
 	if(nameVersion.includes("==")) {
 		result = nameVersion.split("==")
-	}
-	else {
+	} else {
 		const regex = /[^\w\s-_]/g;
 		let endIndex = nameVersion.search(regex);
-		result.push(nameVersion.substring(0,endIndex).trim())
+		result.push(nameVersion.substring(0, endIndex).trim())
 		result.push(dummyVersionNotation)
 	}
 
@@ -132,7 +124,7 @@ function getIgnoredDependencies(requirementTxtContent) {
  * @param {{Object}} opts - various options and settings for the application
  * @private
  */
-function handleIgnoredDependencies(requirementTxtContent, sbom,opts ={}) {
+function handleIgnoredDependencies(requirementTxtContent, sbom, opts ={}) {
 	let ignoredDeps = getIgnoredDependencies(requirementTxtContent)
 	let ignoredDepsVersion = ignoredDeps
 		.filter(dep => !dep.toString().includes(dummyVersionNotation) )
@@ -144,9 +136,7 @@ function handleIgnoredDependencies(requirementTxtContent, sbom,opts ={}) {
 	let matchManifestVersions = getCustom("MATCH_MANIFEST_VERSIONS","true",opts);
 	if(matchManifestVersions === "true") {
 		sbom.filterIgnoredDepsIncludingVersion(ignoredDepsVersion)
-	}
-	else
-	{
+	} else {
 		// in case of version mismatch, need to parse the name of package from the purl, and remove the package name from sbom according to name only
 		// without version
 		sbom.filterIgnoredDeps(ignoredDepsVersion.map((dep) => dep.split("@")[0].split("pkg:pypi/")[1]))
@@ -175,8 +165,6 @@ function getPythonPipBinaries(binaries,opts) {
 	}
 	binaries.pip = pip
 	binaries.python = python
-
-
 }
 
 /**
@@ -216,7 +204,6 @@ function createSbomStackAnalysis(manifest, opts = {}) {
 	let binaries = {}
 	let createVirtualPythonEnv = handlePythonEnvironment(binaries, opts);
 
-
 	let pythonController = new Python_controller(createVirtualPythonEnv === "false",binaries.pip,binaries.python,manifest,opts)
 	let dependencies = pythonController.getDependencies(true);
 	let sbom = new Sbom();
@@ -229,37 +216,31 @@ function createSbomStackAnalysis(manifest, opts = {}) {
 	// In python there is no root component, then we must remove the dummy root we added, so the sbom json will be accepted by exhort backend
 	// sbom.removeRootComponent()
 	return sbom.getAsJsonString(opts)
-
-
 }
 
 /**
  * Create a sbom json string out of a manifest content for component analysis
- * @param {string} data - content of requirements.txt
+ * @param {string} manifest - path to requirements.txt
  * @param {{}} [opts={}] - optional various options to pass along the application
  * @returns {string} the sbom json string content
  * @private
  */
-function getSbomForComponentAnalysis(data, opts = {}) {
+function getSbomForComponentAnalysis(manifest, opts = {}) {
 	let binaries = {}
 	let createVirtualPythonEnv = handlePythonEnvironment(binaries, opts);
-	let tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'exhort_'))
-	let tmpRequirementsPath = path.join(tmpDir, 'requirements.txt')
-	fs.writeFileSync(tmpRequirementsPath, data)
-	let pythonController = new Python_controller(createVirtualPythonEnv === "false",binaries.pip,binaries.python,tmpRequirementsPath,opts)
+	let pythonController = new Python_controller(createVirtualPythonEnv === "false", binaries.pip, binaries.python, manifest, opts)
 	let dependencies = pythonController.getDependencies(false);
 	let sbom = new Sbom();
-	sbom.addRoot(toPurl(DEFAULT_PIP_ROOT_COMPONENT_NAME,DEFAULT_PIP_ROOT_COMPONENT_VERSION))
+	sbom.addRoot(toPurl(DEFAULT_PIP_ROOT_COMPONENT_NAME, DEFAULT_PIP_ROOT_COMPONENT_VERSION))
 	dependencies.forEach(dep => {
-		sbom.addDependency(sbom.getRoot(),toPurl(dep.name, dep.version))
+		sbom.addDependency(sbom.getRoot(), toPurl(dep.name, dep.version))
 	})
-	fs.rmSync(tmpDir, { recursive: true, force: true });
-	handleIgnoredDependencies(data,sbom,opts)
+	let requirementTxtContent = fs.readFileSync(manifest).toString();
+	handleIgnoredDependencies(requirementTxtContent, sbom, opts)
 	// In python there is no root component, then we must remove the dummy root we added, so the sbom json will be accepted by exhort backend
 	// sbom.removeRootComponent()
 	return sbom.getAsJsonString(opts)
 }
-
 
 /**
  * Returns a PackageUrl For pip dependencies
@@ -267,9 +248,6 @@ function getSbomForComponentAnalysis(data, opts = {}) {
  * @param version
  * @return {PackageURL}
  */
-function toPurl(name,version)
-{
+function toPurl(name,version) {
 	return new PackageURL('pypi',undefined,name,version,undefined,undefined);
 }
-
-

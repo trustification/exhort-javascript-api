@@ -50,15 +50,15 @@ export default class Java_maven extends Base_java {
 
 	/**
 	 * Provide content and content type for maven-maven component analysis.
-	 * @param {string} data - content of pom.xml for component report
+	 * @param {string} manifest - path to the manifest file
 	 * @param {{}} [opts={}] - optional various options to pass along the application
 	 * @returns {Provided}
 	 */
 
-	provideComponent(data, opts = {}, path = '') {
+	provideComponent(manifest, opts = {}) {
 		return {
 			ecosystem: ecosystem_maven,
-			content: this.#getSbomForComponentAnalysis(data, opts, path),
+			content: this.#getSbomForComponentAnalysis(manifest, opts),
 			contentType: 'application/vnd.cyclonedx+json'
 		}
 	}
@@ -136,12 +136,11 @@ export default class Java_maven extends Base_java {
 
 	/**
 	 * Create a dependency list for a manifest content.
-	 * @param {string} data - content of pom.xml
 	 * @param {{}} [opts={}] - optional various options to pass along the application
 	 * @returns {[Dependency]} the Dot Graph content
 	 * @private
 	 */
-	#getSbomForComponentAnalysis(data, opts = {}, manifestPath) {
+	#getSbomForComponentAnalysis(manifestPath, opts = {}) {
 		// get custom maven path
 		let mvn = getCustomPath('mvn', opts)
 		// verify maven is accessible
@@ -152,21 +151,9 @@ export default class Java_maven extends Base_java {
 				throw new Error(`failed to check for maven`, {cause: error})
 			}
 		})
-		// create temp files for pom and effective pom
-		let tmpDir
-		let tmpEffectivePom
-		let targetPom
 
-		if (manifestPath.trim() === '') {
-			tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'exhort_'))
-			tmpEffectivePom = path.join(tmpDir, 'effective-pom.xml')
-			targetPom = path.join(tmpDir, 'target-pom.xml')
-			// write target pom content to temp file
-			fs.writeFileSync(targetPom, data)
-		} else {
-			tmpEffectivePom = path.join(path.dirname(manifestPath), 'effective-pom.xml')
-			targetPom = manifestPath
-		}
+		const tmpEffectivePom = path.resolve(path.join(path.dirname(manifestPath), 'effective-pom.xml'))
+		const targetPom = manifestPath
 
 		// create effective pom and save to temp file
 		this._invokeCommand(mvn, ['-q', 'help:effective-pom', `-Doutput=${tmpEffectivePom}`, '-f', targetPom], error => {
@@ -187,12 +174,7 @@ export default class Java_maven extends Base_java {
 			let currentPurl = this.toPurl(dep.groupId, dep.artifactId, dep.version)
 			sbom.addDependency(rootComponent, currentPurl)
 		})
-		if (manifestPath.trim() === '') {
-			// delete temp files and directory
-			fs.rmSync(tmpDir, {recursive: true, force: true})
-		} else {
-			fs.rmSync(path.join(path.dirname(manifestPath), 'effective-pom.xml'))
-		}
+		fs.rmSync(tmpEffectivePom)
 
 		// return dependencies list
 		return sbom.getAsJsonString(opts)
@@ -222,7 +204,6 @@ export default class Java_maven extends Base_java {
 					pomRoot = proj
 				}
 			}
-
 		}
 		/** @type Dependency */
 		let rootDependency = {
@@ -241,8 +222,6 @@ export default class Java_maven extends Base_java {
 	 * @returns {[Dependency]} an array of dependencies
 	 * @private
 	 */
-
-
 	#getDependencies(manifest) {
 		/** @type [Dependency] */
 		let ignored = []

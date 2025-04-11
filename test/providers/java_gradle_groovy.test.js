@@ -80,7 +80,7 @@ suite('testing the java-gradle-groovy data provider', () => {
 			let javaGradleProvider = new Java_gradle_groovy()
 			Object.getPrototypeOf(Object.getPrototypeOf(javaGradleProvider))._invokeCommand = mockedExecFunction
 			// invoke sut component analysis for scenario manifest
-			let provdidedForComponent = javaGradleProvider.provideComponent("",{},`test/providers/tst_manifests/gradle/${testCase}/build.gradle`)
+			let provdidedForComponent = javaGradleProvider.provideComponent(`test/providers/tst_manifests/gradle/${testCase}/build.gradle`, {})
 			// verify returned data matches expectation
 			let beautifiedOutput = JSON.stringify(JSON.parse(provdidedForComponent.content),null, 4);
 			expect(beautifiedOutput).to.deep.equal(expectedSbom)

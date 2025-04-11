@@ -13,8 +13,8 @@ if ('stack' === args[0]) {
 	process.exit(0)
 }
 if ('component' === args[0]) {
-	// arg[1] = manifest type; arg[2] = manifest content
-	let res = await exhort.componentAnalysis(args[1], args[2])
+	// arg[1] = manifest path
+	let res = await exhort.componentAnalysis(args[1])
 	console.log(JSON.stringify(res, null, 2))
 	process.exit(0)
 }

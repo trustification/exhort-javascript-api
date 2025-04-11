@@ -38,9 +38,8 @@ export function logValueFromObjects(key,opts, defValue) {
  * 		default supplied
  */
 export function getCustom(key, def = null, opts = {}) {
-	if (process.env["EXHORT_DEBUG"] === "true" && !key.match(RegexNotToBeLogged))
-	{
-		logValueFromObjects(key,opts,def)
+	if (process.env["EXHORT_DEBUG"] === "true" && !key.match(RegexNotToBeLogged)) {
+		logValueFromObjects(key, opts, def)
 	}
 	return key in process.env ? process.env[key] : key in opts && typeof opts[key] === 'string' ? opts[key] : def
 }
@@ -57,6 +56,10 @@ export function getCustom(key, def = null, opts = {}) {
  */
 export function getCustomPath(name, opts = {}) {
 	return getCustom(`EXHORT_${name.toUpperCase()}_PATH`, name, opts)
+}
+
+export function getWrapperPreference(name, opts = {}) {
+	return getCustom(`EXHORT_PREFER_${name.toUpperCase()}W`, true, opts)
 }
 
 export function environmentVariableIsPopulated(envVariableName) {

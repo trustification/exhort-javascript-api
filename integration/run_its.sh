@@ -36,9 +36,9 @@ matchConstant() {
     sleep 1
     echo $TEST_MESSAGE
     if [[ "$1" != "$2" ]]; then
-        echo "- FAILED"
-       echo "expected = $1, actual= $2"
-       cleanup 1
+		echo "- FAILED"
+		echo "expected = $1, actual= $2"
+		cleanup 1
     fi
     echo "- PASSED"
     echo
@@ -91,12 +91,12 @@ testers/cli/node_modules/.bin/exhort-javascript-api  stack scenarios/maven/pom.x
 
 if [ "$?" -ne 0 ]; then
 	echo "- FAILED , return $RC from invocation"
-			cleanup $RC
+	cleanup $RC
 fi
 RESPONSE_CONTENT=$(grep -i "DOCTYPE html" ./responses/stack.html)
 if [[ -z "${RESPONSE_CONTENT}"  ]]; then
     echo "- FAILED ,return code is ok ,but received doc is not HTML"
-            cleanup 1
+	cleanup 1
 fi
 echo "- PASSED"
 echo
@@ -107,13 +107,13 @@ testers/cli/node_modules/.bin/exhort-javascript-api stack scenarios/maven/pom.xm
 
 if [ "$?" -ne 0 ]; then
 	echo "- FAILED , return $RC from invocation"
-			cleanup $RC
+	cleanup $RC
 fi
 
 RESPONSE_CONTENT=$(jq . ./responses/stack-summary.json)
 if [ "$?" -ne 0 ]; then
 	echo "- FAILED , response is not a valid json"
-			cleanup $RC
+	cleanup $RC
 fi
 echo
 echo $RESPONSE_CONTENT
@@ -128,12 +128,12 @@ testers/cli/node_modules/.bin/exhort-javascript-api stack scenarios/maven/pom.xm
 
 if [ "$?" -ne 0 ]; then
 	echo "- FAILED , return $RC from invocation"
-			cleanup $RC
+	cleanup $RC
 fi
 RESPONSE_CONTENT=$(jq . ./responses/stack.json)
 if [ "$?" -ne 0 ]; then
 	echo "- FAILED , response is not a valid json"
-			cleanup $RC
+	cleanup $RC
 fi
 StatusCodeTC=$(jq '.providers["trusted-content"].status.code' ./responses/stack.json)
 matchConstant "200" "$StatusCodeTC" "Check that Response code from Trusted Content is OK ( Http Status = 200)..."
@@ -142,16 +142,16 @@ matchConstant "200" "$StatusCodeTC" "Check that Response code from Trusted Conte
 #matchConstant "200" "$StatusCodeSnyk" "Check that Response code from Snyk Provider is OK ( Http Status = 200)..."
 
 echo "RUNNING JavaScript CLI integration test for Component Analysis report for Java Maven"
-eval "testers/cli/node_modules/.bin/exhort-javascript-api component pom.xml '$(<scenarios/maven/pom.xml)'"  > ./responses/component.json
+eval "testers/cli/node_modules/.bin/exhort-javascript-api component scenarios/maven/pom.xml"  > ./responses/component.json
 
 if [ "$?" -ne 0 ]; then
 	echo "- FAILED , return $RC from invocation"
-			cleanup $RC
+	cleanup $RC
 fi
 RESPONSE_CONTENT=$(jq . ./responses/component.json)
 if [ "$?" -ne 0 ]; then
 	echo "- FAILED , response is not a valid json, got $RC from parsing the file"
-			cleanup $RC
+	cleanup $RC
 fi
 
 StatusCodeTC=$(jq '.providers["trusted-content"].status.code' ./responses/stack.json)
