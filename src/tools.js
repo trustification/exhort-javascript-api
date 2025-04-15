@@ -58,8 +58,15 @@ export function getCustomPath(name, opts = {}) {
 	return getCustom(`EXHORT_${name.toUpperCase()}_PATH`, name, opts)
 }
 
+/**
+ * Utility function for determining whether wrappers for build tools such as gradlew/mvnw should be
+ * preferred over invoking the binary directly.
+ * @param {string} name - binary for which to search for its wrapper
+ * @param {{}} opts - the options object to look for the key in if not found in environment
+ * @returns {boolean} whether to prefer the wrapper if exists or not
+ */
 export function getWrapperPreference(name, opts = {}) {
-	return getCustom(`EXHORT_PREFER_${name.toUpperCase()}W`, true, opts)
+	return getCustom(`EXHORT_PREFER_${name.toUpperCase()}W`, 'true', opts) === 'true'
 }
 
 export function environmentVariableIsPopulated(envVariableName) {
@@ -99,6 +106,18 @@ function hasSpaces(path) {
 	return path.trim().includes(" ")
 }
 
+
+/**
+ *
+ * @param {string} cwd - directory for which to find the root of the git repository.
+ */
+export function getGitRootDir(cwd) {
+	const root = invokeCommand('git', ['rev-parse', '--show-toplevel'], () => {}, {cwd: cwd})
+	if (!root) {
+		return undefined
+	}
+	return root.toString().trim()
+}
 
 /** this method invokes command string in a process in a synchronous way.
  * @param {string} bin - the command to be invoked

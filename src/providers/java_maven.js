@@ -1,6 +1,6 @@
 import { XMLParser } from 'fast-xml-parser'
 import fs from 'node:fs'
-import { getCustomPath } from "../tools.js";
+import { getCustomPath, getGitRootDir, getWrapperPreference } from "../tools.js";
 import os from 'node:os'
 import path from 'node:path'
 import Sbom from '../sbom.js'
@@ -71,16 +71,8 @@ export default class Java_maven extends Base_java {
 	 * @private
 	 */
 	#createSbomStackAnalysis(manifest, opts = {}) {
-		// get custom maven path
-		let mvn = getCustomPath('mvn', opts)
-		// verify maven is accessible
-		this._invokeCommand(mvn, ['--version'], error => {
-			if (error.code === 'ENOENT') {
-				throw new Error(`maven not accessible at "${mvn}"`)
-			} else {
-				throw new Error(`failed to check for maven`, {cause: error})
-			}
-		})
+		const mvn = this.#selectMvnRuntime(manifest, opts)
+
 		// clean maven target
 		this._invokeCommand(mvn, ['-q', 'clean', '-f', manifest], error => {
 			throw new Error(`failed to clean maven target`, {cause: error})
@@ -107,7 +99,7 @@ export default class Java_maven extends Base_java {
 		// read dependency tree from temp file
 		let content = fs.readFileSync(`${tmpDepTree}`)
 		if (process.env["EXHORT_DEBUG"] === "true") {
-			console.log("Dependency tree that will be used as input for creating the BOM =>" + EOL + EOL + content.toString())
+			console.error("Dependency tree that will be used as input for creating the BOM =>" + EOL + EOL + content.toString())
 		}
 		let sbom = this.createSbomFileFromTextFormat(content.toString(), ignoredDeps,opts);
 		// delete temp file and directory
@@ -115,7 +107,6 @@ export default class Java_maven extends Base_java {
 		// return dependency graph as string
 		return sbom
 	}
-
 
 	/**
 	 *
@@ -141,16 +132,7 @@ export default class Java_maven extends Base_java {
 	 * @private
 	 */
 	#getSbomForComponentAnalysis(manifestPath, opts = {}) {
-		// get custom maven path
-		let mvn = getCustomPath('mvn', opts)
-		// verify maven is accessible
-		this._invokeCommand(mvn, ['--version'], error => {
-			if (error.code === 'ENOENT') {
-				throw new Error(`maven not accessible at "${mvn}"`)
-			} else {
-				throw new Error(`failed to check for maven`, {cause: error})
-			}
-		})
+		const mvn = this.#selectMvnRuntime(manifestPath, opts)
 
 		const tmpEffectivePom = path.resolve(path.join(path.dirname(manifestPath), 'effective-pom.xml'))
 		const targetPom = manifestPath
@@ -195,9 +177,7 @@ export default class Java_maven extends Base_java {
 		let pomRoot
 		if (effectivePomStruct['project']) {
 			pomRoot = effectivePomStruct['project']
-		}
-		// if there is no project root tag, then it's a multi module/submodules aggregator parent POM
-		else {
+		} else { // if there is no project root tag, then it's a multi module/submodules aggregator parent POM
 			for (let proj of effectivePomStruct['projects']['project']) {
 				// need to choose the aggregate POM and not one of the modules.
 				if (proj.packaging && proj.packaging === 'pom') {
@@ -214,6 +194,60 @@ export default class Java_maven extends Base_java {
 			ignore: false
 		}
 		return rootDependency
+	}
+
+	#selectMvnRuntime(manifestPath, opts) {
+		// get custom maven path
+		let mvn = getCustomPath('mvn', opts)
+
+		// check if mvnw is preferred anda available
+		let useMvnw = getWrapperPreference('mvn', opts)
+		if (useMvnw) {
+			const mvnw = this.#traverseForMvnw(manifestPath)
+			if (mvnw !== undefined) {
+				this._invokeCommand(mvnw, ['--version'], error => {
+					if (error.code === 'ENOENT') {
+						useMvnw = false
+					} else {
+						throw new Error(`failed to check for mvnw`, {cause: error})
+					}
+				})
+				mvn = useMvnw ? mvnw : mvn
+			}
+		} else {
+			// verify maven is accessible
+			this._invokeCommand(mvn, ['--version'], error => {
+				if (error.code === 'ENOENT') {
+					throw new Error(`maven not accessible at "${mvn}"`)
+				} else {
+					throw new Error(`failed to check for maven`, {cause: error})
+				}
+			})
+		}
+		return mvn
+	}
+
+	/**
+	 *
+	 * @param {string} startingManifest - the path of the manifest from which to start searching for mvnw
+	 * @param {string} repoRoot - the root of the repository at which point to stop searching for mvnw, derived via git if unset and then fallsback
+	 * to the root of the drive the manifest is on (assumes absolute path is given)
+	 * @returns
+	 */
+	#traverseForMvnw(startingManifest, repoRoot = undefined) {
+		repoRoot = repoRoot || getGitRootDir(path.dirname(startingManifest)) || path.parse(path.resolve(startingManifest)).root
+		try {
+			fs.accessSync(path.join(path.dirname(startingManifest), 'mvnw' + (process.platform === 'win32' ? '.cmd' : '')), fs.constants.X_OK)
+		} catch(error) {
+			if (error.code === 'ENOENT') {
+				if (path.dirname(startingManifest) === repoRoot) {
+					return undefined
+				}
+				return this.#traverseForMvnw(path.dirname(startingManifest), repoRoot)
+			}
+			throw new Error(`failure searching for mvnw`, {cause: error})
+		}
+		return path.join(path.dirname(startingManifest), 'mvnw' + (process.platform === 'win32' ? '.cmd' : ''))
 	}
 
 	/**
@@ -246,9 +280,7 @@ export default class Java_maven extends Base_java {
 			} else {
 				pomXml = []
 			}
-		}
-		// project with modules
-		else {
+		} else { // project with modules
 			pomXml = pomJson['projects']['project'].filter(project => project.dependencies !== undefined).flatMap(project => project.dependencies.dependency)
 		}
 
