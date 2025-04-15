@@ -237,10 +237,10 @@ export default class Java_maven extends Base_java {
 	#traverseForMvnw(startingManifest, repoRoot = undefined) {
 		repoRoot = repoRoot || getGitRootDir(path.dirname(startingManifest)) || path.parse(path.resolve(startingManifest)).root
 		try {
-			fs.accessSync(path.join(path.dirname(startingManifest), 'mvnw' + (process.platform === 'win32' ? '.cmd' : '')), fs.constants.X_OK)
+			fs.accessSync(path.join(path.resolve(path.dirname(startingManifest)), 'mvnw' + (process.platform === 'win32' ? '.cmd' : '')), fs.constants.X_OK)
 		} catch(error) {
 			if (error.code === 'ENOENT') {
-				if (path.dirname(startingManifest) === repoRoot) {
+				if (path.resolve(path.dirname(startingManifest)) === repoRoot) {
 					return undefined
 				}
 				return this.#traverseForMvnw(path.dirname(startingManifest), repoRoot)
