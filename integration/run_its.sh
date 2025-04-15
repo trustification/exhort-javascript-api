@@ -81,7 +81,7 @@ mkdir -p ./responses
 #### JAVA MAVEN
 echo "RUNNING JavaScript CLI integration test for Stack Analysis report in Html for Java Maven"
 
-testers/cli/node_modules/.bin/exhort-javascript-api  stack scenarios/maven/pom.xml --html &> ./responses/stack.html
+testers/cli/node_modules/.bin/exhort-javascript-api  stack scenarios/maven/pom.xml --html > ./responses/stack.html
 RC="$?"
 if [ "$RC" -ne 0 ]; then
 	echo "- FAILED, return $RC from invocation"
