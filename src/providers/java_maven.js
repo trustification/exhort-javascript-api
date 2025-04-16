@@ -235,7 +235,7 @@ export default class Java_maven extends Base_java {
 	 * @returns
 	 */
 	#traverseForMvnw(startingManifest, repoRoot = undefined) {
-		repoRoot = repoRoot || getGitRootDir(path.dirname(startingManifest)) || path.parse(path.resolve(startingManifest)).root
+		repoRoot = repoRoot || getGitRootDir(path.resolve(path.dirname(startingManifest))) || path.parse(path.resolve(startingManifest)).root
 		try {
 			fs.accessSync(path.join(path.resolve(path.dirname(startingManifest)), 'mvnw' + (process.platform === 'win32' ? '.cmd' : '')), fs.constants.X_OK)
 		} catch(error) {
@@ -243,11 +243,11 @@ export default class Java_maven extends Base_java {
 				if (path.resolve(path.dirname(startingManifest)) === repoRoot) {
 					return undefined
 				}
-				return this.#traverseForMvnw(path.dirname(startingManifest), repoRoot)
+				return this.#traverseForMvnw(path.resolve(path.dirname(startingManifest)), repoRoot)
 			}
 			throw new Error(`failure searching for mvnw`, {cause: error})
 		}
-		return path.join(path.dirname(startingManifest), 'mvnw' + (process.platform === 'win32' ? '.cmd' : ''))
+		return path.join(path.resolve(path.dirname(startingManifest)), 'mvnw' + (process.platform === 'win32' ? '.cmd' : ''))
 	}
 
 	/**
