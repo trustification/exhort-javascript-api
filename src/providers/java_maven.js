@@ -200,7 +200,7 @@ export default class Java_maven extends Base_java {
 		// get custom maven path
 		let mvn = getCustomPath('mvn', opts)
 
-		// check if mvnw is preferred anda available
+		// check if mvnw is preferred and available
 		let useMvnw = getWrapperPreference('mvn', opts)
 		if (useMvnw) {
 			const mvnw = this.#traverseForMvnw(manifestPath)
@@ -236,8 +236,12 @@ export default class Java_maven extends Base_java {
 	 */
 	#traverseForMvnw(startingManifest, repoRoot = undefined) {
 		repoRoot = repoRoot || getGitRootDir(path.resolve(path.dirname(startingManifest))) || path.parse(path.resolve(startingManifest)).root
+
+		const wrapperName = 'mvnw' + (process.platform === 'win32' ? '.cmd' : '');
+		const wrapperPath = path.join(path.resolve(path.dirname(startingManifest)), wrapperName);
+
 		try {
-			fs.accessSync(path.join(path.resolve(path.dirname(startingManifest)), 'mvnw' + (process.platform === 'win32' ? '.cmd' : '')), fs.constants.X_OK)
+			fs.accessSync(wrapperPath, fs.constants.X_OK)
 		} catch(error) {
 			if (error.code === 'ENOENT') {
 				if (path.resolve(path.dirname(startingManifest)) === repoRoot) {
@@ -247,7 +251,7 @@ export default class Java_maven extends Base_java {
 			}
 			throw new Error(`failure searching for mvnw`, {cause: error})
 		}
-		return path.join(path.resolve(path.dirname(startingManifest)), 'mvnw' + (process.platform === 'win32' ? '.cmd' : ''))
+		return wrapperPath
 	}
 
 	/**
