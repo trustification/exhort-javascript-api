@@ -6,6 +6,6 @@
 	"type": "module",
 	"license": "Apache-2.0",
 	"dependencies": {
-		"@RHEcosystemAppEng/exhort-javascript-api": "file:../../../"
+		"@trustification/exhort-javascript-api": "file:../../../"
 	}
 }

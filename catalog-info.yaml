@@ -3,11 +3,11 @@ kind: Component
 metadata:
   annotations:
     backstage.io/kubernetes-id: exhort-javascript-api
-    github.com/project-slug: RHEcosystemAppEng/exhort-javascript-api
+    github.com/project-slug: trustification/exhort-javascript-api
     github.com/project-readme-path: README.md
-    backstage.io/view-url: https://github.com/RHEcosystemAppEng/exhort-javascript-api/blob/main/catalog-info.yaml
-    backstage.io/edit-url: https://github.com/RHEcosystemAppEng/exhort-javascript-api/blob/main/catalog-info.yaml
-    backstage.io/source-location: url:https://github.com/RHEcosystemAppEng/exhort-javascript-api
+    backstage.io/view-url: https://github.com/trustification/exhort-javascript-api/blob/main/catalog-info.yaml
+    backstage.io/edit-url: https://github.com/trustification/exhort-javascript-api/blob/main/catalog-info.yaml
+    backstage.io/source-location: url:https://github.com/trustification/exhort-javascript-api
     rhda/manifest-file-path: package.json
     backstage.io/techdocs-ref: dir:README.md
   name: exhort-javascript-api
