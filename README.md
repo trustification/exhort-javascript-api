@@ -1,7 +1,7 @@
 # Exhort JavaScript API<br/>![latest-no-snapshot][0] ![latest-snapshot][1]
 
-* Looking for our Java API? Try [Exhort Java API](https://github.com/RHEcosystemAppEng/exhort-java-api).
-* Looking for our Backend implementation? Try [Exhort](https://github.com/RHEcosystemAppEng/exhort).
+* Looking for our Java API? Try [Exhort Java API](https://github.com/trustification/exhort-java-api).
+* Looking for our Backend implementation? Try [Exhort](https://github.com/trustification/exhort).
 
 The _Exhort JavaScript API_ module is deployed to _GitHub Package Registry_.
 
@@ -30,11 +30,11 @@ See [GH Docs](https://docs.github.com/en/packages/working-with-a-github-packages
 
 <h3>Usage</h3>
 <p>
-Configuring <em>NPM</em> to look in <em>GHPR</em> for the <em>RHEcosystemAppEng</em> namespace is done by adding
-<code>@RHEcosystemAppEng:registry=https://npm.pkg.github.com</code> to <em>.npmrc</em> in the project root or user home.
+Configuring <em>NPM</em> to look in <em>GHPR</em> for the <em>trustification</em> namespace is done by adding
+<code>@trustification:registry=https://npm.pkg.github.com</code> to <em>.npmrc</em> in the project root or user home.
 
 ```shell
-echo "@RHEcosystemAppEng:registry=https://npm.pkg.github.com" >> .npmrc
+echo "@trustification:registry=https://npm.pkg.github.com" >> .npmrc
 ```
 </p>
 
@@ -43,11 +43,11 @@ echo "@RHEcosystemAppEng:registry=https://npm.pkg.github.com" >> .npmrc
 Use as ESM Module from an ESM module
 
 ```shell
-npm install @RHEcosystemAppEng/exhort-javascript-api
+npm install @trustification/exhort-javascript-api
 ```
 
 ```javascript
-import exhort from '@RHEcosystemAppEng/exhort-javascript-api'
+import exhort from '@trustification/exhort-javascript-api'
 import fs from 'node:fs'
 
 // Get stack analysis in JSON format
@@ -64,14 +64,14 @@ let componentAnalysis = await exhort.componentAnalysis('/path/to/pom.xml')
 Use as ESM Module from Common-JS module
 
 ```shell
-npm install @RHEcosystemAppEng/exhort-javascript-api
+npm install @trustification/exhort-javascript-api
 ```
 
 ```javascript
 async function loadExhort()
 {
 // dynamic import is the only way to import ESM module into commonJS module
-  const { default: exhort } = await import('@RHEcosystemAppEng/exhort-javascript-api');
+  const { default: exhort } = await import('@trustification/exhort-javascript-api');
   return exhort
 }
 const runExhort = (manifestPath) => {
@@ -97,7 +97,7 @@ Use as CLI Script
 <summary>Click for help menu</summary>
 
 ```shell
-$ npx @RHEcosystemAppEng/exhort-javascript-api help
+$ npx @trustification/exhort-javascript-api help
 
 Usage: exhort-javascript-api {component|stack}
 
@@ -112,16 +112,16 @@ Options:
 
 ```shell
 # get stack analysis in json format
-$ npx @RHEcosystemAppEng/exhort-javascript-api stack /path/to/pom.xml
+$ npx @trustification/exhort-javascript-api stack /path/to/pom.xml
 
 # get stack analysis in json format (summary only)
-$ npx @RHEcosystemAppEng/exhort-javascript-api stack /path/to/pom.xml --summary
+$ npx @trustification/exhort-javascript-api stack /path/to/pom.xml --summary
 
 # get stack analysis in html format format
-$ npx @RHEcosystemAppEng/exhort-javascript-api stack /path/to/pom.xml --html
+$ npx @trustification/exhort-javascript-api stack /path/to/pom.xml --html
 
 # get component analysis
-$ npx @RHEcosystemAppEng/exhort-javascript-api component /path/to/pom.xml
+$ npx @trustification/exhort-javascript-api component /path/to/pom.xml
 ```
 </li>
 
@@ -129,7 +129,7 @@ $ npx @RHEcosystemAppEng/exhort-javascript-api component /path/to/pom.xml
 Use as Global Binary
 
 ```shell
-npm install --global @RHEcosystemAppEng/exhort-javascript-api
+npm install --global @trustification/exhort-javascript-api
 ```
 
 ```shell
@@ -203,7 +203,7 @@ Excluding a package from any analysis can be achieved by marking the package for
 
 <em>Golang</em> users can add in go.mod a comment with //exhortignore next to the package to be ignored, or to "piggyback" on existing comment ( e.g - //indirect) , for example:
 ```go
-module github.com/RHEcosystemAppEng/SaaSi/deployer
+module github.com/trustification/SaaSi/deployer
 
 go 1.19
 
@@ -292,7 +292,7 @@ for various customization.
 However, <em>ESM Module</em> users, can opt for customizing programmatically:
 
 ```javascript
-import exhort from '@RHEcosystemAppEng/exhort-javascript-api'
+import exhort from '@trustification/exhort-javascript-api'
 import fs from 'node:fs'
 
 let options = {
@@ -444,8 +444,8 @@ It's also possible, to use lightweight Python PIP utility [pipdeptree](https://p
 Need to set environment variable/option - `EXHORT_PIP_USE_DEP_TREE` to true.
 
 <!-- Badge links -->
-[0]: https://img.shields.io/github/v/release/RHEcosystemAppEng/exhort-javascript-api?color=green&label=latest
-[1]: https://img.shields.io/github/v/release/RHEcosystemAppEng/exhort-javascript-api?color=yellow&include_prereleases&label=early-access
+[0]: https://img.shields.io/github/v/release/trustification/exhort-javascript-api?color=green&label=latest
+[1]: https://img.shields.io/github/v/release/trustification/exhort-javascript-api?color=yellow&include_prereleases&label=early-access
 
 ### Known Issues
 

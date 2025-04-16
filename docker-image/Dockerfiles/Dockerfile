@@ -20,14 +20,14 @@ RUN curl -kL https://go.dev/dl/go1.21.5.linux-amd64.tar.gz -o /tmp/golang-packag
     && tar xvzf /tmp/golang-package.tar.gz -C /usr/
 
 # install jq JSON formating tool
-RUN curl -kL https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux64 -o /usr/bin/jq 
+RUN curl -kL https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux64 -o /usr/bin/jq
 
 # copy the .npmrc file
 COPY configs/.npmrc .
 # replace placeholder with the actual environment variable
 RUN sed -i "s/__PACKAGE_REGISTRY_ACCESS_TOKEN__/${PACKAGE_REGISTRY_ACCESS_TOKEN}/g" ./.npmrc
 # install Exhort javascript API
-RUN npm install --global @RHEcosystemAppEng/exhort-javascript-api@0.1.1-ea.26
+RUN npm install --global @trustification/exhort-javascript-api@0.1.1-ea.26
 
 # add RHDA script
 COPY scripts/rhda.sh /rhda.sh
@@ -38,21 +38,21 @@ RUN chmod +x /usr/jdk-21.0.1/bin/java \
     && chmod +x /usr/go/bin/go \
     && chmod +x /usr/bin/jq \
     && chmod +x /opt/app-root/src/.npm-global/bin/exhort-javascript-api \
-    && chmod +x /rhda.sh 
+    && chmod +x /rhda.sh
 
 # use default user
-USER default 
+USER default
 
 # second stage
 FROM registry.access.redhat.com/ubi9/nodejs-20-minimal
 
-LABEL org.opencontainers.image.source https://github.com/RHEcosystemAppEng/exhort-javascript-api
+LABEL org.opencontainers.image.source https://github.com/trustification/exhort-javascript-api
 
 # assign rhda source for exhort tracking purposes
 ENV RHDA_SOURCE=''
-# contains pip feeze --all data, base64 encoded 
+# contains pip feeze --all data, base64 encoded
 ENV EXHORT_PIP_FREEZE=''
-# contains pip show data for all packages, base64 encoded 
+# contains pip show data for all packages, base64 encoded
 ENV EXHORT_PIP_SHOW=''
 # indicate whether to use the Minimal version selection (MVS) algorithm to select a set of module versions to use when building Go packages.
 ENV EXHORT_GO_MVS_LOGIC_ENABLED='false'

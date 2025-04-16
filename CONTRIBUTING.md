@@ -92,7 +92,7 @@ scripts in [integration/testers](integration/testers).<br/>
 
 We have 3 _testers_:
 * [integration/testers/cli](integration/testers/cli) is a _package.json_ used for installing the _ESM module_.
-  Invoking the CLI Script is done against the _@RHEcosystemAppEng/exhort-javascript-api/dist/src/cli.js_ in the tester's
+  Invoking the CLI Script is done against the _@trustification/exhort-javascript-api/dist/src/cli.js_ in the tester's
   _node_modules_.
 * [integration/testers/javascript](integration/testers/javascript) is a _javascript_ script invoking the _ESM module_.
 * [integration/testers/typescript](integration/testers/typescript) is a _typescript_ script invoking the _ESM module_.
@@ -125,7 +125,7 @@ contribution. See the [DCO](DCO) file for details.
 
 <!-- Real links -->
 [0]: https://www.conventionalcommits.org/en/v1.0.0/
-[1]: https://github.com/RHEcosystemAppEng/exhort/blob/0.1.x/src/main/resources/META-INF/openapi.yaml
+[1]: https://github.com/trustification/exhort/blob/0.1.x/src/main/resources/META-INF/openapi.yaml
 
 <!-- Badge links -->
 [10]: https://badgen.net/badge/NodeJS%20Version/18/68a063

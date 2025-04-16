@@ -10,7 +10,7 @@
 		"compile": "tsc -p tsconfig.json"
 	},
 	"dependencies": {
-		"@RHEcosystemAppEng/exhort-javascript-api": "file:../../../"
+		"@trustification/exhort-javascript-api": "file:../../../"
 	},
 	"devDependencies": {
 		"typescript": "^5.1.3"

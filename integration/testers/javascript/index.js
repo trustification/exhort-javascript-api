@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import exhort from '@RHEcosystemAppEng/exhort-javascript-api'
+import exhort from '@trustification/exhort-javascript-api'
 import process from 'node:process'
 
 const [,, ...args] = process.argv
