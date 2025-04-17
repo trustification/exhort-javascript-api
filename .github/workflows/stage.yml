@@ -87,6 +87,7 @@ jobs:
 
       - name: setup Python
         uses: actions/setup-python@v4
+        if: steps.test-check.outputs.retest-is-needed == 'true'
         with:
           python-version: '3.9'
           cache: 'pip'
@@ -95,21 +96,16 @@ jobs:
         run: |
           echo "python-bin-location=$(echo $pythonLocation)/bin" >> $GITHUB_OUTPUT
 
-
       - name: re-test Unit-Tests + Integration Tests
+        if: steps.test-check.outputs.retest-is-needed == 'true'
         env:
-          RETEST_IS_NECESSARY: ${{ steps.test-check.outputs.retest-is-needed}}
           TRIGGERING_FILE: ${{ steps.test-check.outputs.triggering-file}}
         run: |
-          if [[ $RETEST_IS_NECESSARY == "true" ]]; then
-             echo "Re-test was triggered!!, triggering changed file - $TRIGGERING_FILE"
-             echo "Running Again Unit-tests =>"
-             npm run test
-             echo "Running Again Integration tests =>"
-             npm run integration-tests
-          else
-            echo "Re-test of library is not needed, continuing to deployment!"
-          fi
+          echo "Re-test was triggered!!, triggering changed file - $TRIGGERING_FILE"
+          echo "Running Again Unit-tests =>"
+          npm run test
+          echo "Running Again Integration tests =>"
+          npm run integration-tests
 
       - name: Publish package
         env:
