@@ -52,7 +52,7 @@ jobs:
           go-version: '1.20.1'
 
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v3
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Install project modules
         run: npm ci
