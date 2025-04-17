@@ -27,7 +27,8 @@ COPY configs/.npmrc .
 # replace placeholder with the actual environment variable
 RUN sed -i "s/__PACKAGE_REGISTRY_ACCESS_TOKEN__/${PACKAGE_REGISTRY_ACCESS_TOKEN}/g" ./.npmrc
 # install Exhort javascript API
-RUN npm install --global @trustification/exhort-javascript-api@0.1.1-ea.26
+# this still needs to reference RHEcosystemAppEng as packages dont seem to be redirected given the org change of the repo
+RUN npm install --global @RHEcosystemAppEng/exhort-javascript-api@0.1.1-ea.26
 
 # add RHDA script
 COPY scripts/rhda.sh /rhda.sh
