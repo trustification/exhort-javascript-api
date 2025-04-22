@@ -1,45 +1,40 @@
-import { execSync } from "node:child_process"
 import fs from 'node:fs'
 import os from "node:os";
-import { getCustomPath, handleSpacesInPath } from "../tools.js";
+import { getCustomPath, invokeCommand } from "../tools.js";
 import path from 'node:path'
 import Sbom from '../sbom.js'
 import { PackageURL } from 'packageurl-js'
 
-export var npmInteractions = {
-	listing: function runNpmListing(npmListing) {
-		let npmOutput = execSync(npmListing, err => {
-			if (err) {
-				throw new Error('failed to get npmOutput json from npm')
-			}
-		});
-		return npmOutput;
+var npmInteractions = {
+	listing: function runNpmListing(npm, manifestDir, includeAll) {
+		return invokeCommand(npm, ['ls', includeAll ? '--all' : '', '--omit=dev', '--package-lock-only', '--json', '--prefix', manifestDir], error => {
+			throw new  Error('failed to get npmOutput json from npm', {cause: error})
+		}).toString()
 	},
 	version: function checkNpmVersion(npm) {
-		execSync(`${handleSpacesInPath(npm)} --version`, err => {
-			if (err) {
-				throw new Error('npm is not accessible')
+		invokeCommand(npm, ['--version'], error => {
+			if (error.code === 'ENOENT') {
+				throw new Error(`npm is not accessible at ${npm}`, {})
 			}
+			throw new Error('failed to check for npm', {cause: error})
 		})
 	},
 	createPackageLock: function createPackageLock(npm, manifestDir) {
-	// in windows os, --prefix flag doesn't work, it behaves really weird , instead of installing the package.json fromm the prefix folder,
-	// it's installing package.json (placed in current working directory of process) into prefix directory, so
+		// in windows os, --prefix flag doesn't work, it behaves really weird , instead of installing the package.json fromm the prefix folder,
+		// it's installing package.json (placed in current working directory of process) into prefix directory, so
 		let originalDir = process.cwd()
 		if(os.platform() === 'win32') {
 			process.chdir(manifestDir)
 		}
-		execSync(`${handleSpacesInPath(npm)} i --package-lock-only --prefix ${handleSpacesInPath(manifestDir)}`, err => {
-			if (err) {
-				throw new Error('failed to create npmOutput list')
-			}
+		invokeCommand(npm, ['i', '--package-lock-only', '--prefix', manifestDir], error => {
+			throw new Error('failed to create npmOutput list', {cause: error})
 		})
 		if(os.platform() === 'win32') {
 			process.chdir(originalDir)
 		}
 	}
 }
-export default { isSupported, validateLockFile, provideComponent, provideStack, npmInteractions }
+export default { isSupported, validateLockFile, provideComponent, provideStack }
 
 /** @typedef {import('../provider').Provider} */
 
@@ -100,20 +95,9 @@ function provideStack(manifest, opts = {}) {
 function provideComponent(manifest, opts = {}) {
 	return {
 		ecosystem,
-		content: getSBOM(manifest, opts,false),
+		content: getSBOM(manifest, opts, false),
 		contentType: 'application/vnd.cyclonedx+json'
 	}
-}
-
-/**
- *
- * @param {string} npm the npm binary path
- * @param {string }allFilter can be "-all" ( for stack analysis) or empty string ( for component analysis).
- * @param {string} manifestDir path to manifest' directory.
- * @return {string} returns a string containing the result output.
- */
-function getNpmListing(npm, allFilter, manifestDir) {
-	return `${handleSpacesInPath(npm)} ls${allFilter} --omit=dev --package-lock-only --json --prefix ${manifestDir}`;
 }
 
 /**
@@ -130,9 +114,7 @@ function getSBOM(manifest, opts = {}, includeTransitive) {
 	npmInteractions.version(npm);
 	let manifestDir = path.dirname(manifest)
 	npmInteractions.createPackageLock(npm, manifestDir);
-	let allFilter = includeTransitive? " --all" : ""
-	let npmListing = getNpmListing(npm, allFilter, handleSpacesInPath(manifestDir))
-	let npmOutput = npmInteractions.listing(npmListing);
+	let npmOutput = npmInteractions.listing(npm, manifestDir, includeTransitive);
 	let depsObject = JSON.parse(npmOutput);
 	let rootName = depsObject["name"]
 	let rootVersion = depsObject["version"]
@@ -165,16 +147,11 @@ function getSBOM(manifest, opts = {}, includeTransitive) {
  */
 function toPurl(name, version) {
 	let parts = name.split("/");
-	var pkg
-	if(parts.length === 2 )
-	{
-		pkg = new PackageURL('npm',parts[0],parts[1],version,undefined,undefined);
+	if(parts.length === 2) {
+		return new PackageURL('npm',parts[0],parts[1],version,undefined,undefined);
+	} else {
+		return new PackageURL('npm',undefined,parts[0],version,undefined,undefined);
 	}
-	else
-	{
-		pkg = new PackageURL('npm',undefined,parts[0],version,undefined,undefined);
-	}
-	return pkg
 }
 
 /**
@@ -188,13 +165,11 @@ function addAllDependencies(sbom, from, dependencies) {
 	Object.entries(dependencies)
 		.filter(entry => entry[1].version !== undefined)
 		.forEach(entry => {
-			let name, artifact ;
-			[name, artifact] = entry;
+			let [name, artifact] = entry;
 			let purl = toPurl(name,artifact.version);
 			sbom.addDependency(from,purl)
 			let transitiveDeps = artifact.dependencies
-			if(transitiveDeps !== undefined)
-			{
+			if(transitiveDeps !== undefined) {
 				addAllDependencies(sbom,sbom.purlToComponent(purl),transitiveDeps)
 			}
 		});
