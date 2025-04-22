@@ -53,7 +53,6 @@ jobs:
           echo "base-tag=$(git describe | awk -F '-' '{print $1}')" >> "$GITHUB_OUTPUT"
           echo "full-tag=$(git describe)" >> "$GITHUB_OUTPUT"
 
-
       - name: get first tag in current development iteration according to base
         id: fetch-tag
         if: ${{ contains(steps.last-release.outputs.full-tag , '-ea.') }}
@@ -70,7 +69,6 @@ jobs:
           else
              echo "bump-part=major" >> "$GITHUB_OUTPUT"
           fi
-
 
       - name: Update package with new version
         id: bump
@@ -112,8 +110,6 @@ jobs:
               previous_tag_name: '${{ steps.fetch-tag.outputs.oldest-tag != ''  && steps.fetch-tag.outputs.oldest-tag  || steps.last-release.outputs.base-tag }}'
             })
             return response.data.body
-
-
 
       - name: Create a release
         uses: actions/github-script@v6.4.1
