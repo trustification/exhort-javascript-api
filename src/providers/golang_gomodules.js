@@ -1,8 +1,6 @@
-// import {exec} from "child_process";
-import { execSync } from "node:child_process"
 import fs from 'node:fs'
 import { EOL } from "os";
-import { getCustom, getCustomPath, handleSpacesInPath } from "../tools.js";
+import { getCustom, getCustomPath, invokeCommand } from "../tools.js";
 import path from 'node:path'
 import Sbom from '../sbom.js'
 import { PackageURL } from 'packageurl-js'
@@ -64,10 +62,6 @@ function provideComponent(manifest, opts = {}) {
 	}
 }
 
-function getGoGraphCommand(goBin) {
-	return `${handleSpacesInPath(goBin)} mod graph `;
-}
-
 /**
  *
  * @param {string} edge containing an edge of direct graph of source dependency (parent) and target dependency (child)
@@ -85,18 +79,6 @@ function getChildVertexFromEdge(edge) {
 	return edge.split(" ")[1];
 }
 
-
-function getGoModGraph(goGraphCommand, options) {
-	return execSync(goGraphCommand, options).toString()
-	//
-	// let result = ""
-	// return new Promise((resolveF => {
-	// 	child.stdout.on("data", (x) => result+=x)
-	// 	child.stderr.on("data", (x) => result+=x)
-	// 	child.on("exit", () => resolveF(result))
-	// }))
-}
-
 /**
  *
  * @param line one row from go.mod file
@@ -104,17 +86,14 @@ function getGoModGraph(goGraphCommand, options) {
  */
 function ignoredLine(line) {
 	let result = false
-	if(line.match(".*exhortignore.*"))
-	{
-		if(line.match(".+//\\s*exhortignore") || line.match(".+//\\sindirect (//)?\\s*exhortignore"))
-		{
+	if(line.match(".*exhortignore.*")) {
+		if(line.match(".+//\\s*exhortignore") || line.match(".+//\\sindirect (//)?\\s*exhortignore")) {
 			let trimmedRow = line.trim()
 			if(!trimmedRow.startsWith("module ") && !trimmedRow.startsWith("go ") && !trimmedRow.startsWith("require (") && !trimmedRow.startsWith("require(")
 				&& !trimmedRow.startsWith("exclude ") && !trimmedRow.startsWith("replace ") && !trimmedRow.startsWith("retract ") && !trimmedRow.startsWith("use ")
 				&& !trimmedRow.includes("=>"))
 			{
-				if( trimmedRow.startsWith("require ") || trimmedRow.match("^[a-z.0-9/-]+\\s{1,2}[vV][0-9]\\.[0-9](\\.[0-9]){0,2}.*"))
-				{
+				if( trimmedRow.startsWith("require ") || trimmedRow.match("^[a-z.0-9/-]+\\s{1,2}[vV][0-9]\\.[0-9](\\.[0-9]){0,2}.*")) {
 					result = true
 				}
 			}
@@ -266,32 +245,34 @@ function getSBOM(manifest, opts = {}, includeTransitive) {
 	// get custom goBin path
 	let goBin = getCustomPath('go', opts)
 	// verify goBin is accessible
-	execSync(`${handleSpacesInPath(goBin)} version`, err => {
-		if (err) {
-			throw new Error('go binary is not accessible')
+	try {
+		invokeCommand(goBin, ['version'])
+	} catch(error) {
+		if (error.code === 'ENOENT') {
+			throw new Error(`go binary is not accessible at "${goBin}"`)
 		}
-	})
+		throw new Error(`failed to check for go binary`, {cause: error})
+	}
 	let manifestDir = path.dirname(manifest)
-	let goGraphCommand = getGoGraphCommand(goBin)
-	let options = {cwd: manifestDir}
-	let goGraphOutput
-	goGraphOutput = getGoModGraph(goGraphCommand, options);
+	try {
+		var goGraphOutput = invokeCommand(goBin, ['mod', 'graph'], {cwd: manifestDir}).toString()
+	} catch(error) {
+		throw new Error('failed to invoke go binary for module graph', {cause: error})
+	}
 	let ignoredDeps = getIgnoredDeps(manifest);
 	let allIgnoredDeps = ignoredDeps.map((dep) => dep.toString())
 	let sbom = new Sbom();
 	let rows = goGraphOutput.split(getLineSeparatorGolang());
 	let root = getParentVertexFromEdge(rows[0])
-	let matchManifestVersions = getCustom("MATCH_MANIFEST_VERSIONS","false",opts);
+	let matchManifestVersions = getCustom("MATCH_MANIFEST_VERSIONS", "false", opts);
 	if(matchManifestVersions === "true") {
-		{
-			performManifestVersionsCheck(root, rows, manifest)
-		}
+		performManifestVersionsCheck(root, rows, manifest)
 	}
-	let mainModule = toPurl(root, "@", undefined)
+
+	const mainModule = toPurl(root, "@", undefined)
 	sbom.addRoot(mainModule)
-	let exhortGoMvsLogicEnabled = getCustom("EXHORT_GO_MVS_LOGIC_ENABLED","false",opts)
-	if(includeTransitive && exhortGoMvsLogicEnabled === "true")
-	{
+	const exhortGoMvsLogicEnabled = getCustom("EXHORT_GO_MVS_LOGIC_ENABLED", "false", opts)
+	if(includeTransitive && exhortGoMvsLogicEnabled === "true") {
 		rows = getFinalPackagesVersionsForModule(rows,manifest,goBin)
 	}
 	if (includeTransitive) {
@@ -341,22 +322,16 @@ function getSBOM(manifest, opts = {}, includeTransitive) {
 function toPurl(dependency, delimiter, qualifiers) {
 	let lastSlashIndex = dependency.lastIndexOf("/");
 	let pkg
-	if (lastSlashIndex === -1)
-	{
+	if (lastSlashIndex === -1) {
 		let splitParts = dependency.split(delimiter);
 		pkg = new PackageURL(ecosystem,undefined,splitParts[0],splitParts[1],qualifiers,undefined)
-	}
-	else
-	{
+	} else {
 		let namespace = dependency.slice(0,lastSlashIndex)
 		let dependencyAndVersion = dependency.slice(lastSlashIndex+1)
 		let parts = dependencyAndVersion.split(delimiter);
-		if(parts.length === 2 )
-		{
+		if(parts.length === 2 ) {
 			pkg = new PackageURL(ecosystem,namespace,parts[0],parts[1],qualifiers,undefined);
-		}
-		else
-		{
+		} else {
 			pkg = new PackageURL(ecosystem,namespace,parts[0],defaultMainModuleVersion,qualifiers,undefined);
 		}
 	}
@@ -373,8 +348,14 @@ function toPurl(dependency, delimiter, qualifiers) {
 function getFinalPackagesVersionsForModule(rows,manifestPath,goBin) {
 	let manifestDir = path.dirname(manifestPath)
 	let options = {cwd: manifestDir}
-	execSync(`${handleSpacesInPath(goBin)} mod download`, options)
-	let finalVersionsForAllModules = execSync(`${handleSpacesInPath(goBin)} list -m all`, options).toString()
+	// TODO: determine whether this is necessary
+	try {
+		invokeCommand(goBin, ['mod', 'download'], options)
+		var finalVersionsForAllModules = invokeCommand(goBin, ['list', '-m', 'all'], options).toString()
+	} catch(error) {
+		throw new Error('failed to list all modules', {cause: error})
+	}
+
 	let finalVersionModules = new Map()
 	finalVersionsForAllModules.split(getLineSeparatorGolang()).filter(string => string.trim()!== "")
 		.filter(string => string.trim().split(" ").length === 2)
@@ -418,12 +399,3 @@ function getLineSeparatorGolang() {
 	let reg = /\n|\r\n/
 	return reg
 }
-
-// /**
-//  *
-//  * @param {string} fullPackage - full package with its name and version-
-//  * @return {string} package version only
-//  */
-// function getVersionOfPackage(fullPackage) {
-// 	return fullPackage.split("@")[1]
-// }
