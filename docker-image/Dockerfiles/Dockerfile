@@ -6,6 +6,7 @@ USER root
 
 # assign token for reading packages from github package registry
 ARG PACKAGE_REGISTRY_ACCESS_TOKEN=''
+ARG EXHORT_JAVASCRIPT_API_VERSION='0.1.1-ea.55'
 
 # install Java
 RUN curl -kL https://download.oracle.com/java/21/archive/jdk-21.0.1_linux-x64_bin.tar.gz -o /tmp/java-package.tar.gz \
@@ -27,8 +28,7 @@ COPY configs/.npmrc .
 # replace placeholder with the actual environment variable
 RUN sed -i "s/__PACKAGE_REGISTRY_ACCESS_TOKEN__/${PACKAGE_REGISTRY_ACCESS_TOKEN}/g" ./.npmrc
 # install Exhort javascript API
-# this still needs to reference RHEcosystemAppEng as packages dont seem to be redirected given the org change of the repo
-RUN npm install --global @RHEcosystemAppEng/exhort-javascript-api@0.1.1-ea.26
+RUN npm install --global @trustification/exhort-javascript-api@${EXHORT_JAVASCRIPT_API_VERSION}
 
 # add RHDA script
 COPY scripts/rhda.sh /rhda.sh

@@ -147,6 +147,7 @@ jobs:
             ${{ env.DOCKERFILE_PATH }}
           build-args: |
             PACKAGE_REGISTRY_ACCESS_TOKEN=${{ secrets.PACKAGE_REGISTRY_ACCESS_TOKEN }}
+            EXHORT_JAVASCRIPT_API_VERSION=${{ steps.bump.outputs.version }}
           context: docker-image
 
       - name: Push Image To Registry
