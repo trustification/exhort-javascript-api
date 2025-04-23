@@ -9,15 +9,15 @@ let clock
 
 async function mockProvider(providerName, listingOutput) {
 
-	const mockExecSync = (cmd) => {
-		if (cmd.includes('--version')) { return ''; }
+	const mockInvokeCommand = (_cmd, args) => {
+		if (args.includes('--version')) {return '';}
 		return listingOutput;
-	}
+	};
 
-	return esmock(`../../src/providers/Javascript_${providerName}.js`, {
-		'../../src/providers/Base_javascript.js': await esmock('../../src/providers/base_javascript.js', {
-			'node:child_process': {
-				execSync: mockExecSync
+	return esmock(`../../src/providers/javascript_${providerName}.js`, {
+		'../../src/providers/base_javascript.js': await esmock('../../src/providers/base_javascript.js', {
+			'../../src/tools.js': {
+				invokeCommand: mockInvokeCommand
 			}
 		})
 	});

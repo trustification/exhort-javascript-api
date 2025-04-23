@@ -11,9 +11,9 @@ export default class Javascript_pnpm extends Base_javascript {
 	}
 
 	_listCmdArgs(includeTransitive, manifestDir) {
-		const args = ['ls', includeTransitive ? '--all' : '--depth=0', '--prod', '--json'];
+		const args = ['ls', includeTransitive ? '--depth=Infinity' : '--depth=0', '--prod', '--json'];
 		if (manifestDir) {
-			args.push('--prefix', manifestDir);
+			args.push('--dir', manifestDir);
 		}
 		return args;
 	}
@@ -21,7 +21,7 @@ export default class Javascript_pnpm extends Base_javascript {
 	_updateLockFileCmdArgs(manifestDir) {
 		const args = ['install', '--frozen-lockfile'];
 		if (manifestDir) {
-			args.push('--prefix', manifestDir)
+			args.push('--dir', manifestDir)
 		}
 		args.push(...[])
 		return args;

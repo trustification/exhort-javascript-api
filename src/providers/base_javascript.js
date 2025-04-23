@@ -1,9 +1,10 @@
 import fs from 'node:fs'
 import os from "node:os";
-import { handleSpacesInPath, invokeCommand } from "../tools.js";
 import path from 'node:path'
-import Sbom from '../sbom.js'
 import { PackageURL } from 'packageurl-js'
+
+import { invokeCommand } from "../tools.js";
+import Sbom from '../sbom.js'
 
 /** @typedef {import('../provider.js').Provider} */
 
@@ -171,7 +172,7 @@ export default class Base_javascript {
 	#executeListCmd(includeTransitive, manifestDir) {
 		const listArgs = this._listCmdArgs(includeTransitive, manifestDir);
 		try {
-			invokeCommand(this._cmdName(), listArgs)
+			return invokeCommand(this._cmdName(), listArgs)
 		} catch (error) {
 			throw new Error(`failed to list dependencies via "${this._cmdName()} ${listArgs.join(' ')}" - Error: ${error}`, {cause: error});
 		}
@@ -195,9 +196,8 @@ export default class Base_javascript {
 		if (os.platform() === 'win32') {
 			process.chdir(manifestDir)
 		}
-
+		const args = this._updateLockFileCmdArgs(manifestDir);
 		try {
-			const args = this._updateLockFileCmdArgs(manifestDir);
 			invokeCommand(this._cmdName(), args)
 		} catch (error) {
 			throw new Error(`failed to create lockfile "${args}" - Error: ${error}`, {cause: error});

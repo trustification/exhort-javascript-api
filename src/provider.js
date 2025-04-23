@@ -1,8 +1,9 @@
+import path from 'node:path'
+
 import golangGomodulesProvider from './providers/golang_gomodules.js'
 import Java_gradle_groovy from "./providers/java_gradle_groovy.js";
 import Java_gradle_kotlin from "./providers/java_gradle_kotlin.js";
 import Java_maven from "./providers/java_maven.js";
-import path from 'node:path'
 import pythonPipProvider from './providers/python_pip.js'
 import Javascript_npm from './providers/javascript_npm.js';
 import Javascript_pnpm from './providers/javascript_pnpm.js';
@@ -29,7 +30,7 @@ export const availableProviders = [new Java_maven(), new Java_gradle_groovy(), n
 export function match(manifest, providers) {
 	const manifestPath = path.parse(manifest)
 	const supported = providers.filter(prov => prov.isSupported(manifestPath.base))
-	if (supported.length == 0) {
+	if (supported.length === 0) {
 		throw new Error(`${manifestPath.base} is not supported`)
 	}
 	const provider = supported.find(prov => prov.validateLockFile(manifestPath.dir))

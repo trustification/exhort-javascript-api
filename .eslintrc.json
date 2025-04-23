@@ -1,28 +1,28 @@
 {
-    "root": true,
-	"extends": [
-		"eslint:recommended",
-		"plugin:editorconfig/all"
-	],
-	"parserOptions": {
-		"ecmaVersion": 2022,
-		"sourceType": "module"
-	},
-	"env": {
-		"node": true,
-		"mocha": true,
-		"es6": true
-	},
-	"plugins": [
-		"editorconfig"
-    ],
-    "rules": {
-        "curly": "warn",
-        "eqeqeq": "warn",
-        "no-throw-literal": "warn",
-		"sort-imports":"warn"
-    },
-	"ignorePatterns": [
-		"integration"
-	]
+  "root": true,
+  "extends": [
+    "eslint:recommended",
+    "plugin:editorconfig/all"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "module"
+  },
+  "env": {
+    "node": true,
+    "mocha": true,
+    "es6": true
+  },
+  "plugins": [
+    "editorconfig"
+  ],
+  "rules": {
+    "curly": "warn",
+    "eqeqeq": "warn",
+    "no-throw-literal": "warn",
+    "sort-imports": "warn"
+  },
+  "ignorePatterns": [
+    "integration"
+  ]
 }
