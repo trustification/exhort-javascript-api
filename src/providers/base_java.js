@@ -109,8 +109,7 @@ export default class Base_Java {
 	/** this method invokes command string in a process in a synchronous way.
 	 * @param bin - the command to be invoked
 	 * @param args - the args to pass to the binary
-	 * @param callback - function to invoke if an error was thrown
 	 * @protected
 	 */
-	_invokeCommand(bin, args, callback, opts={}) { return invokeCommand(bin, args, callback, opts) }
+	_invokeCommand(bin, args, opts={}) { return invokeCommand(bin, args, opts) }
 }

@@ -197,13 +197,12 @@ export default class Java_gradle extends Base_java {
 	 */
 	#getProperties(manifestPath, opts) {
 		let gradle = getCustomPath("gradle", opts);
-		let properties
-		properties = this._invokeCommand(gradle, ['properties'], error => {
+		try {
+			let properties = this._invokeCommand(gradle, ['properties'], {cwd: path.dirname(manifestPath)})
+			return properties.toString()
+		} catch (error) {
 			throw new Error(`Couldn't get properties of ${this._getManifestName()} file , Error message returned from gradle binary => ${EOL} ${error.message}`)
-		}, {
-			cwd: path.dirname(manifestPath)
-		})
-		return properties.toString()
+		}
 	}
 
 	/**
@@ -241,12 +240,12 @@ export default class Java_gradle extends Base_java {
 
 	#getDependencies(manifest) {
 		const gradle = getCustomPath("gradle")
-		const commandResult = this._invokeCommand(gradle, ['dependencies'], error => {
+		try {
+			const commandResult = this._invokeCommand(gradle, ['dependencies'], {cwd: path.dirname(manifest)})
+			return commandResult.toString()
+		} catch (error) {
 			throw new Error(`Couldn't run gradle dependencies command, error message returned from gradle binary => ${EOL} ${error.message}`)
-		}, {
-			cwd: path.dirname(manifest)
-		})
-		return commandResult.toString()
+		}
 	}
 
 	/**
