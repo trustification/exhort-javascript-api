@@ -11,15 +11,18 @@ export default class Javascript_npm extends Base_javascript {
 	}
 
 	_listCmdArgs(includeTransitive, manifestDir) {
-		const depthArg = includeTransitive ? "--all" : "--depth=0";
-		const manifestArg = manifestDir ? `--prefix ${manifestDir}` : "";
-
-		return `${this._cmdName()} ls ${depthArg} --package-lock-only --omit=dev --json ${manifestArg}`;
+		const args = ['ls', includeTransitive ? '--all' : '--depth=0', '--package-lock-only', '--omit=dev', '--json']
+		if (manifestDir) {
+			args.push('--prefix', manifestDir)
+		}
+		return args
 	}
 
 	_updateLockFileCmdArgs(manifestDir) {
-		const manifestArg = manifestDir ? `--dir ${manifestDir}` : "";
-		return `${this._cmdName()} install --package-lock-only ${manifestArg}`;
+		const args = ['install', '--package-lock-only']
+		if (manifestDir) {
+			args.push('--dir', manifestDir)
+		}
+		return args;
 	}
-
 }

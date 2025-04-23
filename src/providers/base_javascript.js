@@ -1,7 +1,6 @@
-import { execSync } from "node:child_process"
 import fs from 'node:fs'
 import os from "node:os";
-import { handleSpacesInPath } from "../tools.js";
+import { handleSpacesInPath, invokeCommand } from "../tools.js";
 import path from 'node:path'
 import Sbom from '../sbom.js'
 import { PackageURL } from 'packageurl-js'
@@ -29,10 +28,16 @@ export default class Base_javascript {
 		throw new TypeError("_cmdName must be implemented");
 	}
 
+	/**
+	 * @returns {Array<string>}
+	 */
 	_listCmdArgs() {
 		throw new TypeError("_listCmdArgs must be implemented");
 	}
 
+	/**
+	 * @returns {Array<string>}
+	 */
 	_updateLockFileCmdArgs() {
 		throw new TypeError("_updateLockFileCmdArgs must be implemented");
 	}
@@ -97,8 +102,7 @@ export default class Base_javascript {
 		if (parts.length === 2) {
 			purlNs = parts[0];
 			purlName = parts[1];
-		}
-		else {
+		} else {
 			purlName = parts[0];
 		}
 		return new PackageURL('npm', purlNs, purlName, version, undefined, undefined);
@@ -154,8 +158,7 @@ export default class Base_javascript {
 		Object.entries(dependencies)
 			.filter(entry => entry[1].version !== undefined)
 			.forEach(entry => {
-				let name, artifact;
-				[name, artifact] = entry;
+				let [name, artifact] = entry;
 				let purl = this.#toPurl(name, artifact.version);
 				sbom.addDependency(from, purl)
 				let transitiveDeps = artifact.dependencies
@@ -168,22 +171,20 @@ export default class Base_javascript {
 	#executeListCmd(includeTransitive, manifestDir) {
 		const listArgs = this._listCmdArgs(includeTransitive, manifestDir);
 		try {
-			return execSync(listArgs, {
-				encoding: 'utf-8'
-			});
-		} catch (err) {
-			throw new Error(`failed to execute command ${listArgs} - Error: ${err}`);
+			invokeCommand(this._cmdName(), listArgs)
+		} catch (error) {
+			throw new Error(`failed to list dependencies via "${this._cmdName()} ${listArgs.join(' ')}" - Error: ${error}`, {cause: error});
 		}
 	}
 
 	#version() {
 		try {
-			execSync(`${handleSpacesInPath(this._cmdName())} --version`, {
-				stdio: 'ignore',
-				encoding: "utf8",
-			});
-		} catch (err) {
-			throw new Error(`${this._cmdName()} is not accessible: ${err}`);
+			invokeCommand(this._cmdName(), ['--version'], {stdio: 'ignore'});
+		} catch (error) {
+			if (error.code === 'ENOENT') {
+				throw new Error(`${this._cmdName()} is not accessible`);
+			}
+			throw new Error(`failed to check for package manager binary at ${this._cmdName()}`, {cause: error})
 		}
 	}
 
@@ -194,21 +195,17 @@ export default class Base_javascript {
 		if (os.platform() === 'win32') {
 			process.chdir(manifestDir)
 		}
-		const args = this._updateLockFileCmdArgs(manifestDir);
 
 		try {
-			return execSync(args, {
-				encoding: 'utf-8'
-			});
-		} catch (err) {
-			throw new Error(`failed to execute command ${args} - Error: ${err}`);
+			const args = this._updateLockFileCmdArgs(manifestDir);
+			invokeCommand(this._cmdName(), args)
+		} catch (error) {
+			throw new Error(`failed to create lockfile "${args}" - Error: ${error}`, {cause: error});
 		} finally {
 			if (os.platform() === 'win32') {
 				process.chdir(originalDir)
 			}
 		}
-
-
 	}
 }
 

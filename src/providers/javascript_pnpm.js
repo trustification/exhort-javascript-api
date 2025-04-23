@@ -11,14 +11,20 @@ export default class Javascript_pnpm extends Base_javascript {
 	}
 
 	_listCmdArgs(includeTransitive, manifestDir) {
-		const depthArg = includeTransitive ? "--depth=Infinity" : "--depth=0";
-		const manifestArg = manifestDir ? `--dir ${manifestDir}` : "";
-		return `${this._cmdName()} ls ${depthArg} ${manifestArg} --prod --json`;
+		const args = ['ls', includeTransitive ? '--all' : '--depth=0', '--prod', '--json'];
+		if (manifestDir) {
+			args.push('--prefix', manifestDir);
+		}
+		return args;
 	}
 
 	_updateLockFileCmdArgs(manifestDir) {
-		const manifestArg = manifestDir ? `--dir ${manifestDir}` : "";
-		return `${this._cmdName()} install --frozen-lockfile ${manifestArg}`;
+		const args = ['install', '--frozen-lockfile'];
+		if (manifestDir) {
+			args.push('--prefix', manifestDir)
+		}
+		args.push(...[])
+		return args;
 	}
 
 	_buildDependencyTree(includeTransitive, manifest) {
