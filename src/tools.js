@@ -106,42 +106,31 @@ function hasSpaces(path) {
 	return path.trim().includes(" ")
 }
 
-
 /**
  *
  * @param {string} cwd - directory for which to find the root of the git repository.
  */
 export function getGitRootDir(cwd) {
-	const root = invokeCommand('git', ['rev-parse', '--show-toplevel'], () => {}, {cwd: cwd})
-	if (!root) {
+	try {
+		const root = invokeCommand('git', ['rev-parse', '--show-toplevel'], {cwd: cwd})
+		return root.toString().trim()
+	} catch (error) {
 		return undefined
 	}
-	return root.toString().trim()
 }
 
 /** this method invokes command string in a process in a synchronous way.
  * @param {string} bin - the command to be invoked
  * @param {Array<string>} args - the args to pass to the binary
- * @param callback - function to invoke if an error was thrown
- * @protected
  */
-export function invokeCommand(bin, args, callback, opts={}) {
+export function invokeCommand(bin, args, opts={}) {
 	// .bat and .cmd files can't be executed in windows with execFileSync, so we special case them
 	// to use execSync here to keep the amount of escaping we need to do to a minimum.
 	// https://nodejs.org/docs/latest-v20.x/api/child_process.html#spawning-bat-and-cmd-files-on-windows
 	if (process.platform === 'win32' && (bin.endsWith(".bat") || bin.endsWith(".cmd"))) {
-		try {
-			args = args.map(arg => handleSpacesInPath(arg))
-			return execSync(`${handleSpacesInPath(bin)} ${args.join(" ")}`, {...{stdio: 'pipe'}, ...opts})
-		} catch(error) {
-			callback(error)
-		}
-		return
+		args = args.map(arg => handleSpacesInPath(arg))
+		return execSync(`${handleSpacesInPath(bin)} ${args.join(" ")}`, {...{stdio: 'pipe', encoding: 'utf-8'}, ...opts})
 	}
 
-	try {
-		return execFileSync(bin, args, {...{stdio: 'pipe'}, ...opts})
-	} catch(error) {
-		callback(error)
-	}
+	return execFileSync(bin, args, {...{stdio: 'pipe', encoding: 'utf-8'}, ...opts})
 }

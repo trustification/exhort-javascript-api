@@ -74,9 +74,11 @@ export default class Java_maven extends Base_java {
 		const mvn = this.#selectMvnRuntime(manifest, opts)
 
 		// clean maven target
-		this._invokeCommand(mvn, ['-q', 'clean', '-f', manifest], error => {
+		try {
+			this._invokeCommand(mvn, ['-q', 'clean', '-f', manifest])
+		} catch (error) {
 			throw new Error(`failed to clean maven target`, {cause: error})
-		})
+		}
 
 		// create dependency graph in a temp file
 		let tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'exhort_'))
@@ -93,9 +95,11 @@ export default class Java_maven extends Base_java {
 			}
 		})
 		// execute dependency tree command
-		this._invokeCommand(mvn, depTreeCmdArgs, error => {
+		try {
+			this._invokeCommand(mvn, depTreeCmdArgs)
+		} catch (error) {
 			throw new Error(`failed creating maven dependency tree`, {cause: error})
-		})
+		}
 		// read dependency tree from temp file
 		let content = fs.readFileSync(`${tmpDepTree}`)
 		if (process.env["EXHORT_DEBUG"] === "true") {
@@ -138,9 +142,11 @@ export default class Java_maven extends Base_java {
 		const targetPom = manifestPath
 
 		// create effective pom and save to temp file
-		this._invokeCommand(mvn, ['-q', 'help:effective-pom', `-Doutput=${tmpEffectivePom}`, '-f', targetPom], error => {
+		try {
+			this._invokeCommand(mvn, ['-q', 'help:effective-pom', `-Doutput=${tmpEffectivePom}`, '-f', targetPom])
+		} catch (error) {
 			throw new Error(`failed creating maven effective pom`, {cause: error})
-		})
+		}
 		// iterate over all dependencies in original pom and collect all ignored ones
 		let ignored = this.#getDependencies(targetPom).filter(d => d.ignore)
 		// iterate over all dependencies and create a package for every non-ignored one
@@ -205,24 +211,28 @@ export default class Java_maven extends Base_java {
 		if (useMvnw) {
 			const mvnw = this.#traverseForMvnw(manifestPath)
 			if (mvnw !== undefined) {
-				this._invokeCommand(mvnw, ['--version'], error => {
+				try {
+					this._invokeCommand(mvnw, ['--version'])
+				} catch (error) {
 					if (error.code === 'ENOENT') {
 						useMvnw = false
 					} else {
 						throw new Error(`failed to check for mvnw`, {cause: error})
 					}
-				})
+				}
 				mvn = useMvnw ? mvnw : mvn
 			}
 		} else {
 			// verify maven is accessible
-			this._invokeCommand(mvn, ['--version'], error => {
+			try {
+				this._invokeCommand(mvn, ['--version'])
+			} catch (error) {
 				if (error.code === 'ENOENT') {
 					throw new Error(`maven not accessible at "${mvn}"`)
 				} else {
 					throw new Error(`failed to check for maven`, {cause: error})
 				}
-			})
+			}
 		}
 		return mvn
 	}
