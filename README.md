@@ -152,6 +152,7 @@ $ exhort-javascript-api component /path/to/pom.xml
 <ul>
 <li><a href="https://www.java.com/">Java</a> - <a href="https://maven.apache.org/">Maven</a></li>
 <li><a href="https://www.javascript.com/">JavaScript</a> - <a href="https://www.npmjs.com/">Npm</a></li>
+<li><a href="https://www.javascript.com/">JavaScript</a> - <a href="https://pnpm.io/">pnpm</a></li>
 <li><a href="https://go.dev/">Golang</a> - <a href="https://go.dev/blog/using-go-modules/">Go Modules</a></li>
 <li><a href="https://www.python.org/">Python</a> - <a href="https://pypi.org/project/pip/">pip Installer</a></li>
 <li><a href="https://gradle.org/">Gradle (Groovy and Kotlin DSL)</a> - <a href="https://gradle.org/install/">Gradle Installation</a></li>
@@ -298,6 +299,7 @@ import fs from 'node:fs'
 let options = {
   'EXHORT_MVN_PATH': '/path/to/my/mvn',
   'EXHORT_NPM_PATH': '/path/to/npm',
+  'EXHORT_PNPM_PATH': '/path/to/pnpm',
   'EXHORT_GO_PATH': '/path/to/go',
   //python - python3, pip3 take precedence if python version > 3 installed
   'EXHORT_PYTHON3_PATH' : '/path/to/python3',
@@ -341,6 +343,11 @@ following keys for setting custom paths for the said executables.
 <td><a href="https://www.npmjs.com/">NPM</a></td>
 <td><em>npm</em></td>
 <td>EXHORT_NPM_PATH</td>
+</tr>
+<tr>
+<td><a href="https://pnpm.io/">PNPM</a></td>
+<td><em>pnpm</em></td>
+<td>EXHORT_PNPM_PATH</td>
 </tr>
 <tr>
 <td><a href="https://go.dev/blog/using-go-modules/">Go Modules</a></td>

@@ -30,7 +30,7 @@ export default class Java_maven extends Base_java {
 	/**
 	 * @param {string} manifestDir - the directory where the manifest lies
  	*/
-	validateLockFile() {}
+	validateLockFile() { return true; }
 
 	/**
 	 * Provide content and content type for maven-maven stack analysis.

@@ -113,7 +113,7 @@ export default class Java_gradle extends Base_java {
 	/**
 	 * @param {string} manifestDir - the directory where the manifest lies
  	 */
-	validateLockFile() {}
+	validateLockFile() { return true; }
 
 	/**
 	 * Provide content and content type for stack analysis.
@@ -129,10 +129,6 @@ export default class Java_gradle extends Base_java {
 			content: this.#createSbomStackAnalysis(manifest, opts),
 			contentType: 'application/vnd.cyclonedx+json'
 		}
-	}
-
-	testMeNow() {
-		return {hello: "there"}
 	}
 
 	/**
