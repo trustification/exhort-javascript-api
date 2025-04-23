@@ -6,12 +6,16 @@ import Sbom from '../sbom.js'
 import { PackageURL } from 'packageurl-js'
 
 var npmInteractions = {
-	listing: function runNpmListing(npm, manifestDir, includeAll) {
-		return invokeCommand(npm, ['ls', includeAll ? '--all' : '', '--omit=dev', '--package-lock-only', '--json', '--prefix', manifestDir], error => {
+	listing: function(npm, manifestDir, includeAll) {
+		const args = ['ls', '--omit=dev', '--package-lock-only', '--json', '--prefix', manifestDir]
+		if (includeAll) {
+			args.push('--all')
+		}
+		return invokeCommand(npm, args, error => {
 			throw new  Error('failed to get npmOutput json from npm', {cause: error})
 		}).toString()
 	},
-	version: function checkNpmVersion(npm) {
+	version: function(npm) {
 		invokeCommand(npm, ['--version'], error => {
 			if (error.code === 'ENOENT') {
 				throw new Error(`npm is not accessible at ${npm}`, {})
@@ -19,7 +23,7 @@ var npmInteractions = {
 			throw new Error('failed to check for npm', {cause: error})
 		})
 	},
-	createPackageLock: function createPackageLock(npm, manifestDir) {
+	createPackageLock: function(npm, manifestDir) {
 		// in windows os, --prefix flag doesn't work, it behaves really weird , instead of installing the package.json fromm the prefix folder,
 		// it's installing package.json (placed in current working directory of process) into prefix directory, so
 		let originalDir = process.cwd()
@@ -148,9 +152,9 @@ function getSBOM(manifest, opts = {}, includeTransitive) {
 function toPurl(name, version) {
 	let parts = name.split("/");
 	if(parts.length === 2) {
-		return new PackageURL('npm',parts[0],parts[1],version,undefined,undefined);
+		return new PackageURL('npm', parts[0], parts[1], version, undefined, undefined);
 	} else {
-		return new PackageURL('npm',undefined,parts[0],version,undefined,undefined);
+		return new PackageURL('npm', undefined, parts[0], version, undefined, undefined);
 	}
 }
 
@@ -166,11 +170,11 @@ function addAllDependencies(sbom, from, dependencies) {
 		.filter(entry => entry[1].version !== undefined)
 		.forEach(entry => {
 			let [name, artifact] = entry;
-			let purl = toPurl(name,artifact.version);
-			sbom.addDependency(from,purl)
+			let purl = toPurl(name, artifact.version);
+			sbom.addDependency(from, purl)
 			let transitiveDeps = artifact.dependencies
 			if(transitiveDeps !== undefined) {
-				addAllDependencies(sbom,sbom.purlToComponent(purl),transitiveDeps)
+				addAllDependencies(sbom, sbom.purlToComponent(purl), transitiveDeps)
 			}
 		});
 }
