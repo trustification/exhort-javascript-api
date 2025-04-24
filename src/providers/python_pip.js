@@ -1,11 +1,9 @@
-
-import { execSync } from "node:child_process";
 import fs from 'node:fs'
 import {
 	environmentVariableIsPopulated,
 	getCustom,
 	getCustomPath,
-	handleSpacesInPath
+	invokeCommand
 } from "../tools.js";
 import Sbom from '../sbom.js'
 import { PackageURL } from 'packageurl-js'
@@ -148,17 +146,17 @@ function handleIgnoredDependencies(requirementTxtContent, sbom, opts ={}) {
  * @param {{}} [opts={}]
  */
 function getPythonPipBinaries(binaries,opts) {
-	let python = getCustomPath("python3",opts)
-	let pip = getCustomPath("pip3",opts)
+	let python = getCustomPath("python3", opts)
+	let pip = getCustomPath("pip3", opts)
 	try {
-		execSync(`${handleSpacesInPath(python)} --version`)
-		execSync(`${handleSpacesInPath(pip)} --version`)
+		invokeCommand(python, ['--version'])
+		invokeCommand(pip, ['--version'])
 	} catch (e) {
-		python = getCustomPath("python",opts)
-		pip = getCustomPath("pip",opts)
+		python = getCustomPath("python", opts)
+		pip = getCustomPath("pip", opts)
 		try {
-			execSync(`${handleSpacesInPath(python)} --version`)
-			execSync(`${handleSpacesInPath(pip)} --version`)
+			invokeCommand(python, ['--version'])
+			invokeCommand(pip, ['--version'])
 		} catch (e) {
 			throw new Error(`Couldn't get python binaries from supplied environment variables ${e.getMessage}`)
 		}

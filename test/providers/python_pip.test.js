@@ -1,9 +1,8 @@
 import { expect } from 'chai'
 import fs from 'fs'
-import {execSync} from "node:child_process";
 import sinon from "sinon";
 import pythonPip from "../../src/providers/python_pip.js"
-import {getCustomPath } from "../../src/tools.js"
+import {getCustomPath, invokeCommand } from "../../src/tools.js"
 
 let clock
 
@@ -28,11 +27,11 @@ async function sharedStackAnalysisTestFlow(testCase,usePipDepTreeUtility) {
 	expectedSbom = JSON.stringify(JSON.parse(expectedSbom))
 	// invoke sut stack analysis for scenario manifest
 	let pipPath = getCustomPath("pip3");
-	execSync(`${pipPath} install -r test/providers/tst_manifests/pip/${testCase}/requirements.txt`, err => {
-		if (err) {
-			throw new Error('fail installing requirements.txt manifest in created virtual python environment --> ' + err.message)
-		}
-	})
+	try {
+		invokeCommand(pipPath, ['install', '-r', `test/providers/tst_manifests/pip/${testCase}/requirements.txt`])
+	} catch (error) {
+		throw new Error('fail installing requirements.txt manifest in created virtual python environment --> ' + error.message)
+	}
 	let opts = { "EXHORT_PIP_USE_DEP_TREE" : usePipDepTreeUtility }
 	let providedDataForStack = await pythonPip.provideStack(`test/providers/tst_manifests/pip/${testCase}/requirements.txt`,opts)
 	// new(year: number, month: number, date?: number, hours?: number, minutes?: number, seconds?: number, ms?: number): Date
