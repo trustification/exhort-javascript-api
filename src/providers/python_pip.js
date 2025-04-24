@@ -73,11 +73,11 @@ function provideComponent(manifest, opts = {}) {
  * @private
  */
 function addAllDependencies(source, dep, sbom) {
-	let targetPurl = toPurl(dep["name"],dep["version"])
-	sbom.addDependency(sbom.purlToComponent(source),targetPurl)
+	let targetPurl = toPurl(dep["name"], dep["version"])
+	sbom.addDependency(sbom.purlToComponent(source), targetPurl)
 	let directDeps = dep["dependencies"]
 	if (directDeps !== undefined && directDeps.length > 0) {
-		directDeps.forEach( (dependency) =>{ addAllDependencies(toPurl(dep["name"],dep["version"]),dependency,sbom)})
+		directDeps.forEach( (dependency) =>{ addAllDependencies(toPurl(dep["name"],dep["version"]), dependency, sbom)})
 	}
 }
 
@@ -131,7 +131,7 @@ function handleIgnoredDependencies(requirementTxtContent, sbom, opts ={}) {
 		.filter(dep => dep.toString().includes(dummyVersionNotation))
 		.map(dep => dep.name)
 	sbom.filterIgnoredDeps(ignoredDepsNoVersions)
-	let matchManifestVersions = getCustom("MATCH_MANIFEST_VERSIONS","true",opts);
+	let matchManifestVersions = getCustom("MATCH_MANIFEST_VERSIONS", "true", opts);
 	if(matchManifestVersions === "true") {
 		sbom.filterIgnoredDepsIncludingVersion(ignoredDepsVersion)
 	} else {
@@ -202,15 +202,15 @@ function createSbomStackAnalysis(manifest, opts = {}) {
 	let binaries = {}
 	let createVirtualPythonEnv = handlePythonEnvironment(binaries, opts);
 
-	let pythonController = new Python_controller(createVirtualPythonEnv === "false",binaries.pip,binaries.python,manifest,opts)
+	let pythonController = new Python_controller(createVirtualPythonEnv === "false", binaries.pip, binaries.python, manifest, opts)
 	let dependencies = pythonController.getDependencies(true);
 	let sbom = new Sbom();
-	sbom.addRoot(toPurl(DEFAULT_PIP_ROOT_COMPONENT_NAME,DEFAULT_PIP_ROOT_COMPONENT_VERSION))
+	sbom.addRoot(toPurl(DEFAULT_PIP_ROOT_COMPONENT_NAME, DEFAULT_PIP_ROOT_COMPONENT_VERSION))
 	dependencies.forEach(dep => {
-		addAllDependencies(sbom.getRoot(),dep,sbom)
+		addAllDependencies(sbom.getRoot(), dep, sbom)
 	})
 	let requirementTxtContent = fs.readFileSync(manifest).toString();
-	handleIgnoredDependencies(requirementTxtContent,sbom,opts)
+	handleIgnoredDependencies(requirementTxtContent, sbom, opts)
 	// In python there is no root component, then we must remove the dummy root we added, so the sbom json will be accepted by exhort backend
 	// sbom.removeRootComponent()
 	return sbom.getAsJsonString(opts)
@@ -247,5 +247,5 @@ function getSbomForComponentAnalysis(manifest, opts = {}) {
  * @return {PackageURL}
  */
 function toPurl(name,version) {
-	return new PackageURL('pypi',undefined,name,version,undefined,undefined);
+	return new PackageURL('pypi', undefined, name, version, undefined, undefined);
 }

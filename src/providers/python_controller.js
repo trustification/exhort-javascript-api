@@ -5,7 +5,7 @@ import {environmentVariableIsPopulated,getCustom, invokeCommand} from "../tools.
 
 function getPipFreezeOutput() {
 	try {
-		return environmentVariableIsPopulated("EXHORT_PIP_FREEZE")  ? new Buffer(process.env["EXHORT_PIP_FREEZE"],'base64').toString('ascii') : invokeCommand(this.pathToPipBin, ['freeze', '--all']).toString();
+		return environmentVariableIsPopulated("EXHORT_PIP_FREEZE")  ? new Buffer(process.env["EXHORT_PIP_FREEZE"], 'base64').toString('ascii') : invokeCommand(this.pathToPipBin, ['freeze', '--all']).toString();
 	} catch (error) {
 		throw new Error('fail invoking pip freeze to fetch all installed dependencies in environment --> ' + error.message)
 	}
@@ -13,7 +13,7 @@ function getPipFreezeOutput() {
 
 function getPipShowOutput(depNames) {
 	try {
-		return environmentVariableIsPopulated("EXHORT_PIP_SHOW")  ? new Buffer(process.env["EXHORT_PIP_SHOW"],'base64').toString('ascii')  : invokeCommand(this.pathToPipBin, ['show', depNames]).toString();
+		return environmentVariableIsPopulated("EXHORT_PIP_SHOW")  ? new Buffer(process.env["EXHORT_PIP_SHOW"], 'base64').toString('ascii')  : invokeCommand(this.pathToPipBin, ['show', ...depNames]).toString();
 	} catch (error) {
 		throw new Error('fail invoking pip show to fetch all installed dependencies metadata --> ' + error.message)
 	}
@@ -173,7 +173,7 @@ export default class Python_controller {
 		if(usePipDepTree !== "true") {
 			freezeOutput = getPipFreezeOutput.call(this);
 			lines = freezeOutput.split(EOL)
-			depNames = lines.map( line => getDependencyName(line)).join(" ")
+			depNames = lines.map( line => getDependencyName(line))
 		}
 		else {
 			pipDepTreeJsonArrayOutput = getDependencyTreeJsonFromPipDepTree(this.pathToPipBin,this.pathToPythonBin)
@@ -182,7 +182,7 @@ export default class Python_controller {
 
 		if(usePipDepTree !== "true") {
 			pipShowOutput = getPipShowOutput.call(this, depNames);
-			allPipShowDeps = pipShowOutput.split( EOL +"---" + EOL);
+			allPipShowDeps = pipShowOutput.split( EOL + "---" + EOL);
 		}
 		//debug
 		// pipShowOutput = "alternative pip show output goes here for debugging"

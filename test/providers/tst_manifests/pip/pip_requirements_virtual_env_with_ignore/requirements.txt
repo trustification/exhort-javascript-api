@@ -9,14 +9,14 @@ fastapi==0.75.1
 Flask==2.0.3
 h11==0.13.0
 idna==2.10
-immutables==0.19
+immutables==0.20
 importlib-metadata==4.8.3
 itsdangerous==2.0.1
 Jinja2==3.0.3
 MarkupSafe==2.0.1
 pydantic==1.9.2 # exhortignore
 requests==2.25.1
-six==1.16.0 
+six==1.16.0
 sniffio==1.2.0
 soupsieve==2.3.2.post1
 starlette==0.17.1

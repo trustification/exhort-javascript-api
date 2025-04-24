@@ -122,6 +122,8 @@ export function getGitRootDir(cwd) {
 /** this method invokes command string in a process in a synchronous way.
  * @param {string} bin - the command to be invoked
  * @param {Array<string>} args - the args to pass to the binary
+ * @param {import('child_process').ExecFileOptionsWithStringEncoding} [opts={}]
+ * @returns {string}
  */
 export function invokeCommand(bin, args, opts={}) {
 	// .bat and .cmd files can't be executed in windows with execFileSync, so we special case them
