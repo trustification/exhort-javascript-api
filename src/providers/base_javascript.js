@@ -3,7 +3,7 @@ import os from "node:os";
 import path from 'node:path'
 import { PackageURL } from 'packageurl-js'
 
-import { invokeCommand } from "../tools.js";
+import { getCustomPath, invokeCommand } from "../tools.js";
 import Sbom from '../sbom.js'
 
 /** @typedef {import('../provider.js').Provider} */
@@ -14,6 +14,9 @@ const ecosystem = 'npm'
 const defaultVersion = 'v0.0.0'
 
 export default class Base_javascript {
+
+	// Resolved cmd to use
+	#cmd;
 
 	/**
    * @returns {string} the name of the lock file name for the specific implementation
@@ -30,15 +33,15 @@ export default class Base_javascript {
 	}
 
 	/**
-	 * @returns {Array<string>}
-	 */
+   * @returns {Array<string>}
+   */
 	_listCmdArgs() {
 		throw new TypeError("_listCmdArgs must be implemented");
 	}
 
 	/**
-	 * @returns {Array<string>}
-	 */
+   * @returns {Array<string>}
+   */
 	_updateLockFileCmdArgs() {
 		throw new TypeError("_updateLockFileCmdArgs must be implemented");
 	}
@@ -91,12 +94,11 @@ export default class Base_javascript {
 	}
 
 	/**
- * Utility function for creating Purl String
-
- * @param name the name of the artifact, can include a namespace(group) or not - namespace/artifactName.
- * @param version the version of the artifact
- * @returns {PackageURL|null} PackageUrl Object ready to be used in SBOM
- */
+   * Utility function for creating Purl String
+   * @param name the name of the artifact, can include a namespace(group) or not - namespace/artifactName.
+   * @param version the version of the artifact
+   * @returns {PackageURL|null} PackageUrl Object ready to be used in SBOM
+   */
 	#toPurl(name, version) {
 		let parts = name.split("/");
 		var purlNs, purlName;
@@ -126,7 +128,8 @@ export default class Base_javascript {
    * @private
    */
 	#getSBOM(manifest, opts = {}, includeTransitive) {
-		const depsObject = this._buildDependencyTree(includeTransitive, manifest);
+		this.#cmd = getCustomPath(this._cmdName(), opts);
+		const depsObject = this._buildDependencyTree(includeTransitive, manifest, opts);
 		let rootName = depsObject["name"]
 		let rootVersion = depsObject["version"]
 		if (!rootVersion) {
@@ -171,22 +174,11 @@ export default class Base_javascript {
 
 	#executeListCmd(includeTransitive, manifestDir) {
 		const listArgs = this._listCmdArgs(includeTransitive, manifestDir);
-		try {
-			return invokeCommand(this._cmdName(), listArgs)
-		} catch (error) {
-			throw new Error(`failed to list dependencies via "${this._cmdName()} ${listArgs.join(' ')}" - Error: ${error}`, {cause: error});
-		}
+		return this.#invokeCommand(listArgs);
 	}
 
 	#version() {
-		try {
-			invokeCommand(this._cmdName(), ['--version'], {stdio: 'ignore'});
-		} catch (error) {
-			if (error.code === 'ENOENT') {
-				throw new Error(`${this._cmdName()} is not accessible`);
-			}
-			throw new Error(`failed to check for package manager binary at ${this._cmdName()}`, {cause: error})
-		}
+		this.#invokeCommand(['--version'], { stdio: 'ignore' });
 	}
 
 	#createLockFile(manifestDir) {
@@ -198,13 +190,24 @@ export default class Base_javascript {
 		}
 		const args = this._updateLockFileCmdArgs(manifestDir);
 		try {
-			invokeCommand(this._cmdName(), args)
+			this.#invokeCommand(args);
 		} catch (error) {
-			throw new Error(`failed to create lockfile "${args}" - Error: ${error}`, {cause: error});
+			throw new Error(`failed to create lockfile "${args}"`, { cause: error });
 		} finally {
 			if (os.platform() === 'win32') {
 				process.chdir(originalDir)
 			}
+		}
+	}
+
+	#invokeCommand(args, opts = {}) {
+		try {
+			return invokeCommand(this.#cmd, args, opts);
+		} catch (error) {
+			if (error.code === 'ENOENT') {
+				throw new Error(`${this.#cmd} is not accessible`);
+			}
+			throw new Error(`failed to execute ${this.#cmd} ${args}`, { cause: error })
 		}
 	}
 }
