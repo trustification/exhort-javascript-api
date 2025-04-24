@@ -35,7 +35,7 @@ function isSupported(manifestName) {
 /**
  * @param {string} manifestDir - the directory where the manifest lies
  */
-function validateLockFile() {}
+function validateLockFile() { return true; }
 
 /**
  * Provide content and content type for python-pip stack analysis.

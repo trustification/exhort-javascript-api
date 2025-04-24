@@ -1,12 +1,11 @@
-// import {AnalysisReport} from '../../generated/backend/AnalysisReport.js'
 import index from "../../src/index.js"
 import { expect } from 'chai'
-// import fs from 'node:fs'
 
 const packageManagersDict =
 	{
 		"maven" : "pom.xml",
 		"npm" : "package.json",
+		"pnpm": "package.json",
 		"go" : "go.mod",
 		"pip" : "requirements.txt",
 		"gradle-groovy" : "build.gradle",
@@ -28,26 +27,17 @@ function extractTotalsGeneralOrFromProvider(providedDataForStack, provider) {
 }
 
 suite('Integration Tests', () => {
-	// let opts = {
-	// 	EXHORT_DEV_MODE: "true",
-	//
-	// }
 	[
 		"gradle-groovy",
 		"gradle-kotlin",
 		"maven",
 		"npm",
+		"pnpm",
 		"go",
 		"pip"
 
 	].forEach(packageManager => {
 		test(`Stack Analysis json for ${packageManager}`, async () => {
-			// process.env["EXHORT_DEBUG"]= "true"
-			// process.env["EXHORT_DEV_MODE"]= "false"
-			// process.env["EXHORT_GO_PATH"]= "/home/zgrinber/test-go/go/bin/go"
-			// process.env["RHDA_TOKEN"] = "34JKLDS-4234809-66666666666"
-			// process.env["RHDA_SOURCE"] = "Zvika Client"
-			// let result = await index.stackAnalysis("/tmp/rajan-0410/go.mod", false, opts);
 			if(packageManager === "pip") {
 				process.env["EXHORT_PYTHON_VIRTUAL_ENV"] = "true"
 			} else {
@@ -60,7 +50,7 @@ suite('Integration Tests', () => {
 			console.log(JSON.stringify(providedDataForStack,null , 4))
 			let providers = ["osv"]
 			providers.forEach(provider => expect(extractTotalsGeneralOrFromProvider(providedDataForStack, provider)).greaterThan(0))
-			//TO DO - if sources doesn't exists, add "scanned" instead
+			// TODO: if sources doesn't exist, add "scanned" instead
 			// python transitive count for stack analysis is awaiting fix in exhort backend
 			if(packageManager !== "pip") {
 				expect(providedDataForStack.scanned.transitive).greaterThan(0)
@@ -115,43 +105,3 @@ suite('Integration Tests', () => {
 
 	});
 }).beforeAll(() => process.env["EXHORT_DEV_MODE"] = "true");
-
-// suite('Integration Tests - Developer Test End to End', () => {
-// let opts = {
-// 	EXHORT_DEV_MODE: "true",
-//
-// }
-//
-// 	test(`Stack Analysis json`, async () => {
-// 		process.env["EXHORT_DEBUG"]= "true"
-// 		process.env["EXHORT_DEV_MODE"]= "true"
-// 		// process.env["EXHORT_GO_PATH"]= "/home/zgrinber/test-go/go/bin/go"
-// 		// process.env["RHDA_TOKEN"] = "34JKLDS-4234809-66666666666"
-// 		// process.env["RHDA_SOURCE"] = "Zvika Client"
-// 		// let result = await index.stackAnalysis("/tmp/rajan-0410/go.mod", false, opts);
-// 		let opts = {
-// 			MATCH_MANIFEST_VERSIONS: 'false',
-// 			EXHORT_DEV_MODE: 'true',
-// 			// EXHORT_OSS_INDEX_TOKEN: '2bb579b7894f13f180f0ebb591be7c8febbcf699',
-// 			EXHORT_OSS_INDEX_USER: 'zgrinber@redhat.com',
-// 			EXHORT_GO_MVS_LOGIC_ENABLED: 'true'
-// 		}
-// 		process.env["EXHORT_PYTHON_VIRTUAL_ENV"] = "true"
-// 		process.env["EXHORT_PYTHON_INSTALL_BEST_EFFORTS"] = "true"
-// 		process.env["MATCH_MANIFEST_VERSIONS"] = "false"
-// 		// let pomPath = `/tmp/070324/package.json`
-// 		let pomPath = `/tmp/170324/requirements.txt`
-// 		// let pomPath = `/home/zgrinber/git/tracing-demos-and-examples/tracing-parent/pom.xml`
-// 		let providedDataForStack;
-// 		// providedDataForStack = await index.componentAnalysis("requirements.txt", fs.readFileSync(pomPath).toString(),{},pomPath);
-// 		providedDataForStack = await index.stackAnalysis(pomPath);
-// 		// console.log(JSON.stringify(providedDataForStack,null , 4))
-// 		// fs.writeFileSync(`/tmp/301123/report.html`,providedDataForStack)
-//
-// 		// expect(providedDataForStack.summary.dependencies.scanned).greaterThan(0)
-// 	}).timeout(15000);
-//
-//
-//
-//
-// });
