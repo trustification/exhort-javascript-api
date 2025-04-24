@@ -191,8 +191,6 @@ export default class Base_javascript {
 		const args = this._updateLockFileCmdArgs(manifestDir);
 		try {
 			this.#invokeCommand(args);
-		} catch (error) {
-			throw new Error(`failed to create lockfile "${args}"`, { cause: error });
 		} finally {
 			if (os.platform() === 'win32') {
 				process.chdir(originalDir)
