@@ -30,7 +30,7 @@ function sharedStackAnalysisTestFlow(testCase, usePipDepTreeUtility) {
 	try {
 		invokeCommand(pipPath, ['install', '-r', `test/providers/tst_manifests/pip/${testCase}/requirements.txt`])
 	} catch (error) {
-		throw new Error('fail installing requirements.txt manifest in created virtual python environment --> ' + error.message)
+		throw new Error('fail installing requirements.txt manifest in created virtual python environment', {cause: error})
 	}
 	let opts = { "EXHORT_PIP_USE_DEP_TREE" : usePipDepTreeUtility }
 	let providedDataForStack = pythonPip.provideStack(`test/providers/tst_manifests/pip/${testCase}/requirements.txt`, opts)

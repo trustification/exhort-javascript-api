@@ -151,14 +151,14 @@ function getPythonPipBinaries(binaries,opts) {
 	try {
 		invokeCommand(python, ['--version'])
 		invokeCommand(pip, ['--version'])
-	} catch (e) {
+	} catch (error) {
 		python = getCustomPath("python", opts)
 		pip = getCustomPath("pip", opts)
 		try {
 			invokeCommand(python, ['--version'])
 			invokeCommand(pip, ['--version'])
-		} catch (e) {
-			throw new Error(`Couldn't get python binaries from supplied environment variables ${e.getMessage}`)
+		} catch (error) {
+			throw new Error(`Failed checking for python/pip binaries from supplied environment variables`, {cause: error})
 		}
 	}
 	binaries.pip = pip

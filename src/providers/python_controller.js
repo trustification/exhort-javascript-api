@@ -5,17 +5,17 @@ import {environmentVariableIsPopulated,getCustom, invokeCommand} from "../tools.
 
 function getPipFreezeOutput() {
 	try {
-		return environmentVariableIsPopulated("EXHORT_PIP_FREEZE")  ? new Buffer(process.env["EXHORT_PIP_FREEZE"], 'base64').toString('ascii') : invokeCommand(this.pathToPipBin, ['freeze', '--all']).toString();
+		return environmentVariableIsPopulated("EXHORT_PIP_FREEZE")  ? new Buffer.from(process.env["EXHORT_PIP_FREEZE"], 'base64').toString('ascii') : invokeCommand(this.pathToPipBin, ['freeze', '--all']).toString();
 	} catch (error) {
-		throw new Error('fail invoking pip freeze to fetch all installed dependencies in environment --> ' + error.message)
+		throw new Error('Failed invoking \'pip freeze\' to list all installed packages in environment', {cause: error})
 	}
 }
 
 function getPipShowOutput(depNames) {
 	try {
-		return environmentVariableIsPopulated("EXHORT_PIP_SHOW")  ? new Buffer(process.env["EXHORT_PIP_SHOW"], 'base64').toString('ascii')  : invokeCommand(this.pathToPipBin, ['show', ...depNames]).toString();
+		return environmentVariableIsPopulated("EXHORT_PIP_SHOW")  ? new Buffer.from(process.env["EXHORT_PIP_SHOW"], 'base64').toString('ascii')  : invokeCommand(this.pathToPipBin, ['show', ...depNames]).toString();
 	} catch (error) {
-		throw new Error('fail invoking pip show to fetch all installed dependencies metadata --> ' + error.message)
+		throw new Error('fail invoking \'pip show\' to fetch metadata for all installed packages in environment', {cause: error})
 	}
 }
 
@@ -48,11 +48,11 @@ export default class Python_controller {
 	}
 	prepareEnvironment() {
 		if(!this.realEnvironment) {
-			this.pythonEnvDir = path.join(path.sep,"tmp","exhort_env_js")
+			this.pythonEnvDir = path.join(path.sep, "tmp", "exhort_env_js")
 			try {
 				invokeCommand(this.pathToPythonBin, ['-m', 'venv', this.pythonEnvDir])
 			} catch (error) {
-				throw new Error('failed creating virtual python environment - ' + error.message)
+				throw new Error('Failed creating virtual python environment', {cause: error})
 			}
 			if(this.pathToPythonBin.includes("python3")) {
 				this.pathToPipBin = path.join(path.sep,this.pythonEnvDir,os.platform() === 'win32' ? "Scripts" : "bin",this.#decideIfWindowsOrLinuxPath("pip3"))
@@ -75,7 +75,7 @@ export default class Python_controller {
 			try {
 				invokeCommand(this.pathToPythonBin, ['-m', 'pip', 'install', '--upgrade', 'pip'])
 			} catch (error) {
-				throw new Error('failed upgrading pip version on virtual python environment - ' + error.message)
+				throw new Error('Failed upgrading pip version in virtual python environment', {cause: error})
 			}
 		} else {
 			if(this.pathToPythonBin.startsWith("python")) {
@@ -111,7 +111,7 @@ export default class Python_controller {
 				try {
 					invokeCommand(this.pathToPipBin, ['install', '-r', this.pathToRequirements])
 				} catch (error) {
-					throw new Error('fail installing requirements.txt manifest in created virtual python environment --> ' + error.message)
+					throw new Error('Failed installing requirements.txt manifest in virtual python environment', {cause: error})
 				}
 			}
 			// make best efforts to install the requirements.txt on the virtual environment created from the python3 passed in.
@@ -144,7 +144,7 @@ export default class Python_controller {
 			try {
 				invokeCommand(this.pathToPipBin, ['install', dependencyName])
 			} catch (error) {
-				throw new Error(`Best efforts process - failed installing ${dependencyName}  in created virtual python environment --> error message: ` + error.message)
+				throw new Error(`Failed in best-effort installing ${dependencyName} in virtual python environment`, {cause: error})
 			}
 		})
 	}
@@ -156,7 +156,7 @@ export default class Python_controller {
 			try {
 				invokeCommand(this.pathToPipBin, ['uninstall', '-y', '-r', this.pathToRequirements])
 			} catch (error) {
-				throw new Error('fail uninstalling requirements.txt in created virtual python environment --> ' + error.message)
+				throw new Error('Failed uninstalling requirements.txt in virtual python environment', {cause: error})
 			}
 		}
 	}
@@ -235,7 +235,7 @@ export default class Python_controller {
 					}
 					if(installedVersion) {
 						if (manifestVersion.trim() !== installedVersion.trim()) {
-							throw new Error(`Can't continue with analysis - versions mismatch for dependency name ${dependencyName}, manifest version=${manifestVersion}, installed Version=${installedVersion}, if you want to allow version mismatch for analysis between installed and requested packages, set environment variable/setting - MATCH_MANIFEST_VERSIONS=false`)
+							throw new Error(`Can't continue with analysis - versions mismatch for dependency name ${dependencyName} (manifest version=${manifestVersion}, installed version=${installedVersion}).If you want to allow version mismatch for analysis between installed and requested packages, set environment variable/setting MATCH_MANIFEST_VERSIONS=false`)
 						}
 					}
 				}
@@ -335,10 +335,7 @@ function bringAllDependencies(dependencies, dependencyName, cachedEnvironmentDep
 	}
 	let record = cachedEnvironmentDeps[dependencyName.toLowerCase()]
 	if(record === null || record  === undefined) {
-		throw new Error(`Package name=>${dependencyName} is not installed in your python environment,
-		                         either install it ( better to install requirements.txt altogether) or set
-		                         the setting EXHORT_PYTHON_VIRTUAL_ENV to true to automatically install
-		                          it in virtual environment (please note that this may slow down the analysis) `)
+		throw new Error(`Package ${dependencyName} is not installed in your python environment, either install it (better to install requirements.txt altogether) or set the setting EXHORT_PYTHON_VIRTUAL_ENV=true to automatically install it in virtual environment (please note that this may slow down the analysis)`)
 	}
 	let depName
 	let version;
@@ -395,19 +392,18 @@ function getDependencyTreeJsonFromPipDepTree(pipPath,pythonPath) {
 	let dependencyTree
 	try {
 		invokeCommand(pipPath, ['install', 'pipdeptree'])
-	} catch (e) {
-		throw new Error(`Couldn't install pipdeptree utility, reason: ${e.getMessage}`)
+	} catch (error) {
+		throw new Error(`Failed installing pipdeptree utility`, {cause: error})
 	}
 
 	try {
 		if(pythonPath.startsWith("python")) {
 			dependencyTree = invokeCommand('pipdeptree', ['--json']).toString()
-		}
-		else {
+		} else {
 			dependencyTree = invokeCommand('pipdeptree', ['--json', '--python', pythonPath]).toString()
 		}
-	} catch (e) {
-		throw new Error(`couldn't produce dependency tree using pipdeptree tool, stop analysis, message -> ${e.getMessage}`)
+	} catch (error) {
+		throw new Error(`Failed building dependency tree using pipdeptree tool, stopping analysis`, {cause: error})
 	}
 
 	return JSON.parse(dependencyTree)
