@@ -101,7 +101,7 @@ export default class Java_maven extends Base_java {
 			throw new Error(`failed creating maven dependency tree`, {cause: error})
 		}
 		// read dependency tree from temp file
-		let content = fs.readFileSync(`${tmpDepTree}`)
+		let content = fs.readFileSync(tmpDepTree)
 		if (process.env["EXHORT_DEBUG"] === "true") {
 			console.error("Dependency tree that will be used as input for creating the BOM =>" + EOL + EOL + content.toString())
 		}
