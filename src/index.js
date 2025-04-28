@@ -90,7 +90,26 @@ export function testSelectExhortBackend(opts) {
 let theUrl
 
 /**
+ * @overload
+ * @param {string} manifest
+ * @param {true} html
+ * @param {object} [opts={}]
+ * @returns {Promise<string>}
+ * @throws {Error}
+ */
+
+/**
+ * @overload
+ * @param {string} manifest
+ * @param {false} html
+ * @param {object} [opts={}]
+ * @returns {Promise<AnalysisReport>}
+ * @throws {Error}
+ */
+
+/**
  * Get stack analysis report for a manifest file.
+ * @overload
  * @param {string} manifest - path for the manifest
  * @param {boolean} [html=false] - true will return a html string, false will return AnalysisReport
  * @param {{}} [opts={}] - optional various options to pass along the application
