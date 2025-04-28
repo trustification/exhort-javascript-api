@@ -21,7 +21,7 @@ export default class Javascript_npm extends Base_javascript {
 	_updateLockFileCmdArgs(manifestDir) {
 		const args = ['install', '--package-lock-only']
 		if (manifestDir) {
-			args.push('--dir', manifestDir)
+			args.push('--prefix', manifestDir)
 		}
 		return args;
 	}
