@@ -262,7 +262,9 @@ function getSBOM(manifest, opts = {}, includeTransitive) {
 	let ignoredDeps = getIgnoredDeps(manifest);
 	let allIgnoredDeps = ignoredDeps.map((dep) => dep.toString())
 	let sbom = new Sbom();
-	let rows = goGraphOutput.split(getLineSeparatorGolang());
+	let rows = goGraphOutput.split(getLineSeparatorGolang()).filter(line => {
+		return !line.includes(' go@');
+	});
 	let root = getParentVertexFromEdge(rows[0])
 	let matchManifestVersions = getCustom("MATCH_MANIFEST_VERSIONS", "false", opts);
 	if(matchManifestVersions === "true") {
