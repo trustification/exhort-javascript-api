@@ -12,7 +12,7 @@ export default class Javascript_npm extends Base_javascript {
 
 	_listCmdArgs(includeTransitive, manifestDir) {
 		const args = ['ls', includeTransitive ? '--all' : '--depth=0', '--package-lock-only', '--omit=dev', '--json']
-		if (manifestDir) {
+		if (manifestDir && process.platform !== 'win32') {
 			args.push('--prefix', manifestDir)
 		}
 		return args
@@ -20,7 +20,7 @@ export default class Javascript_npm extends Base_javascript {
 
 	_updateLockFileCmdArgs(manifestDir) {
 		const args = ['install', '--package-lock-only']
-		if (manifestDir) {
+		if (manifestDir && process.platform !== 'win32') {
 			args.push('--prefix', manifestDir)
 		}
 		return args;
