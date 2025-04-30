@@ -134,7 +134,7 @@ export default class Yarn_berry_processor extends Yarn_processor {
    * @private
    */
 	#purlFromNode(depName, node) {
-		if (!node || !node.children || !node.children.Version) {
+		if (!node?.children?.Version) {
 			return undefined;
 		}
 

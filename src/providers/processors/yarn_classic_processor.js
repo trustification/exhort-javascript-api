@@ -40,7 +40,7 @@ export default class Yarn_classic_processor extends Yarn_processor {
    * @returns {Map<string, PackageURL>} Map of dependency names to their PackageURL objects
    */
 	getRootDependencies(depTree) {
-		if (!depTree || !depTree.data || !depTree.data.trees) {
+		if (!depTree?.data?.trees) {
 			return new Map();
 		}
 
@@ -63,7 +63,7 @@ export default class Yarn_classic_processor extends Yarn_processor {
    * @param {Object} depTree - The dependency tree object
    */
 	addDependenciesToSbom(sbom, depTree) {
-		if (!depTree || !depTree.data || !depTree.data.trees) {
+		if (!depTree?.data?.trees) {
 			return;
 		}
 

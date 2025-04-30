@@ -30,7 +30,7 @@ export default class Javascript_yarn extends Base_javascript {
 		const version = this._version() ?? '';
 		const matches = Javascript_yarn.VERSION_PATTERN.exec(version);
 
-		if (!matches || matches.length < 2) {
+		if (matches?.length !== 2) {
 			throw new Error(`Invalid Yarn version format: ${version}`);
 		}
 
