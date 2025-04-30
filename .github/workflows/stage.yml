@@ -46,6 +46,16 @@ jobs:
           cache: npm
           registry-url: 'https://npm.pkg.github.com'
 
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Prepare Yarn
+        run: corepack prepare yarn@4.9.1 --activate
+
+      - name: Prepare PNPM
+        run: corepack prepare pnpm@latest --activate
+
+
       - name: Setup Java 17
         uses: actions/setup-java@v4
         with:

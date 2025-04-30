@@ -317,12 +317,12 @@ export default class Base_javascript {
 			return invokeCommand(this.#cmd, args, opts);
 		} catch (error) {
 			if (error.code === 'ENOENT') {
-				throw new Error(`${this.#cmd} is not accessible. Please ensure it is installed and available in your PATH.`);
+				throw new Error(`${this.#cmd} is not accessible.`);
 			}
 			if (error.code === 'EACCES') {
 				throw new Error(`Permission denied when executing ${this.#cmd}. Please check file permissions.`);
 			}
-			throw new Error(`Failed to execute ${this.#cmd} ${args.join(' ')}: ${error.message}`, { cause: error });
+			throw new Error(`Failed to execute ${this.#cmd} ${args.join(' ')}`, { cause: error });
 		}
 	}
 
