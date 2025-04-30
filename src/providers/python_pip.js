@@ -74,7 +74,7 @@ function provideComponent(manifest, opts = {}) {
  */
 function addAllDependencies(source, dep, sbom) {
 	let targetPurl = toPurl(dep["name"], dep["version"])
-	sbom.addDependency(sbom.purlToComponent(source), targetPurl)
+	sbom.addDependency(source, targetPurl)
 	let directDeps = dep["dependencies"]
 	if (directDeps !== undefined && directDeps.length > 0) {
 		directDeps.forEach( (dependency) =>{ addAllDependencies(toPurl(dep["name"],dep["version"]), dependency, sbom)})
@@ -205,9 +205,10 @@ function createSbomStackAnalysis(manifest, opts = {}) {
 	let pythonController = new Python_controller(createVirtualPythonEnv === "false", binaries.pip, binaries.python, manifest, opts)
 	let dependencies = pythonController.getDependencies(true);
 	let sbom = new Sbom();
-	sbom.addRoot(toPurl(DEFAULT_PIP_ROOT_COMPONENT_NAME, DEFAULT_PIP_ROOT_COMPONENT_VERSION))
+	const rootPurl = toPurl(DEFAULT_PIP_ROOT_COMPONENT_NAME, DEFAULT_PIP_ROOT_COMPONENT_VERSION);
+	sbom.addRoot(rootPurl);
 	dependencies.forEach(dep => {
-		addAllDependencies(sbom.getRoot(), dep, sbom)
+		addAllDependencies(rootPurl, dep, sbom)
 	})
 	let requirementTxtContent = fs.readFileSync(manifest).toString();
 	handleIgnoredDependencies(requirementTxtContent, sbom, opts)
@@ -229,9 +230,10 @@ function getSbomForComponentAnalysis(manifest, opts = {}) {
 	let pythonController = new Python_controller(createVirtualPythonEnv === "false", binaries.pip, binaries.python, manifest, opts)
 	let dependencies = pythonController.getDependencies(false);
 	let sbom = new Sbom();
-	sbom.addRoot(toPurl(DEFAULT_PIP_ROOT_COMPONENT_NAME, DEFAULT_PIP_ROOT_COMPONENT_VERSION))
+	const rootPurl = toPurl(DEFAULT_PIP_ROOT_COMPONENT_NAME, DEFAULT_PIP_ROOT_COMPONENT_VERSION);
+	sbom.addRoot(rootPurl);
 	dependencies.forEach(dep => {
-		sbom.addDependency(sbom.getRoot(), toPurl(dep.name, dep.version))
+		sbom.addDependency(rootPurl, toPurl(dep.name, dep.version))
 	})
 	let requirementTxtContent = fs.readFileSync(manifest).toString();
 	handleIgnoredDependencies(requirementTxtContent, sbom, opts)

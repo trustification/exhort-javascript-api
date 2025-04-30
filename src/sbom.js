@@ -50,7 +50,7 @@ export default class Sbom {
 	 * @return Sbom
 	 */
 	addDependency(sourceRef, targetRef){
-		return this.sbomModel.addDependency(sourceRef,targetRef)
+		return this.sbomModel.addDependency(sourceRef, targetRef)
 	}
 
 	/**

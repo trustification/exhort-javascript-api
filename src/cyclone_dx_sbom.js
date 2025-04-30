@@ -8,7 +8,7 @@ import {PackageURL} from "packageurl-js";
  * @return {{"bom-ref": string, name, purl: string, type, version}}
  * @private
  */
-function getComponent(component,type) {
+function getComponent(component, type) {
 	let componentObject;
 	if(component instanceof PackageURL)
 	{
@@ -88,34 +88,41 @@ export default class CycloneDxSbom {
 	}
 
 	/**
-	 * @param {component} sourceRef current target Component ( Starting from root component by clients)
-	 * @param {PackageURL} targetRef current dependency to add to Dependencies list of component sourceRef
-	 * @return Sbom
+	 * Adds a dependency relationship between two components in the SBOM
+	 * @param {PackageURL} sourceRef - The source component (parent)
+	 * @param {PackageURL} targetRef - The target component (dependency)
+	 * @return {CycloneDxSbom} The updated SBOM
 	 */
 	addDependency(sourceRef, targetRef) {
-		let componentIndex = this.getComponentIndex(sourceRef);
-		if (componentIndex < 0) {
-			this.components.push(getComponent(sourceRef, "library"))
-		}
-		let dependencyIndex = this.getDependencyIndex(sourceRef.purl)
-		if (dependencyIndex < 0) {
-			this.dependencies.push(createDependency(sourceRef.purl))
-			dependencyIndex = this.getDependencyIndex(sourceRef.purl)
+		const sourcePurl = sourceRef.toString();
+		const targetPurl = targetRef.toString();
+
+		// Ensure both components exist in the components list
+		[sourceRef, targetRef].forEach((ref, index) => {
+			const purl = index === 0 ? sourcePurl : targetPurl;
+			if (this.getComponentIndex(purl) < 0) {
+				this.components.push(getComponent(ref, "library"));
+			}
+		});
+
+		// Ensure source dependency exists
+		let sourceDepIndex = this.getDependencyIndex(sourcePurl);
+		if (sourceDepIndex < 0) {
+			this.dependencies.push(createDependency(sourcePurl));
+			sourceDepIndex = this.dependencies.length - 1;
 		}
 
-		//Only if the dependency doesn't exists on the dependency list of dependency, then add it to this list.
-		if (this.dependencies[dependencyIndex].dependsOn.findIndex(dep => dep === targetRef.toString()) === -1) {
-			this.dependencies[dependencyIndex].dependsOn.push(targetRef.toString())
+		// Add target to source's dependencies if not already present
+		if (!this.dependencies[sourceDepIndex].dependsOn.includes(targetPurl)) {
+			this.dependencies[sourceDepIndex].dependsOn.push(targetPurl);
 		}
-		if (this.getDependencyIndex(targetRef.toString()) < 0) {
-			this.dependencies.push(createDependency(targetRef.toString()))
+
+		// Ensure target dependency exists
+		if (this.getDependencyIndex(targetPurl) < 0) {
+			this.dependencies.push(createDependency(targetPurl));
 		}
-		let newComponent = getComponent(targetRef, "library");
-		// Only if component doesn't exists in component list, add it to the list.
-		if (this.getComponentIndex(newComponent) < 0) {
-			this.components.push(newComponent)
-		}
-		return this
+
+		return this;
 	}
 
 	/** @param {{}} opts - various options, settings and configuration of application.
@@ -170,8 +177,7 @@ export default class CycloneDxSbom {
 	 * @private
 	 */
 	getComponentIndex(theComponent) {
-
-		return this.components.findIndex(component => component.purl === theComponent.purl)
+		return this.components.findIndex(component => component.purl === theComponent)
 	}
 
 	/** This method gets a PackageUrl, and returns a Component of CycloneDx Sbom
@@ -190,16 +196,18 @@ export default class CycloneDxSbom {
 	filterIgnoredDeps(deps) {
 		deps.forEach(dep => {
 			let index = this.components.findIndex(component => component.name === dep);
-			if (index >= 0) {
-				this.components.splice(index, 1)
+			if (index === -1) {
+				return;
 			}
+			const depPurl = this.components[index].purl;
+			this.components.splice(index, 1)
 			index = this.dependencies.findIndex(dependency => dependency.ref.includes(dep));
-			if (index >= 0) {
-				this.dependencies.splice(index, 1)
+			if (index === -1) {
+				return;
 			}
-
+			this.dependencies.splice(index, 1)
 			this.dependencies.forEach(dependency => {
-				let indexDependsOn = dependency.dependsOn.findIndex(theDep => theDep.includes(dep));
+				let indexDependsOn = dependency.dependsOn.findIndex(theDep => theDep.includes(depPurl));
 				if (indexDependsOn > -1) {
 					dependency.dependsOn.splice(indexDependsOn, 1)
 				}

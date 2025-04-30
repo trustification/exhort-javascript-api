@@ -7,15 +7,12 @@ import fs from 'node:fs'
 import { getCustom } from "./tools.js";
 import.meta.dirname
 import * as url from 'url';
-// const packageJson = await import ('../package.json',{ with: { type: 'json' } })
 
 export default { AnalysisReport, componentAnalysis, stackAnalysis, validateToken }
 
 export const exhortDevDefaultUrl = 'https://exhort.stage.devshift.net';
 
-
 export const exhortDefaultUrl = "https://rhda.rhcloud.com";
-
 
 function logOptionsAndEnvironmentsVariables(alongsideText,valueToBePrinted) {
 	if (process.env["EXHORT_DEBUG"] === "true") {

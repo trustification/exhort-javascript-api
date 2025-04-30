@@ -10,19 +10,11 @@ export default class Javascript_npm extends Base_javascript {
 		return "npm";
 	}
 
-	_listCmdArgs(includeTransitive, manifestDir) {
-		const args = ['ls', includeTransitive ? '--all' : '--depth=0', '--package-lock-only', '--omit=dev', '--json']
-		if (manifestDir && process.platform !== 'win32') {
-			args.push('--prefix', manifestDir)
-		}
-		return args
+	_listCmdArgs(includeTransitive) {
+		return ['ls', includeTransitive ? '--all' : '--depth=0', '--package-lock-only', '--omit=dev', '--json'];
 	}
 
-	_updateLockFileCmdArgs(manifestDir) {
-		const args = ['install', '--package-lock-only']
-		if (manifestDir && process.platform !== 'win32') {
-			args.push('--prefix', manifestDir)
-		}
-		return args;
+	_updateLockFileCmdArgs() {
+		return ['install', '--package-lock-only'];
 	}
 }

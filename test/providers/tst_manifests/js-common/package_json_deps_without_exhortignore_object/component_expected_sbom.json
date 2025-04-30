@@ -64,6 +64,13 @@
 			"bom-ref": "pkg:npm/express@4.18.2"
 		},
 		{
+			"name": "jsonwebtoken",
+			"version": "8.5.1",
+			"purl": "pkg:npm/jsonwebtoken@8.5.1",
+			"type": "library",
+			"bom-ref": "pkg:npm/jsonwebtoken@8.5.1"
+		},		
+    {
 			"name": "jsdom",
 			"version": "19.0.0",
 			"purl": "pkg:npm/jsdom@19.0.0",
@@ -96,6 +103,7 @@
 				"pkg:npm/dotenv@8.6.0",
 				"pkg:npm/express@4.18.2",
 				"pkg:npm/jsdom@19.0.0",
+				"pkg:npm/jsonwebtoken@8.5.1",
 				"pkg:npm/mongoose@5.13.20",
 				"pkg:npm/nodemon@2.0.22"
 			]
@@ -125,7 +133,7 @@
 			"dependsOn": []
 		},
 		{
-			"ref": "pkg:npm/jsdom@19.0.0",
+			"ref": "pkg:npm/jsonwebtoken@8.5.1",
 			"dependsOn": []
 		},
 		{

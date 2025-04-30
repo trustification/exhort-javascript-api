@@ -1,54 +1,97 @@
 import fs from 'node:fs'
 import os from "node:os";
 import path from 'node:path'
-import { PackageURL } from 'packageurl-js'
 
-import { getCustomPath, invokeCommand } from "../tools.js";
+import { getCustomPath, invokeCommand, toPurl, toPurlFromString } from "../tools.js";
 import Sbom from '../sbom.js'
+import Manifest from './manifest.js';
 
-/** @typedef {import('../provider.js').Provider} */
+/** @typedef {import('../provider.js').Provider} Provider */
 
 /** @typedef {import('../provider.js').Provided} Provided */
 
-const ecosystem = 'npm'
-const defaultVersion = 'v0.0.0'
+/**
+ * The ecosystem identifier for JavaScript/npm packages
+ * @type {string}
+ */
+export const ecosystem = 'npm';
 
+/**
+ * Base class for JavaScript package manager providers.
+ * This class provides common functionality for different JavaScript package managers
+ * (npm, pnpm, yarn) to generate SBOMs and handle package dependencies.
+ * @abstract
+ */
 export default class Base_javascript {
-
-	// Resolved cmd to use
+	/** @type {Manifest} */
+	#manifest;
+	/** @type {string} */
 	#cmd;
 
 	/**
-   * @returns {string} the name of the lock file name for the specific implementation
+   * Sets up the provider with the manifest path and options
+   * @param {string} manifestPath - Path to the package.json manifest file
+   * @param {Object} opts - Configuration options for the provider
+   * @protected
+   */
+	_setUp(manifestPath, opts) {
+		this.#cmd = getCustomPath(this._cmdName(), opts);
+		this.#manifest = new Manifest(manifestPath);
+	}
+
+	/**
+   * Gets the current manifest object
+   * @returns {Manifest} The manifest object
+   * @protected
+   */
+	_getManifest() {
+		return this.#manifest;
+	}
+
+	/**
+   * Returns the name of the lock file for the specific implementation
+   * @returns {string} The lock file name
+   * @abstract
+   * @protected
    */
 	_lockFileName() {
 		throw new TypeError("_lockFileName must be implemented");
 	}
 
 	/**
-   * @returns {string} the command name to use for the specific JS package manager
+   * Returns the command name to use for the specific JS package manager
+   * @returns {string} The command name
+   * @abstract
+   * @protected
    */
 	_cmdName() {
 		throw new TypeError("_cmdName must be implemented");
 	}
 
 	/**
-   * @returns {Array<string>}
+   * Returns the command arguments for listing dependencies
+   * @returns {Array<string>} The command arguments
+   * @abstract
+   * @protected
    */
 	_listCmdArgs() {
 		throw new TypeError("_listCmdArgs must be implemented");
 	}
 
 	/**
-   * @returns {Array<string>}
+   * Returns the command arguments for updating the lock file
+   * @returns {Array<string>} The command arguments
+   * @abstract
+   * @protected
    */
 	_updateLockFileCmdArgs() {
 		throw new TypeError("_updateLockFileCmdArgs must be implemented");
 	}
 
 	/**
-   * @param {string} manifestName - the subject manifest name-type
-   * @returns {boolean} - return true if `pom.xml` is the manifest name-type
+   * Checks if the provider supports the given manifest name
+   * @param {string} manifestName - The manifest name to check
+   * @returns {boolean} True if the manifest is supported
    */
 	isSupported(manifestName) {
 		return 'package.json' === manifestName;
@@ -56,9 +99,8 @@ export default class Base_javascript {
 
 	/**
    * Checks if a required lock file exists in the same path as the manifest
-   *
    * @param {string} manifestDir - The base directory where the manifest is located
-   * @returns {boolean} - True if the lock file exists
+   * @returns {boolean} True if the lock file exists
    */
 	validateLockFile(manifestDir) {
 		const lock = path.join(manifestDir, this._lockFileName());
@@ -66,147 +108,232 @@ export default class Base_javascript {
 	}
 
 	/**
-   * Provide content and content type for maven-maven stack analysis.
-   * @param {string} manifest - the manifest path or name
-   * @param {{}} [opts={}] - optional various options to pass along the application
-   * @returns {Provided}
+   * Provides content and content type for stack analysis
+   * @param {string} manifestPath - The manifest path or name
+   * @param {Object} [opts={}] - Optional configuration options
+   * @returns {Provided} The provided data for stack analysis
    */
-	provideStack(manifest, opts = {}) {
+	provideStack(manifestPath, opts = {}) {
+		this._setUp(manifestPath, opts);
 		return {
 			ecosystem,
-			content: this.#getSBOM(manifest, opts, true),
+			content: this.#getSBOM(opts),
 			contentType: 'application/vnd.cyclonedx+json'
 		}
 	}
 
 	/**
-   * Provide content and content type for maven-maven component analysis.
-   * @param {string} manifest - path to pom.xml for component report
-   * @param {{}} [opts={}] - optional various options to pass along the application
-   * @returns {Provided}
+   * Provides content and content type for component analysis
+   * @param {string} manifestPath - Path to package.json for component report
+   * @param {Object} [opts={}] - Optional configuration options
+   * @returns {Provided} The provided data for component analysis
    */
-	provideComponent(manifest, opts = {}) {
+	provideComponent(manifestPath, opts = {}) {
+		this._setUp(manifestPath, opts);
 		return {
 			ecosystem,
-			content: this.#getSBOM(manifest, opts, false),
+			content: this.#getDirectDependencySbom(opts),
 			contentType: 'application/vnd.cyclonedx+json'
 		}
 	}
 
 	/**
-   * Utility function for creating Purl String
-   * @param name the name of the artifact, can include a namespace(group) or not - namespace/artifactName.
-   * @param version the version of the artifact
-   * @returns {PackageURL|null} PackageUrl Object ready to be used in SBOM
+   * Builds the dependency tree for the project
+   * @param {boolean} includeTransitive - Whether to include transitive dependencies
+   * @returns {Object} The dependency tree
+   * @protected
    */
-	#toPurl(name, version) {
-		let parts = name.split("/");
-		var purlNs, purlName;
-		if (parts.length === 2) {
-			purlNs = parts[0];
-			purlName = parts[1];
-		} else {
-			purlName = parts[0];
-		}
-		return new PackageURL('npm', purlNs, purlName, version, undefined, undefined);
-	}
-
-	_buildDependencyTree(includeTransitive, manifest) {
-		this.#version();
-		let manifestDir = path.dirname(manifest)
+	_buildDependencyTree(includeTransitive) {
+		this._version();
+		let manifestDir = path.dirname(this.#manifest.manifestPath);
 		this.#createLockFile(manifestDir);
 
-		let npmOutput = this.#executeListCmd(includeTransitive, manifestDir);
-		return JSON.parse(npmOutput);
+		let output = this.#executeListCmd(includeTransitive, manifestDir);
+		output = this._parseDepTreeOutput(output);
+		return JSON.parse(output);
 	}
 
 	/**
-   * Create SBOM json string for npm Package.
-   * @param {string} manifest - path for package.json
-   * @param {{}} [opts={}] - optional various options to pass along the application
-   * @returns {string} the SBOM json content
+   * Creates SBOM json string for npm Package
+   * @param {Object} [opts={}] - Optional configuration options
+   * @returns {string} The SBOM json content
    * @private
    */
-	#getSBOM(manifest, opts = {}, includeTransitive) {
-		this.#cmd = getCustomPath(this._cmdName(), opts);
-		const depsObject = this._buildDependencyTree(includeTransitive, manifest, opts);
-		let rootName = depsObject["name"]
-		let rootVersion = depsObject["version"]
-		if (!rootVersion) {
-			rootVersion = defaultVersion
-		}
-		let mainComponent = this.#toPurl(rootName, rootVersion);
+	#getSBOM(opts = {}) {
+		const depsObject = this._buildDependencyTree(true);
+
+		let mainComponent = toPurl(ecosystem, this.#manifest.name, this.#manifest.version);
 
 		let sbom = new Sbom();
-		sbom.addRoot(mainComponent)
+		sbom.addRoot(mainComponent);
 
-		let dependencies = depsObject["dependencies"] || {};
-		this.#addAllDependencies(sbom, sbom.getRoot(), dependencies)
-		let packageJson = fs.readFileSync(manifest).toString()
-		let packageJsonObject = JSON.parse(packageJson);
-		if (packageJsonObject.exhortignore !== undefined) {
-			let ignoredDeps = Array.from(packageJsonObject.exhortignore);
-			sbom.filterIgnoredDeps(ignoredDeps)
-		}
-		return sbom.getAsJsonString(opts)
+		this._addDependenciesToSbom(sbom, depsObject);
+		sbom.filterIgnoredDeps(this.#manifest.ignored);
+		return sbom.getAsJsonString(opts);
 	}
 
 	/**
-   * This function recursively build the Sbom from the JSON that npm listing returns
-   * @param sbom this is the sbom object
-   * @param from this is the current component in bom (Should start with root/main component of SBOM) for which we want to add all its dependencies.
-   * @param dependencies the current dependency list (initially it's the list of the root component)
+   * Recursively builds the Sbom from the JSON that npm listing returns
+   * @param {Sbom} sbom - The SBOM object to add dependencies to
+   * @param {Object} depTree - The current dependency tree
+   * @protected
+   */
+	_addDependenciesToSbom(sbom, depTree) {
+		const dependencies = depTree["dependencies"] || {};
+
+		Object.entries(dependencies)
+			.forEach(entry => {
+				const [name, artifact] = entry;
+				const target = toPurl(ecosystem, name, artifact.version);
+				const rootPurl = toPurl(ecosystem, this.#manifest.name, this.#manifest.version);
+				sbom.addDependency(rootPurl, target);
+				this.#addDependenciesOf(sbom, target, artifact);
+			});
+	}
+
+	/**
+   * Adds dependencies of a specific package to the SBOM
+   * @param {Sbom} sbom - The SBOM object to add dependencies to
+   * @param {PackageURL} from - The package URL to add dependencies for
+   * @param {Object} artifact - The artifact containing dependencies
    * @private
    */
-	#addAllDependencies(sbom, from, dependencies) {
-		Object.entries(dependencies)
-			.filter(entry => entry[1].version !== undefined)
+	#addDependenciesOf(sbom, from, artifact) {
+		const deps = artifact.dependencies || {};
+		Object.entries(deps)
 			.forEach(entry => {
-				let [name, artifact] = entry;
-				let purl = this.#toPurl(name, artifact.version);
-				sbom.addDependency(from, purl)
-				let transitiveDeps = artifact.dependencies
-				if (transitiveDeps !== undefined) {
-					this.#addAllDependencies(sbom, sbom.purlToComponent(purl), transitiveDeps)
+				const [name, depArtifact] = entry;
+				if(depArtifact.version !== undefined) {
+					const target = toPurl(ecosystem, name, depArtifact.version);
+					sbom.addDependency(from, target);
+					this.#addDependenciesOf(sbom, target, depArtifact);
 				}
 			});
 	}
 
+	/**
+   * Creates a SBOM containing only direct dependencies
+   * @param {Object} [opts={}] - Optional configuration options
+   * @returns {string} The SBOM as a JSON string
+   * @private
+   */
+	#getDirectDependencySbom(opts = {}) {
+		const depTree = this._buildDependencyTree(false);
+		let mainComponent = toPurl(ecosystem, this.#manifest.name, this.#manifest.version);
+
+		let sbom = new Sbom();
+		sbom.addRoot(mainComponent);
+
+		const rootDeps = this._getRootDependencies(depTree);
+		const sortedDepsKeys = Array
+			.from(rootDeps.keys())
+			.filter(key => this.#manifest.dependencies.includes(key))
+			.sort();
+		for (const key of sortedDepsKeys) {
+			const rootPurl = toPurlFromString(sbom.getRoot().purl);
+			sbom.addDependency(rootPurl, rootDeps.get(key));
+		}
+		sbom.filterIgnoredDeps(this.#manifest.ignored);
+		return sbom.getAsJsonString(opts);
+	}
+
+	/**
+   * Extracts root dependencies from the dependency tree
+   * @param {Object} depTree - The dependency tree object
+   * @returns {Map<string, PackageURL>} Map of dependency names to their PackageURL objects
+   * @protected
+   */
+	_getRootDependencies(depTree) {
+		if (!depTree.dependencies) {
+			return new Map();
+		}
+
+		return new Map(
+			Object.entries(depTree.dependencies).map(
+				([key, value]) => [key, toPurl(ecosystem, key, value.version)]
+			)
+		);
+	}
+
+	/**
+   * Executes the list command to get dependencies
+   * @param {boolean} includeTransitive - Whether to include transitive dependencies
+   * @param {string} manifestDir - The manifest directory
+   * @returns {string} The command output
+   * @private
+   */
 	#executeListCmd(includeTransitive, manifestDir) {
 		const listArgs = this._listCmdArgs(includeTransitive, manifestDir);
 		return this.#invokeCommand(listArgs);
 	}
 
-	#version() {
-		this.#invokeCommand(['--version'], { stdio: 'ignore' });
+	/**
+   * Gets the version of the package manager
+   * @returns {string} The version string of the package manager
+   * @protected
+   */
+	_version() {
+		return this.#invokeCommand(['--version']);
 	}
 
+	/**
+   * Creates or updates the lock file for the package manager
+   * @param {string} manifestDir - Directory containing the manifest file
+   * @private
+   */
 	#createLockFile(manifestDir) {
-		// in windows os, --prefix flag doesn't work, it behaves really weird , instead of installing the package.json fromm the prefix folder,
-		// it's installing package.json (placed in current working directory of process) into prefix directory, so
-		let originalDir = process.cwd()
-		if (os.platform() === 'win32') {
-			process.chdir(manifestDir)
+		const originalDir = process.cwd();
+		const isWindows = os.platform() === 'win32';
+
+		if (isWindows) {
+			// On Windows, --prefix flag doesn't work as expected
+			// Instead of installing from the prefix folder, it installs from current working directory
+			process.chdir(manifestDir);
 		}
-		const args = this._updateLockFileCmdArgs(manifestDir);
+
 		try {
+			const args = this._updateLockFileCmdArgs(manifestDir);
 			this.#invokeCommand(args);
 		} finally {
-			if (os.platform() === 'win32') {
-				process.chdir(originalDir)
+			if (isWindows) {
+				process.chdir(originalDir);
 			}
 		}
 	}
 
+	/**
+   * Invokes a command with the given arguments
+   * @param {string[]} args - Command arguments
+   * @param {Object} [opts={}] - Optional configuration options
+   * @returns {string} Command output
+   * @throws {Error} If command execution fails or command is not found
+   * @private
+   */
 	#invokeCommand(args, opts = {}) {
 		try {
+			if(!opts.cwd) {
+				opts.cwd = path.dirname(this.#manifest.manifestPath);
+			}
 			return invokeCommand(this.#cmd, args, opts);
 		} catch (error) {
 			if (error.code === 'ENOENT') {
-				throw new Error(`${this.#cmd} is not accessible`);
+				throw new Error(`${this.#cmd} is not accessible. Please ensure it is installed and available in your PATH.`);
 			}
-			throw new Error(`failed to execute ${this.#cmd} ${args}`, { cause: error })
+			if (error.code === 'EACCES') {
+				throw new Error(`Permission denied when executing ${this.#cmd}. Please check file permissions.`);
+			}
+			throw new Error(`Failed to execute ${this.#cmd} ${args.join(' ')}: ${error.message}`, { cause: error });
 		}
+	}
+
+	/**
+   * Parses the dependency tree output
+   * @param {string} output - The output to parse
+   * @returns {string} The parsed output
+   * @protected
+   */
+	_parseDepTreeOutput(output) {
+		return output;
 	}
 }
 

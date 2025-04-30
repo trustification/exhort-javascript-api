@@ -1,6 +1,7 @@
 import { EOL } from "os";
 import os from 'os';
 import { execFileSync } from "child_process";
+import { PackageURL } from "packageurl-js";
 
 export const RegexNotToBeLogged = /EXHORT_.*_TOKEN|ex-.*-token/
 /**
@@ -104,6 +105,34 @@ export function handleSpacesInPath(path) {
  */
 function hasSpaces(path) {
 	return path.trim().includes(" ")
+}
+
+
+/**
+ * Utility function for creating Purl String
+ * @param name the name of the artifact, can include a namespace(group) or not - namespace/artifactName.
+ * @param version the version of the artifact
+ * @returns {PackageURL|null} PackageUrl Object ready to be used in SBOM
+ */
+export function toPurl(type, name, version) {
+	let parts = name.split("/");
+	var purlNs, purlName;
+	if (parts.length === 2) {
+		purlNs = parts[0];
+		purlName = parts[1];
+	} else {
+		purlName = parts[0];
+	}
+	return new PackageURL(type, purlNs, purlName, version, undefined, undefined);
+}
+
+/**
+ * Utility function for creating Purl Object from a Purl String
+ * @param strPurl the Purl String
+ * @returns {PackageURL|null} PackageUrl Object ready to be used in SBOM
+ */
+export function toPurlFromString(strPurl) {
+	return PackageURL.fromString(strPurl);
 }
 
 /**
