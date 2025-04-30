@@ -1,6 +1,6 @@
 import { EOL } from "os";
 import os from 'os';
-import { execFileSync, execSync } from "child_process";
+import { execFileSync } from "child_process";
 
 export const RegexNotToBeLogged = /EXHORT_.*_TOKEN|ex-.*-token/
 /**
@@ -126,12 +126,14 @@ export function getGitRootDir(cwd) {
  * @returns {string}
  */
 export function invokeCommand(bin, args, opts={}) {
-	// .bat and .cmd files can't be executed in windows with execFileSync, so we special case them
-	// to use execSync here to keep the amount of escaping we need to do to a minimum.
+	// .bat and .cmd files can't be executed in windows with execFileSync without {shell: true}, so we
+	// special case them here to keep the amount of escaping we need to do to a minimum.
 	// https://nodejs.org/docs/latest-v20.x/api/child_process.html#spawning-bat-and-cmd-files-on-windows
-	if (process.platform === 'win32' && (bin.endsWith(".bat") || bin.endsWith(".cmd"))) {
+	// https://github.com/nodejs/node/issues/52681#issuecomment-2076426887
+	if (process.platform === 'win32') {
+		opts = {...opts, shell: true}
 		args = args.map(arg => handleSpacesInPath(arg))
-		return execSync(`${handleSpacesInPath(bin)} ${args.join(" ")}`, {...{stdio: 'pipe', encoding: 'utf-8'}, ...opts})
+		bin = handleSpacesInPath(bin)
 	}
 
 	return execFileSync(bin, args, {...{stdio: 'pipe', encoding: 'utf-8'}, ...opts})
