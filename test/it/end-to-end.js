@@ -6,6 +6,8 @@ const packageManagersDict =
 		"maven" : "pom.xml",
 		"npm" : "package.json",
 		"pnpm": "package.json",
+		"yarn-berry": "package.json",
+		"yarn-classic": "package.json",
 		"go" : "go.mod",
 		"pip" : "requirements.txt",
 		"gradle-groovy" : "build.gradle",
@@ -33,6 +35,8 @@ suite('Integration Tests', () => {
 		"maven",
 		"npm",
 		"pnpm",
+		"yarn-berry",
+		"yarn-classic",
 		"go",
 		"pip"
 

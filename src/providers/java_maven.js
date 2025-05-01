@@ -157,10 +157,9 @@ export default class Java_maven extends Base_java {
 		let rootDependency = this.#getRootFromPom(tmpEffectivePom, targetPom);
 		let purlRoot = this.toPurl(rootDependency.groupId, rootDependency.artifactId, rootDependency.version)
 		sbom.addRoot(purlRoot)
-		let rootComponent = sbom.getRoot();
 		dependencies.forEach(dep => {
 			let currentPurl = this.toPurl(dep.groupId, dep.artifactId, dep.version)
-			sbom.addDependency(rootComponent, currentPurl)
+			sbom.addDependency(purlRoot, currentPurl)
 		})
 		fs.rmSync(tmpEffectivePom)
 

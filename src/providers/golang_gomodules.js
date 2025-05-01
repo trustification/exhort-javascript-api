@@ -278,7 +278,6 @@ function getSBOM(manifest, opts = {}, includeTransitive) {
 		rows = getFinalPackagesVersionsForModule(rows,manifest,goBin)
 	}
 	if (includeTransitive) {
-		let sourceComponent
 		let currentParent = ""
 		let source;
 		let rowsWithoutBlankRows = rows.filter(row => row.trim() !== "")
@@ -286,10 +285,9 @@ function getSBOM(manifest, opts = {}, includeTransitive) {
 			if (getParentVertexFromEdge(row) !== currentParent) {
 				currentParent = getParentVertexFromEdge(row)
 				source = toPurl(currentParent, "@", undefined);
-				sourceComponent = sbom.purlToComponent(source);
 			}
 			let target = toPurl(getChildVertexFromEdge(row), "@", undefined);
-			sbom.addDependency(sourceComponent, target)
+			sbom.addDependency(source, target)
 
 		})
 		// at the end, filter out all ignored dependencies including versions.
@@ -300,9 +298,8 @@ function getSBOM(manifest, opts = {}, includeTransitive) {
 		directDependencies.forEach(pair => {
 			let dependency = getChildVertexFromEdge(pair)
 			let depPurl = toPurl(dependency, "@", undefined);
-			let mainModuleComponent = sbom.purlToComponent(mainModule);
 			if(dependencyNotIgnored(ignoredDeps, depPurl)) {
-				sbom.addDependency(mainModuleComponent, depPurl)
+				sbom.addDependency(mainModule, depPurl)
 			}
 		})
 		enforceRemovingIgnoredDepsInCaseOfAutomaticVersionUpdate(ignoredDeps,sbom)

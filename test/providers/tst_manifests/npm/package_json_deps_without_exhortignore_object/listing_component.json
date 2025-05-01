@@ -31,6 +31,11 @@
       "version": "4.18.2",
       "resolved": "https://registry.npmjs.org/express/-/express-4.18.2.tgz",
       "overridden": false
+    },    
+    "jsdom": {
+      "version": "19.0.0",
+      "resolved": "https://registry.npmjs.org/jsdom/-/jsdom-19.0.0.tgz",
+      "overridden": false
     },
     "jsonwebtoken": {
       "version": "8.5.1",
