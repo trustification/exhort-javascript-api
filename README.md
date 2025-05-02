@@ -341,6 +341,11 @@ following keys for setting custom paths for the said executables.
 <td>EXHORT_MVN_PATH</td>
 </tr>
 <tr>
+<td><a href="https://maven.apache.org/">Maven</a></td>
+<td><em>maven</em></td>
+<td>EXHORT_PREFER_MVNW</td>
+</tr>
+<tr>
 <td><a href="https://www.npmjs.com/">NPM</a></td>
 <td><em>npm</em></td>
 <td>EXHORT_NPM_PATH</td>
@@ -384,6 +389,11 @@ following keys for setting custom paths for the said executables.
 <td><a href="https://gradle.org/">Gradle</a></td>
 <td><em>gradle</em></td>
 <td>EXHORT_GRADLE_PATH</td>
+</tr>
+<tr>
+<td><a href="https://gradle.org/">Gradle</a></td>
+<td><em>gradle</em></td>
+<td>EXHORT_PREFER_GRADLEW</td>
 </tr>
 </table>
 
@@ -463,7 +473,7 @@ Need to set environment variable/option - `EXHORT_PIP_USE_DEP_TREE` to true.
 ### Known Issues
 
 - For pip requirements.txt - It's been observed that for python versions 3.11.x, there might be slowness for invoking the analysis.
-  If you encounter a performance issue with version >= 3.11.x, kindly try to set environment variable/option `EXHORT_PIP_USE_DEP_TREE`=true, before calling the analysis.
+  If you encounter a performance issue with version >= 3.11.x, kindly try to set environment variable/option `EXHORT_PIP_USE_DEP_TREE=true`, before calling the analysis.
 
 
 - For maven pom.xml, it has been noticed that using java 17 might cause stack analysis to hang forever.

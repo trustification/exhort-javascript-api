@@ -1,6 +1,7 @@
 import { PackageURL } from 'packageurl-js'
-
-import { invokeCommand } from "../tools.js"
+import { getCustomPath, getGitRootDir, getWrapperPreference, invokeCommand } from "../tools.js"
+import fs from 'node:fs'
+import path from 'node:path'
 
 
 /** @typedef {import('../provider').Provider} */
@@ -113,4 +114,67 @@ export default class Base_Java {
 	 * @protected
 	 */
 	_invokeCommand(bin, args, opts={}) { return invokeCommand(bin, args, opts) }
+
+	/**
+	 *
+	 * @param {string} tool
+	 * @param {string} manifestPath
+	 * @param {{}} opts
+	 * @returns string
+	 */
+	selectToolBinary(tool, manifestPath, opts) {
+		const toolPath = getCustomPath(tool, opts)
+
+		const useWrapper = getWrapperPreference(toolPath, opts)
+		if (useWrapper) {
+			const wrapper = this.traverseForWrapper(toolPath + 'w', manifestPath)
+			if (wrapper !== undefined) {
+				try {
+					this._invokeCommand(wrapper, ['--version'])
+				} catch (error) {
+					throw new Error(`failed to check for ${tool}w`, {cause: error})
+				}
+				return wrapper
+			}
+		}
+		// verify tool is accessible, if wrapper was not requested or not found
+		try {
+			this._invokeCommand(toolPath, ['--version'])
+		} catch (error) {
+			if (error.code === 'ENOENT') {
+				throw new Error((useWrapper ? `${tool}w not found and ` : '') + `${tool === 'mvn' ? 'maven' : 'gradle'} not found at ${toolPath}`)
+			} else {
+				throw new Error(`failed to check for ${tool === 'mvn' ? 'maven' : 'gradle'}`, {cause: error})
+			}
+		}
+		return toolPath
+	}
+
+	/**
+	 *
+	 * @param {string} wrapper
+	 * @param {string} startingManifest - the path of the manifest from which to start searching for the wrapper
+	 * @param {string} repoRoot - the root of the repository at which point to stop searching for mvnw, derived via git if unset and then fallsback
+	 * to the root of the drive the manifest is on (assumes absolute path is given)
+	 * @returns {string|undefined}
+	 */
+	traverseForWrapper(wrapper, startingManifest, repoRoot = undefined) {
+		repoRoot = repoRoot || getGitRootDir(path.resolve(path.dirname(startingManifest))) || path.parse(path.resolve(startingManifest)).root
+
+		const wrapperName = wrapper + (process.platform === 'win32' ? '.cmd' : '');
+		const wrapperPath = path.join(path.resolve(path.dirname(startingManifest)), wrapperName);
+
+		try {
+			fs.accessSync(wrapperPath, fs.constants.X_OK)
+		} catch(error) {
+			if (error.code === 'ENOENT') {
+				if (path.resolve(path.dirname(startingManifest)) === repoRoot) {
+					return undefined
+				}
+				return this.traverseForWrapper(wrapper, path.resolve(path.dirname(startingManifest)), repoRoot)
+			}
+			throw new Error(`failure searching for ${wrapper}`, {cause: error})
+		}
+		return wrapperPath
+	}
 }
