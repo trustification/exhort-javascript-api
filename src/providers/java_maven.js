@@ -213,24 +213,19 @@ export default class Java_maven extends Base_java {
 				try {
 					this._invokeCommand(mvnw, ['--version'])
 				} catch (error) {
-					if (error.code === 'ENOENT') {
-						useMvnw = false
-					} else {
-						throw new Error(`failed to check for mvnw`, {cause: error})
-					}
+					throw new Error(`failed to check for mvnw`, {cause: error})
 				}
-				mvn = useMvnw ? mvnw : mvn
+				return mvnw
 			}
-		} else {
-			// verify maven is accessible
-			try {
-				this._invokeCommand(mvn, ['--version'])
-			} catch (error) {
-				if (error.code === 'ENOENT') {
-					throw new Error(`maven not accessible at "${mvn}"`)
-				} else {
-					throw new Error(`failed to check for maven`, {cause: error})
-				}
+		}
+		// verify maven is accessible, if mvnw was not requested or not found
+		try {
+			this._invokeCommand(mvn, ['--version'])
+		} catch (error) {
+			if (error.code === 'ENOENT') {
+				throw new Error((useMvnw ? 'mvnw not found and ' : '') + `maven not accessible at "${mvn}"`)
+			} else {
+				throw new Error(`failed to check for maven`, {cause: error})
 			}
 		}
 		return mvn
