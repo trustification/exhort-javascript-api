@@ -9,8 +9,10 @@ metadata:
     backstage.io/edit-url: https://github.com/trustification/exhort-javascript-api/blob/main/catalog-info.yaml
     backstage.io/source-location: url:https://github.com/trustification/exhort-javascript-api
     rhda/manifest-file-path: package.json
-    backstage.io/techdocs-ref: dir:README.md
+    backstage.io/techdocs-ref: url:https://github.com/RHEcosystemAppEng/exhort-javascript-api
   name: exhort-javascript-api
+  tags:
+    - rhda
 spec:
   lifecycle: production
   owner: ecosystem-appeng
