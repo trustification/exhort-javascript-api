@@ -87,6 +87,9 @@ const stackAnalysisConfigs = ["runtimeClasspath","compileClasspath"];
  * This class provides common functionality for Groovy and Kotlin DSL files.
  */
 export default class Java_gradle extends Base_java {
+	constructor() {
+		super('gradle', 'gradlew' + (process.platform === 'win32' ? '.bat' : ''))
+	}
 
 	_getManifestName() {
 		throw new Error('implement getManifestName method')
@@ -191,7 +194,7 @@ export default class Java_gradle extends Base_java {
 	 * @return {string} string content of the properties
 	 */
 	#getProperties(manifestPath, opts) {
-		let gradle = this.selectToolBinary('gradle', manifestPath, opts)
+		let gradle = this.selectToolBinary(manifestPath, opts)
 		try {
 			let properties = this._invokeCommand(gradle, ['properties'], {cwd: path.dirname(manifestPath)})
 			return properties.toString()
@@ -234,7 +237,7 @@ export default class Java_gradle extends Base_java {
 	 */
 
 	#getDependencies(manifest, opts={}) {
-		const gradle = this.selectToolBinary('gradle', manifest, opts)
+		const gradle = this.selectToolBinary(manifest, opts)
 		try {
 			const commandResult = this._invokeCommand(gradle, ['dependencies'], {cwd: path.dirname(manifest)})
 			return commandResult.toString()

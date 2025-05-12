@@ -16,6 +16,9 @@ import Base_java, { ecosystem_maven } from "./base_java.js";
 /** @typedef {{groupId: string, artifactId: string, version: string, scope: string, ignore: boolean}} Dependency */
 
 export default class Java_maven extends Base_java {
+	constructor() {
+		super('mvn', 'mvnw' + (process.platform === 'win32' ? '.cmd' : ''))
+	}
 
 	/**
 	 * @param {string} manifestName - the subject manifest name-type
@@ -70,7 +73,7 @@ export default class Java_maven extends Base_java {
 	 * @private
 	 */
 	#createSbomStackAnalysis(manifest, opts = {}) {
-		const mvn = this.selectToolBinary('mvn', manifest, opts)
+		const mvn = this.selectToolBinary(manifest, opts)
 
 		// clean maven target
 		try {
@@ -135,7 +138,7 @@ export default class Java_maven extends Base_java {
 	 * @private
 	 */
 	#getSbomForComponentAnalysis(manifestPath, opts = {}) {
-		const mvn = this.selectToolBinary('mvn', manifestPath, opts)
+		const mvn = this.selectToolBinary(manifestPath, opts)
 
 		const tmpEffectivePom = path.resolve(path.join(path.dirname(manifestPath), 'effective-pom.xml'))
 		const targetPom = manifestPath
