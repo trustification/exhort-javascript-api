@@ -1,5 +1,4 @@
 import fs from 'node:fs'
-import {getCustomPath} from "../tools.js";
 import path from 'node:path'
 import Sbom from '../sbom.js'
 import { EOL } from 'os'
@@ -88,6 +87,9 @@ const stackAnalysisConfigs = ["runtimeClasspath","compileClasspath"];
  * This class provides common functionality for Groovy and Kotlin DSL files.
  */
 export default class Java_gradle extends Base_java {
+	constructor() {
+		super('gradle', 'gradlew' + (process.platform === 'win32' ? '.bat' : ''))
+	}
 
 	_getManifestName() {
 		throw new Error('implement getManifestName method')
@@ -154,7 +156,7 @@ export default class Java_gradle extends Base_java {
 	 * @private
 	 */
 	#createSbomStackAnalysis(manifest, opts = {}) {
-		let content = this.#getDependencies(manifest)
+		let content = this.#getDependencies(manifest, opts)
 		let properties = this.#extractProperties(manifest, opts)
 		// read dependency tree from temp file
 		if (process.env["EXHORT_DEBUG"] === "true") {
@@ -192,7 +194,7 @@ export default class Java_gradle extends Base_java {
 	 * @return {string} string content of the properties
 	 */
 	#getProperties(manifestPath, opts) {
-		let gradle = getCustomPath("gradle", opts);
+		let gradle = this.selectToolBinary(manifestPath, opts)
 		try {
 			let properties = this._invokeCommand(gradle, ['properties'], {cwd: path.dirname(manifestPath)})
 			return properties.toString()
@@ -208,7 +210,7 @@ export default class Java_gradle extends Base_java {
 	 * @private
 	 */
 	#getSbomForComponentAnalysis(manifestPath, opts = {}) {
-		let content = this.#getDependencies(manifestPath)
+		let content = this.#getDependencies(manifestPath, opts)
 		let properties = this.#extractProperties(manifestPath, opts)
 		let configurationNames = componentAnalysisConfigs
 
@@ -234,8 +236,8 @@ export default class Java_gradle extends Base_java {
 	 * @private
 	 */
 
-	#getDependencies(manifest) {
-		const gradle = getCustomPath("gradle")
+	#getDependencies(manifest, opts={}) {
+		const gradle = this.selectToolBinary(manifest, opts)
 		try {
 			const commandResult = this._invokeCommand(gradle, ['dependencies'], {cwd: path.dirname(manifest)})
 			return commandResult.toString()

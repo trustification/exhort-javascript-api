@@ -1,6 +1,7 @@
 import { PackageURL } from 'packageurl-js'
-
-import { invokeCommand } from "../tools.js"
+import { getCustomPath, getGitRootDir, getWrapperPreference, invokeCommand } from "../tools.js"
+import fs from 'node:fs'
+import path from 'node:path'
 
 
 /** @typedef {import('../provider').Provider} */
@@ -20,6 +21,19 @@ export const ecosystem_gradle = 'gradle'
 export default class Base_Java {
 	DEP_REGEX = /(([-a-zA-Z0-9._]{2,})|[0-9])/g
 	CONFLICT_REGEX = /.*omitted for conflict with (\S+)\)/
+
+	globalBinary
+	localWrapper
+
+	/**
+	 *
+	 * @param {string} globalBinary name of the global binary
+	 * @param {string} localWrapper name of the local wrapper filename
+	 */
+	constructor(globalBinary, localWrapper) {
+		this.globalBinary = globalBinary
+		this.localWrapper = localWrapper
+	}
 
 	/**
 	 * Recursively populates the SBOM instance with the parsed graph
@@ -107,10 +121,72 @@ export default class Base_Java {
 		return new PackageURL('maven', group, artifact, version, undefined, undefined);
 	}
 
-	/** this method invokes command string in a process in a synchronous way.
+	/** This method invokes command string in a process in a synchronous way.
+	 * Exists for stubbing in tests.
 	 * @param bin - the command to be invoked
 	 * @param args - the args to pass to the binary
 	 * @protected
 	 */
 	_invokeCommand(bin, args, opts={}) { return invokeCommand(bin, args, opts) }
+
+	/**
+	 *
+	 * @param {string} manifestPath
+	 * @param {{}} opts
+	 * @returns string
+	 */
+	selectToolBinary(manifestPath, opts) {
+		const toolPath = getCustomPath(this.globalBinary, opts)
+
+		const useWrapper = getWrapperPreference(toolPath, opts)
+		if (useWrapper) {
+			const wrapper = this.traverseForWrapper(manifestPath)
+			if (wrapper !== undefined) {
+				try {
+					this._invokeCommand(wrapper, ['--version'])
+				} catch (error) {
+					throw new Error(`failed to check for ${this.localWrapper}`, {cause: error})
+				}
+				return wrapper
+			}
+		}
+		// verify tool is accessible, if wrapper was not requested or not found
+		try {
+			this._invokeCommand(toolPath, ['--version'])
+		} catch (error) {
+			if (error.code === 'ENOENT') {
+				throw new Error((useWrapper ? `${this.localWrapper} not found and ` : '') + `${this.globalBinary === 'mvn' ? 'maven' : 'gradle'} not found at ${toolPath}`)
+			} else {
+				throw new Error(`failed to check for ${this.globalBinary === 'mvn' ? 'maven' : 'gradle'}`, {cause: error})
+			}
+		}
+		return toolPath
+	}
+
+	/**
+	 *
+	 * @param {string} startingManifest - the path of the manifest from which to start searching for the wrapper
+	 * @param {string} repoRoot - the root of the repository at which point to stop searching for mvnw, derived via git if unset and then fallsback
+	 * to the root of the drive the manifest is on (assumes absolute path is given)
+	 * @returns {string|undefined}
+	 */
+	traverseForWrapper(startingManifest, repoRoot = undefined) {
+		repoRoot = repoRoot || getGitRootDir(path.resolve(path.dirname(startingManifest))) || path.parse(path.resolve(startingManifest)).root
+
+		const wrapperName = this.localWrapper;
+		const wrapperPath = path.join(path.resolve(path.dirname(startingManifest)), wrapperName);
+
+		try {
+			fs.accessSync(wrapperPath, fs.constants.X_OK)
+		} catch(error) {
+			if (error.code === 'ENOENT') {
+				if (path.resolve(path.dirname(startingManifest)) === repoRoot) {
+					return undefined
+				}
+				return this.traverseForWrapper(path.resolve(path.dirname(startingManifest)), repoRoot)
+			}
+			throw new Error(`failure searching for ${this.localWrapper}`, {cause: error})
+		}
+		return wrapperPath
+	}
 }
