@@ -307,8 +307,9 @@ let options = {
   'EXHORT_PIP3_PATH' : '/path/to/pip3',
   'EXHORT_PYTHON_PATH' : '/path/to/python',
   'EXHORT_PIP_PATH' : '/path/to/pip',
-  'EXHORT_GRADLE_PATH' : '/path/to/gradle'
-
+  'EXHORT_GRADLE_PATH' : '/path/to/gradle',
+  // Configure proxy for all requests
+  'EXHORT_PROXY_URL': 'http://proxy.example.com:8080'
 }
 
 // Get stack analysis in JSON format ( all package managers, pom.xml is as an example here)
@@ -320,6 +321,27 @@ let stackAnalysisHtml = await exhort.stackAnalysis('/path/to/pom.xml', true, opt
 let componentAnalysis = await exhort.componentAnalysis('/path/to/pom.xml', options)
 ```
  **_Environment variables takes precedence._**
+</p>
+
+<h4>Proxy Configuration</h4>
+<p>
+You can configure a proxy for all HTTP/HTTPS requests made by the API. This is useful when your environment requires going through a proxy to access external services.
+
+You can set the proxy URL in two ways:
+
+1. Using environment variable:
+```shell
+export EXHORT_PROXY_URL=http://proxy.example.com:8080
+```
+
+2. Using the options object when calling the API programmatically:
+```javascript
+const options = {
+  'EXHORT_PROXY_URL': 'http://proxy.example.com:8080'
+}
+```
+
+The proxy URL should be in the format: `http://host:port` or `https://host:port`. The API will automatically use the appropriate protocol (HTTP or HTTPS) based on the proxy URL provided.
 </p>
 
 <h4>Customizing Executables</h4>

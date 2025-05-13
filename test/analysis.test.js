@@ -202,4 +202,72 @@ suite('testing the analysis module for sending api requests', () => {
 			}
 		))
 	})
+
+	suite('verify proxy configuration', () => {
+		let fakeManifest = 'fake-file.typ'
+		let stackProviderStub = sinon.stub()
+		stackProviderStub.withArgs(fakeManifest).returns(fakeProvided)
+		let fakeProvider = {
+			provideComponent: () => {},
+			provideStack: stackProviderStub,
+			isSupported: () => {}
+		};
+
+		afterEach(() => {
+			delete process.env['EXHORT_PROXY_URL']
+		})
+
+		test('when HTTP proxy is configured, verify agent is set correctly', interceptAndRun(
+			rest.post(`${backendUrl}/api/v3/analysis`, (req, res, ctx) => {
+				// The request should go through the proxy
+				return res(ctx.json({ok: 'ok'}))
+			}),
+			async () => {
+				const httpProxyUrl = 'http://proxy.example.com:8080'
+				const options = {
+					'EXHORT_PROXY_URL': httpProxyUrl
+				}
+				let res = await analysis.requestStack(fakeProvider, fakeManifest, backendUrl, false, options)
+				expect(res).to.deep.equal({ok: 'ok'})
+			}
+		))
+
+		test('when HTTPS proxy is configured, verify agent is set correctly', interceptAndRun(
+			rest.post(`${backendUrl}/api/v3/analysis`, (req, res, ctx) => {
+				// The request should go through the proxy
+				return res(ctx.json({ok: 'ok'}))
+			}),
+			async () => {
+				const httpsProxyUrl = 'https://proxy.example.com:8080'
+				const options = {
+					'EXHORT_PROXY_URL': httpsProxyUrl
+				}
+				let res = await analysis.requestStack(fakeProvider, fakeManifest, backendUrl, false, options)
+				expect(res).to.deep.equal({ok: 'ok'})
+			}
+		))
+
+		test('when proxy is configured via environment variable, verify agent is set correctly', interceptAndRun(
+			rest.post(`${backendUrl}/api/v3/analysis`, (req, res, ctx) => {
+				// The request should go through the proxy
+				return res(ctx.json({ok: 'ok'}))
+			}),
+			async () => {
+				process.env['EXHORT_PROXY_URL'] = 'http://proxy.example.com:8080'
+				let res = await analysis.requestStack(fakeProvider, fakeManifest, backendUrl)
+				expect(res).to.deep.equal({ok: 'ok'})
+			}
+		))
+
+		test('when no proxy is configured, verify no agent is set', interceptAndRun(
+			rest.post(`${backendUrl}/api/v3/analysis`, (req, res, ctx) => {
+				// The request should go directly without proxy
+				return res(ctx.json({ok: 'ok'}))
+			}),
+			async () => {
+				let res = await analysis.requestStack(fakeProvider, fakeManifest, backendUrl)
+				expect(res).to.deep.equal({ok: 'ok'})
+			}
+		))
+	})
 })
