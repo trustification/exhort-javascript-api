@@ -1,5 +1,6 @@
 # Exhort JavaScript API<br/>![latest-no-snapshot][0] ![latest-snapshot][1]
 
+* Looking for the OpenAPI Spec? Try [Exhort API Spec](https://github.com/trustification/exhort-api-spec)
 * Looking for our Java API? Try [Exhort Java API](https://github.com/trustification/exhort-java-api).
 * Looking for our Backend implementation? Try [Exhort](https://github.com/trustification/exhort).
 

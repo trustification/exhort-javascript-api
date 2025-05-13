@@ -16,7 +16,6 @@ on:
       - main
 
     paths:
-      - "generated/**"
       - "src/**"
       - "test/**"
       - "package-lock.json"
@@ -45,6 +44,12 @@ jobs:
           node-version: 18
           cache: npm
           registry-url: 'https://npm.pkg.github.com'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create .npmrc
+        run: |
+          echo "@trustification:registry=https://npm.pkg.github.com" >> .npmrc
 
       - name: Enable Corepack
         run: corepack enable

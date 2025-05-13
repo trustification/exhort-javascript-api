@@ -35,7 +35,7 @@ function addProxyAgent(options, opts) {
  * @param {string} url - the backend url to send the request to
  * @param {boolean} [html=false] - true will return 'text/html', false will return 'application/json'
  * @param {{}} [opts={}] - optional various options to pass along the application
- * @returns {Promise<string|import('../generated/backend/AnalysisReport').AnalysisReport>}
+ * @returns {Promise<string|import('AnalysisReport').AnalysisReport>}
  */
 async function requestStack(provider, manifest, url, html = false, opts = {}) {
 	opts["source-manifest"] = Buffer.from(fs.readFileSync(manifest).toString()).toString('base64')
@@ -93,7 +93,7 @@ async function requestStack(provider, manifest, url, html = false, opts = {}) {
  * @param {string} manifest - path for the manifest
  * @param {string} url - the backend url to send the request to
  * @param {{}} [opts={}] - optional various options to pass along the application
- * @returns {Promise<import('../generated/backend/AnalysisReport').AnalysisReport>}
+ * @returns {Promise<import('AnalysisReport').AnalysisReport>}
  */
 async function requestComponent(provider, manifest, url, opts = {}) {
 	opts["source-manifest"] = Buffer.from(fs.readFileSync(manifest).toString()).toString('base64')

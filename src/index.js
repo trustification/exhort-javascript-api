@@ -1,14 +1,13 @@
 import path from "node:path";
 import { EOL } from "os";
 import { availableProviders, match } from './provider.js'
-import { AnalysisReport } from '../generated/backend/AnalysisReport.js'
 import analysis from './analysis.js'
 import fs from 'node:fs'
 import { getCustom } from "./tools.js";
 import.meta.dirname
 import * as url from 'url';
 
-export default { AnalysisReport, componentAnalysis, stackAnalysis, validateToken }
+export default { componentAnalysis, stackAnalysis, validateToken }
 
 export const exhortDevDefaultUrl = 'https://exhort.stage.devshift.net';
 

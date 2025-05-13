@@ -1,5 +1,5 @@
 {
-	"include": ["src/**/*", "generated/backend/**/*","./package.json"],
+	"include": ["src/**/*","./package.json"],
 	"exclude": ["node_modules", "dist"],
 	"compilerOptions": {
 		"allowJs": true,
@@ -12,7 +12,7 @@
 		"noUnusedLocals": false,
 		"noUnusedParameters": false,
 		"rootDir": ".",
-		"rootDirs": ["src", "generated"],
+		"rootDirs": ["src"],
 		"skipLibCheck": true,
 		"types": ["node"],
 		"module": "esnext",
