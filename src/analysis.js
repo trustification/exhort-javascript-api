@@ -2,12 +2,31 @@ import fs from "node:fs";
 import path from "node:path";
 import {EOL} from "os";
 import {RegexNotToBeLogged, getCustom} from "./tools.js";
+import http from 'node:http';
+import https from 'node:https';
 
 export default { requestComponent, requestStack, validateToken }
 
 const rhdaTokenHeader = "rhda-token";
 const rhdaSourceHeader = "rhda-source"
 const rhdaOperationTypeHeader = "rhda-operation-type"
+
+/**
+ * Adds proxy agent configuration to fetch options if a proxy URL is specified
+ * @param {Object} options - The base fetch options
+ * @param {Object} opts - The exhort options that may contain proxy configuration
+ * @returns {Object} The fetch options with proxy agent if applicable
+ */
+function addProxyAgent(options, opts) {
+	const proxyUrl = getCustom('EXHORT_PROXY_URL', null, opts);
+	if (proxyUrl) {
+		const proxyUrlObj = new URL(proxyUrl);
+		options.agent = proxyUrlObj.protocol === 'https:'
+			? new https.Agent({ proxy: proxyUrl })
+			: new http.Agent({ proxy: proxyUrl });
+	}
+	return options;
+}
 
 /**
  * Send a stack analysis request and get the report as 'text/html' or 'application/json'.
@@ -29,7 +48,8 @@ async function requestStack(provider, manifest, url, html = false, opts = {}) {
 	if (process.env["EXHORT_DEBUG"] === "true") {
 		console.log("Starting time of sending stack analysis request to exhort server= " + startTime)
 	}
-	let resp = await fetch(`${url}/api/v4/analysis`, {
+
+	const fetchOptions = addProxyAgent({
 		method: 'POST',
 		headers: {
 			'Accept': html ? 'text/html' : 'application/json',
@@ -37,7 +57,9 @@ async function requestStack(provider, manifest, url, html = false, opts = {}) {
 			...getTokenHeaders(opts)
 		},
 		body: provided.content
-	})
+	}, opts);
+
+	let resp = await fetch(`${url}/api/v4/analysis`, fetchOptions)
 	let result
 	if(resp.status === 200) {
 		if (!html) {
@@ -82,7 +104,8 @@ async function requestComponent(provider, manifest, url, opts = {}) {
 	if (process.env["EXHORT_DEBUG"] === "true") {
 		console.log("Starting time of sending component analysis request to exhort server= " + new Date())
 	}
-	let resp = await fetch(`${url}/api/v4/analysis`, {
+
+	const fetchOptions = addProxyAgent({
 		method: 'POST',
 		headers: {
 			'Accept': 'application/json',
@@ -90,7 +113,9 @@ async function requestComponent(provider, manifest, url, opts = {}) {
 			...getTokenHeaders(opts),
 		},
 		body: provided.content
-	})
+	}, opts);
+
+	let resp = await fetch(`${url}/api/v4/analysis`, fetchOptions)
 	let result
 	if(resp.status === 200) {
 		result = await resp.json()
@@ -119,13 +144,14 @@ async function requestComponent(provider, manifest, url, opts = {}) {
  * @return {Promise<number>} return the HTTP status Code of the response from the validate token request.
  */
 async function validateToken(url, opts = {}) {
-	let resp = await fetch(`${url}/api/v4/token`, {
+	const fetchOptions = addProxyAgent({
 		method: 'GET',
 		headers: {
-			// 'Accept': 'text/plain',
 			...getTokenHeaders(opts),
 		}
-	})
+	}, opts);
+
+	let resp = await fetch(`${url}/api/v4/token`, fetchOptions)
 	if (process.env["EXHORT_DEBUG"] === "true") {
 		let exRequestId = resp.headers.get("ex-request-id");
 		if (exRequestId) {

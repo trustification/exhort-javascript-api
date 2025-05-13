@@ -7,3 +7,5 @@ json_responses
 integration/**/package-lock.json
 unit-tests-result.json
 .gradle
+build
+target
