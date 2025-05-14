@@ -55,7 +55,7 @@
 	},
 	"devDependencies": {
 		"@babel/core": "^7.23.2",
-		"@trustification/exhort-api-spec": "^1.0.6",
+		"@trustification/exhort-api-spec": "^1.0.9",
 		"@types/node": "^20.17.30",
 		"babel-plugin-rewire": "^1.2.0",
 		"c8": "^8.0.0",
