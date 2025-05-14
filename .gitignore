@@ -9,3 +9,4 @@ unit-tests-result.json
 .gradle
 build
 target
+.npmrc

@@ -17,7 +17,6 @@
 * `npm run test` run unit tests,verify coverage, and print coverage info
 * `npm run tests` run unit tests (no coverage)
 * `npm run tests:rep` run unit tests and save the test results as _unit-tests-result.json_ (for ci)
-* `npm run gen:backend` generate the _Backend_ types from its _OpenAPI_ as _TS_ spec in the _generated/backend_ folder
 
 ### Good to know
 
@@ -25,12 +24,7 @@
 
 ### OpenAPI Specifications
 
-We use our [Backend's OpenAPI spec file][1] for generating types used for deserialization of the Backend's
-API responses.<br/>
-The generated classes files are _TypeScript_ files generated in the [generated/backend](generated/backend).
-Which is skipped when calculating coverage thresholds. **Avoid writing code in this folder.**<br/>
-When the [Backend's spec file][1] is modified, we need to **manually** run the `npm run gen:backend` script.
-We only generate types.
+The OpenAPI specification is located in the [`exhort-api-spec`](https://github.com/trustification/exhort-api-spec) where the Java and Javascript libraries are generated.
 
 ### Code Walkthrough
 
@@ -53,7 +47,7 @@ We only generate types.
 
 This code is meant to be used as an _ESM_ module for both _JavaScript_ and _TypeScript_. So make sure you add type
 declarations if needed.<br/>
-Note the [sources](src) are in _JavaScript_, and the [generated](generated/backend) _Backend_ types are in _TypeScript_.
+Note the [sources](src) are in _JavaScript_.
 Both will be compiled as an _ESM Module_ including declarations (_x.d.ts_) in the ignored _dist_ using the
 `npm run compile` script and the [tsconfig.json](tsconfig.json) configuration file. Also note the _TypeScript_ files are
 excluded from both linting and coverage.

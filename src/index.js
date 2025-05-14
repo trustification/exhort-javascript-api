@@ -1,25 +1,35 @@
 import path from "node:path";
 import { EOL } from "os";
 import { availableProviders, match } from './provider.js'
-import { AnalysisReport } from '../generated/backend/AnalysisReport.js'
 import analysis from './analysis.js'
 import fs from 'node:fs'
 import { getCustom } from "./tools.js";
 import.meta.dirname
 import * as url from 'url';
 
-export default { AnalysisReport, componentAnalysis, stackAnalysis, validateToken }
+export default { componentAnalysis, stackAnalysis, validateToken }
 
 export const exhortDevDefaultUrl = 'https://exhort.stage.devshift.net';
 
+/** @type {string} The default production URL for the Exhort backend. */
 export const exhortDefaultUrl = "https://rhda.rhcloud.com";
 
+/**
+ * Logs messages to the console if the EXHORT_DEBUG environment variable is set to "true".
+ * @param {string} alongsideText - The text to prepend to the log message.
+ * @param {any} valueToBePrinted - The value to log.
+ * @private
+ */
 function logOptionsAndEnvironmentsVariables(alongsideText,valueToBePrinted) {
 	if (process.env["EXHORT_DEBUG"] === "true") {
 		console.log(`${alongsideText}: ${valueToBePrinted} ${EOL}`)
 	}
 }
 
+/**
+ * Reads the version from the package.json file and logs it if debug mode is enabled.
+ * @private
+ */
 function readAndPrintVersionFromPackageJson() {
 	let dirName
 // new ESM way in nodeJS ( since node version 22 ) to bring module directory.
@@ -41,7 +51,8 @@ function readAndPrintVersionFromPackageJson() {
 	logOptionsAndEnvironmentsVariables("exhort-javascript-api analysis started, version: ", packageJson.version)
 }
 
-/** This function is used to determine exhort theUrl backend according to the following logic:
+/**
+ * This function is used to determine exhort theUrl backend according to the following logic:
  * If EXHORT_DEV_MODE = true, then take the value of the EXHORT BACKEND URL of dev/staging environment in such a way:
  * take it as environment variable if exists, otherwise, take it from opts object if exists, otherwise, use the hardcoded default of DEV environment.
  * If EXHORT_DEV_MODE = false , then select the production theUrl of EXHORT Backend, which is hardcoded.
@@ -72,16 +83,17 @@ function selectExhortBackend(opts = {}) {
 }
 
 /**
- *
- * @param opts
- * @return {string}
+ * Test function for selecting the Exhort backend URL.
+ * Primarily used for testing the backend selection logic.
+ * @param {object} [opts={}] - Optional configuration, similar to `selectExhortBackend`.
+ * @return {string} The selected exhort backend URL.
  */
 export function testSelectExhortBackend(opts) {
 	return selectExhortBackend(opts)
 }
 
 /**
- * @type {string} backend theUrl to send requests to
+ * @type {string} The URL of the Exhort backend to send requests to.
  * @private
  */
 let theUrl
@@ -100,7 +112,7 @@ let theUrl
  * @param {string} manifest
  * @param {false} html
  * @param {object} [opts={}]
- * @returns {Promise<AnalysisReport>}
+ * @returns {Promise<import('@trustification/exhort-api-spec/model/v4/AnalysisReport').AnalysisReport>}
  * @throws {Error}
  */
 
@@ -108,9 +120,9 @@ let theUrl
  * Get stack analysis report for a manifest file.
  * @overload
  * @param {string} manifest - path for the manifest
- * @param {boolean} [html=false] - true will return a html string, false will return AnalysisReport
- * @param {{}} [opts={}] - optional various options to pass along the application
- * @returns {Promise<string|AnalysisReport>}
+ * @param {boolean} [html=false] - true will return a html string, false will return AnalysisReport object.
+ * @param {object} [opts={}] - optional various options to pass along the application
+ * @returns {Promise<string|import('@trustification/exhort-api-spec/model/v4/AnalysisReport').AnalysisReport>}
  * @throws {Error} if manifest inaccessible, no matching provider, failed to get create content,
  * 		or backend request failed
  */
@@ -124,8 +136,8 @@ async function stackAnalysis(manifest, html = false, opts = {}) {
 /**
  * Get component analysis report for a manifest content.
  * @param {string} manifest - path to the manifest
- * @param {{}} [opts={}] - optional various options to pass along the application
- * @returns {Promise<AnalysisReport>}
+ * @param {object} [opts={}] - optional various options to pass along the application
+ * @returns {Promise<import('@trustification/exhort-api-spec/model/v4/AnalysisReport').AnalysisReport>}
  * @throws {Error} if no matching provider, failed to get create content, or backend request failed
  */
 async function componentAnalysis(manifest, opts = {}) {
@@ -136,6 +148,12 @@ async function componentAnalysis(manifest, opts = {}) {
 	return await analysis.requestComponent(provider, manifest, theUrl, opts) // throws error request sending failed
 }
 
+/**
+ * Validates the Exhort token.
+ * @param {object} [opts={}] - Optional parameters, potentially including token override.
+ * @returns {Promise<object>} A promise that resolves with the validation result from the backend.
+ * @throws {Error} if the backend request failed.
+ */
 async function validateToken(opts = {}) {
 	theUrl = selectExhortBackend(opts)
 	return await analysis.validateToken(theUrl, opts) // throws error request sending failed
