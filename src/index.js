@@ -118,6 +118,7 @@ let theUrl
 
 /**
  * Get stack analysis report for a manifest file.
+ * @overload
  * @param {string} manifest - path for the manifest
  * @param {boolean} [html=false] - true will return a html string, false will return AnalysisReport object.
  * @param {object} [opts={}] - optional various options to pass along the application
