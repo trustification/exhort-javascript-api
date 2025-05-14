@@ -122,7 +122,7 @@ function extractPackageName(line) {
 function getIgnoredDeps(manifest) {
 	let goMod = fs.readFileSync(manifest).toString().trim()
 	let lines = goMod.split(getLineSeparatorGolang());
-	return lines.filter(line => ignoredLine(line)).map(line=> extractPackageName(line)).map(dep => toPurl(dep,/[ ]{1,3}/,undefined))
+	return lines.filter(line => ignoredLine(line)).map(line=> extractPackageName(line)).map(dep => toPurl(dep,/[ ]{1,3}/))
 }
 
 /**
@@ -271,7 +271,7 @@ function getSBOM(manifest, opts = {}, includeTransitive) {
 		performManifestVersionsCheck(root, rows, manifest)
 	}
 
-	const mainModule = toPurl(root, "@", undefined)
+	const mainModule = toPurl(root, "@")
 	sbom.addRoot(mainModule)
 	const exhortGoMvsLogicEnabled = getCustom("EXHORT_GO_MVS_LOGIC_ENABLED", "false", opts)
 	if(includeTransitive && exhortGoMvsLogicEnabled === "true") {
@@ -284,9 +284,9 @@ function getSBOM(manifest, opts = {}, includeTransitive) {
 		rowsWithoutBlankRows.forEach(row => {
 			if (getParentVertexFromEdge(row) !== currentParent) {
 				currentParent = getParentVertexFromEdge(row)
-				source = toPurl(currentParent, "@", undefined);
+				source = toPurl(currentParent, "@");
 			}
-			let target = toPurl(getChildVertexFromEdge(row), "@", undefined);
+			let target = toPurl(getChildVertexFromEdge(row), "@");
 			sbom.addDependency(source, target)
 
 		})
@@ -297,7 +297,7 @@ function getSBOM(manifest, opts = {}, includeTransitive) {
 		let directDependencies = rows.filter(row => row.startsWith(root));
 		directDependencies.forEach(pair => {
 			let dependency = getChildVertexFromEdge(pair)
-			let depPurl = toPurl(dependency, "@", undefined);
+			let depPurl = toPurl(dependency, "@");
 			if(dependencyNotIgnored(ignoredDeps, depPurl)) {
 				sbom.addDependency(mainModule, depPurl)
 			}
@@ -314,24 +314,23 @@ function getSBOM(manifest, opts = {}, includeTransitive) {
 
  * @param {string }dependency the name of the artifact, can include a namespace(group) or not - namespace/artifactName.
  * @param {RegExp} delimiter delimiter between name of dependency and version
- * @param { object } qualifiers - contains key values related to the go environment
  * @private
  * @returns {PackageURL|null} PackageUrl Object ready to be used in SBOM
  */
-function toPurl(dependency, delimiter, qualifiers) {
+function toPurl(dependency, delimiter) {
 	let lastSlashIndex = dependency.lastIndexOf("/");
 	let pkg
 	if (lastSlashIndex === -1) {
 		let splitParts = dependency.split(delimiter);
-		pkg = new PackageURL(ecosystem,undefined,splitParts[0],splitParts[1],qualifiers,undefined)
+		pkg = new PackageURL(ecosystem, undefined, splitParts[0], splitParts[1], undefined, undefined)
 	} else {
 		let namespace = dependency.slice(0,lastSlashIndex)
 		let dependencyAndVersion = dependency.slice(lastSlashIndex+1)
 		let parts = dependencyAndVersion.split(delimiter);
 		if(parts.length === 2 ) {
-			pkg = new PackageURL(ecosystem,namespace,parts[0],parts[1],qualifiers,undefined);
+			pkg = new PackageURL(ecosystem, namespace, parts[0], parts[1], undefined, undefined);
 		} else {
-			pkg = new PackageURL(ecosystem,namespace,parts[0],defaultMainModuleVersion,qualifiers,undefined);
+			pkg = new PackageURL(ecosystem, namespace, parts[0], defaultMainModuleVersion, undefined, undefined);
 		}
 	}
 	return pkg
