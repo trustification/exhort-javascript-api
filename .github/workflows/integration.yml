@@ -13,10 +13,8 @@ concurrency:
 
 jobs:
   call-shared:
-    uses: ruromero/exhort-integration-tests/.github/workflows/integration.yml@sdk-common
+    uses: trustification/exhort-integration-tests/.github/workflows/integration.yml@sdk-common
     with:
       language: javascript
-      repo-url: ${{ github.repository }}
-      commit-sha: ${{ github.sha }}
-    secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      repo-url: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+      commit-sha: ${{ github.event.pull_request.head.sha || github.sha }}
