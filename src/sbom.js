@@ -81,19 +81,13 @@ export default class Sbom {
 	 *
 	 * @return {boolean}
 	 */
-	checkIfPackageInsideDependsOnList(component, name)
-	{
+	checkIfPackageInsideDependsOnList(component, name) {
 		return this.sbomModel.checkIfPackageInsideDependsOnList(component,name)
 	}
 
 	/** Removes the root component from the sbom
 	 */
-	removeRootComponent()
-	{
+	removeRootComponent() {
 		return this.sbomModel.removeRootComponent()
 	}
-
 }
-
-
-
