@@ -1,5 +1,4 @@
-import { execFileSync } from 'child_process';
-import { getCustomPath } from '../tools.js';
+import { getCustomPath, invokeCommand } from '../tools.js';
 import { Platform } from './platform.js';
 import { delimiter, sep } from 'path';
 import { ImageRef } from './images.js';
@@ -128,9 +127,11 @@ function execSyft(imageRef) {
 		] : [])
 	];
 
-	return execFileSync(syft, args, {
+	return invokeCommand(syft, args, {
 		env: { ...process.env, ...envs },
-	});
+		// 10MB, this output can be large so we need more than default
+		maxBuffer: 1024 * 1024 * 10
+	})
 }
 
 /**
@@ -207,7 +208,7 @@ export function getImagePlatform() {
 function hostInfo(engine, info) {
 	const exec = getCustomPath(engine);
 
-	const output = execFileSync(exec, ["info"]).toString();
+	const output = invokeCommand(exec, ["info"]);
 
 	const lines = output.split("\n");
 	for (const line of lines) {
@@ -434,7 +435,7 @@ function execSkopeoInspect(imageRef, raw) {
 		] : [])
 	]
 
-	return execFileSync(skopeo, args);
+	return invokeCommand(skopeo, args);
 }
 
 /**
