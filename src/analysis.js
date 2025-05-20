@@ -2,8 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {EOL} from "os";
 import {RegexNotToBeLogged, getCustom} from "./tools.js";
-import http from 'node:http';
-import https from 'node:https';
+import { HttpsProxyAgent } from "https-proxy-agent";
 
 export default { requestComponent, requestStack, validateToken }
 
@@ -20,10 +19,7 @@ const rhdaOperationTypeHeader = "rhda-operation-type"
 function addProxyAgent(options, opts) {
 	const proxyUrl = getCustom('EXHORT_PROXY_URL', null, opts);
 	if (proxyUrl) {
-		const proxyUrlObj = new URL(proxyUrl);
-		options.agent = proxyUrlObj.protocol === 'https:'
-			? new https.Agent({ proxy: proxyUrl })
-			: new http.Agent({ proxy: proxyUrl });
+		options.agent = new HttpsProxyAgent(proxyUrl);
 	}
 	return options;
 }
