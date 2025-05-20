@@ -49,6 +49,7 @@
 		"fast-toml": "^0.5.4",
 		"fast-xml-parser": "^4.2.4",
 		"help": "^3.0.2",
+		"https-proxy-agent": "^7.0.6",
 		"node-fetch": "^2.6.7",
 		"packageurl-js": "^1.0.2",
 		"yargs": "^17.7.2"
