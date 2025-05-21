@@ -342,7 +342,7 @@ export default class Base_javascript {
 						...opts,
 						env: {
 							...opts.env,
-							PATH: `${versionManagerPaths.join(':')}:${process.env.PATH}`
+							PATH: `${versionManagerPaths.join(path.delimiter)}${path.delimiter}${process.env.PATH}`
 						}
 					};
 				}
