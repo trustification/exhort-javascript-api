@@ -1,10 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
-import {EOL} from "os";
-import {RegexNotToBeLogged, getCustom} from "./tools.js";
+import { EOL } from "os";
+import { RegexNotToBeLogged, getCustom } from "./tools.js";
 import { HttpsProxyAgent } from "https-proxy-agent";
+import { generateImageSBOM, parseImageRef } from "./oci_image/utils.js";
 
-export default { requestComponent, requestStack, validateToken }
+export default { requestComponent, requestStack, requestImages, validateToken }
 
 const rhdaTokenHeader = "rhda-token";
 const rhdaSourceHeader = "rhda-source"
@@ -131,6 +132,52 @@ async function requestComponent(provider, manifest, url, opts = {}) {
 	}
 
 	return Promise.resolve(result)
+}
+
+/**
+ *
+ * @param {Array<string>} imageRefs
+ * @param {string} url
+ * @param {{}} [opts={}] - optional various options to pass along the application
+ * @returns {Promise<string|import('@trustification/exhort-api-spec/model/v4/AnalysisReport').AnalysisReport>}
+ */
+async function requestImages(imageRefs, url, html = false, opts = {}) {
+	const imageSboms = {}
+	for (const image of imageRefs) {
+		const parsedImageRef = parseImageRef(image)
+		imageSboms[parsedImageRef.getPackageURL().toString()] = generateImageSBOM(parsedImageRef)
+	}
+
+	const resp = await fetch(`${url}/api/v4/batch-analysis`, {
+		method: 'POST',
+		headers: {
+			'Accept': html ? 'text/html' : 'application/json',
+			'Content-Type': 'application/vnd.cyclonedx+json',
+			...getTokenHeaders(opts)
+		},
+		body: JSON.stringify(imageSboms),
+	})
+
+	if(resp.status === 200) {
+		let result;
+		if (!html) {
+			result = await resp.json()
+		} else {
+			result = await resp.text()
+		}
+		if (process.env["EXHORT_DEBUG"] === "true") {
+			let exRequestId = resp.headers.get("ex-request-id");
+			if (exRequestId) {
+				console.log("Unique Identifier associated with this request - ex-request-id=" + exRequestId)
+			}
+			console.log("Response body received from exhort server : " + EOL + EOL)
+			console.log(JSON.stringify(result, null, 4))
+			console.log("Ending time of sending component analysis request to exhort server= " + new Date())
+		}
+		return result
+	} else {
+		throw new Error(`Got error response from exhort backend - http return code : ${resp.status}, ex-request-id: ${resp.headers.get("ex-request-id")}  error message =>  ${await resp.text()}`)
+	}
 }
 
 /**

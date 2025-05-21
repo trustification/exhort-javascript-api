@@ -18,7 +18,7 @@
   ],
   "rules": {
     "curly": "warn",
-    "eqeqeq": "warn",
+    "eqeqeq": ["warn", "always", {"null": "never"}],
     "no-throw-literal": "warn",
     "sort-imports": "warn"
   },
