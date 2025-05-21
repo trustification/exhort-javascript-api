@@ -19,5 +19,19 @@ suite('testing the OCI image data provider', () => {
 			providedSbom['serialNumber'] = null
 			expect(JSON.stringify(providedSbom, null, 4).trimEnd()).to.deep.equal(expectedSbom)
 		}).timeout(10000)
+	});
+
+	[
+		"nginx^^darwin/arm64",
+		"hub.docker.io/banana/phone/dotcom:1.2.3/invalid",
+		"hub.docker.com/doesnt/exist",
+		"what^^is^^this",
+		"definitely\\^\\^notthis",
+		"httpd@sha256:4b5cb7697fea2aa6d398504c381b693a54ae9ad5e6317fcdbb7a2d9b8c3b1366" // digest doesnt exist
+	].forEach(imageRef => {
+		test(`verify invalid image ref ${imageRef} is rejected`, () => {
+			expect(() => generateImageSBOM(parseImageRef(imageRef))).to.throw()
+		}).timeout(10000)
 	})
+
 }).beforeAll(() => clock = sinon.useFakeTimers(new Date('2023-08-07T00:00:00.000Z'))).afterAll(()=> clock.restore());

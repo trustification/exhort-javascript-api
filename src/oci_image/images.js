@@ -17,11 +17,11 @@ import { getImageDigests, getImagePlatform } from "./utils.js";
 * - docker.consol.de:5000/jolokia/tomcat-8.0:8.0.9
 */
 export class Image {
-	static nameComponentRegexp = '[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?';
-	static domainComponentRegexp = '(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])';
-	static NAME_COMP_REGEXP = new RegExp(this.nameComponentRegexp);
-	static IMAGE_NAME_REGEXP = new RegExp(this.nameComponentRegexp + '(?:(?:/' + this.nameComponentRegexp + ')+)?');
-	static DOMAIN_REGEXP = new RegExp('^' + this.domainComponentRegexp + '(?:\\.' + this.domainComponentRegexp + ')*(?::[0-9]+)?$');
+	static NAME_COMPONENT_REGEXP = '[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?';
+	static DOMAIN_COMPONENT_REGEXP = '(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])';
+	static NAME_COMP_REGEXP = new RegExp(this.NAME_COMPONENT_REGEXP);
+	static IMAGE_NAME_REGEXP = new RegExp(this.NAME_COMPONENT_REGEXP + '(?:(?:/' + this.NAME_COMPONENT_REGEXP + ')+)?');
+	static DOMAIN_REGEXP = new RegExp('^' + this.DOMAIN_COMPONENT_REGEXP + '(?:\\.' + this.DOMAIN_COMPONENT_REGEXP + ')*(?::[0-9]+)?$');
 	static TAG_REGEXP = new RegExp('^[\\w][\\w.-]{0,127}$');
 	static DIGEST_REGEXP = new RegExp('^sha256:[a-z0-9]{32,}$');
 
@@ -68,20 +68,6 @@ export class Image {
 		}
 
 		this.doValidate();
-	}
-
-	static validate(image) {
-		new Image(image);
-	}
-
-	setDigest(digest) {
-		if (this.digest == null) {
-			this.digest = digest;
-		}
-	}
-
-	hasRegistry() {
-		return this.registry != null && this.registry.length > 0;
 	}
 
 	/**
@@ -138,13 +124,6 @@ export class Image {
 	/**
 	* @returns {string}
 	*/
-	getUser() {
-		return this.user;
-	}
-
-	/**
-	* @returns {string}
-	*/
 	getSimpleName() {
 		const prefix = this.user + '/';
 		return this.repository.startsWith(prefix) ? this.repository.substring(prefix.length) : this.repository;
@@ -169,6 +148,7 @@ export class Image {
 		const errors = [];
 		const image = this.user != null ? this.repository.substring(this.user.length + 1) : this.repository;
 
+		/** @type {[[string, RegExp, string]]} */
 		const checks = [
 			['registry', Image.DOMAIN_REGEXP, this.registry],
 			['image', Image.IMAGE_NAME_REGEXP, image],
@@ -288,20 +268,20 @@ export class ImageRef {
 		const simpleName = this.image.getSimpleName();
 
 		if (repositoryUrl != null && repositoryUrl.toLowerCase() !== simpleName.toLowerCase()) {
-			qualifiers[ImageRef.REPOSITORY_QUALIFIER, repositoryUrl.toLowerCase()];
+			qualifiers[ImageRef.REPOSITORY_QUALIFIER] = repositoryUrl.toLowerCase();
 		}
 
 		if (this.platform != null) {
-			qualifiers[ImageRef.ARCH_QUALIFIER, this.platform.architecture.toLowerCase()];
-			qualifiers[ImageRef.OS_QUALIFIER, this.platform.os.toLowerCase()];
+			qualifiers[ImageRef.ARCH_QUALIFIER] = this.platform.architecture.toLowerCase();
+			qualifiers[ImageRef.OS_QUALIFIER] = this.platform.os.toLowerCase();
 			if (this.platform.variant != null) {
-				qualifiers[ImageRef.VARIANT_QUALIFIER, this.platform.variant.toLowerCase()];
+				qualifiers[ImageRef.VARIANT_QUALIFIER] = this.platform.variant.toLowerCase();
 			}
 		}
 
 		const tag = this.image.tag;
 		if (tag != null) {
-			qualifiers[ImageRef.TAG_QUALIFIER, tag];
+			qualifiers[ImageRef.TAG_QUALIFIER] = tag;
 		}
 
 		return new PackageURL(

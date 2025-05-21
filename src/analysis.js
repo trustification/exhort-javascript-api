@@ -139,7 +139,7 @@ async function requestComponent(provider, manifest, url, opts = {}) {
  * @param {Array<string>} imageRefs
  * @param {string} url
  * @param {{}} [opts={}] - optional various options to pass along the application
- * @returns {Promise<string|import('../generated/backend/AnalysisReport').AnalysisReport>}
+ * @returns {Promise<string|import('@trustification/exhort-api-spec/model/v4/AnalysisReport').AnalysisReport>}
  */
 async function requestImages(imageRefs, url, html = false, opts = {}) {
 	const imageSboms = {}
@@ -157,8 +157,6 @@ async function requestImages(imageRefs, url, html = false, opts = {}) {
 		},
 		body: JSON.stringify(imageSboms),
 	})
-
-	console.error(JSON.stringify(imageSboms, '', '\t'))
 
 	if(resp.status === 200) {
 		let result;
