@@ -161,9 +161,25 @@ export function invokeCommand(bin, args, opts={}) {
 	// https://github.com/nodejs/node/issues/52681#issuecomment-2076426887
 	if (process.platform === 'win32') {
 		opts = {...opts, shell: true}
-		args = args.map(arg => handleSpacesInPath(arg))
-		bin = handleSpacesInPath(bin)
 	}
+	// Handle spaces in paths for all platforms
+	args = args.map(arg => handleSpacesInPath(arg))
+	bin = handleSpacesInPath(bin)
+
+	opts = {
+		...opts,
+		env: {
+			...process.env,
+			PATH: process.env.PATH
+		}
+	};
+
+
+	// Add maxBuffer option to handle large outputs
+	opts = {
+		...opts,
+		maxBuffer: 10 * 1024 * 1024 // 10MB buffer
+	};
 
 	return execFileSync(bin, args, {...{stdio: 'pipe', encoding: 'utf-8'}, ...opts})
 }
