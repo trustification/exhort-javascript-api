@@ -9,23 +9,21 @@ env:
 
 on:
   workflow_dispatch:
-  pull_request_target:
-    types:
-      - closed
-    branches:
-      - 'main'
-    paths:
-      - "src/**"
-      - "package-lock.json"
-      - "package.json"
-      - "tsconfig.json"
-      - ".github/workflows/release.yml"
+    inputs:
+      version_type:
+        description: 'Type of version bump'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 jobs:
   release:
     runs-on: ubuntu-latest
     environment: staging
-    if: github.repository_owner == 'trustification' && github.event.pull_request.merged == true && startsWith(github.head_ref, 'release/' )
     name: Release the project
     steps:
       - name: Checkout sources
@@ -65,15 +63,9 @@ jobs:
           echo "oldest-tag=$(git for-each-ref --sort=creatordate --format '%(refname:lstrip=2)' refs/tags | grep ${{ steps.last-release.outputs.base-tag }} | head -n 1)" >> "$GITHUB_OUTPUT"
 
       - name: determine semver component to bump
-        env:
-          BUMP_PART: ${{ contains(github.event.pull_request.title,'major') && 'major' || 'check-minor' }}
         id: bump-decision
         run: |
-          if [[ $BUMP_PART == 'check-minor' ]]; then
-             echo "bump-part=${{ contains(github.event.pull_request.title,'minor') && 'minor' || 'patch' }}" >> "$GITHUB_OUTPUT"
-          else
-             echo "bump-part=major" >> "$GITHUB_OUTPUT"
-          fi
+          echo "bump-part=${{ github.event.inputs.version_type }}" >> "$GITHUB_OUTPUT"
 
       - name: Update package with new version
         id: bump
