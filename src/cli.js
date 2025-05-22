@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 
-import exhort from './index.js'
-import { hideBin } from 'yargs/helpers'
-import yargs from 'yargs'
 import * as path from "path";
+
+import yargs from 'yargs'
+import { hideBin } from 'yargs/helpers'
+
+import exhort from './index.js'
+
 
 // command for component analysis take manifest type and content
 const component = {

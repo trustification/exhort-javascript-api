@@ -1,9 +1,10 @@
-import { afterEach } from 'mocha'
-import analysis from '../src/analysis.js'
 import { expect } from 'chai'
+import { afterEach } from 'mocha'
 import { rest } from 'msw'
 import { setupServer } from 'msw/node'
-import sinon from 'sinon'
+import { stub } from 'sinon'
+
+import analysis from '../src/analysis.js'
 
 // utility function creating a dummy server, intercepting a handler,
 // running a test, and shutting the server down
@@ -22,7 +23,7 @@ function interceptAndRun(handler, test) {
 
 function determineResponse(req, res, ctx) {
 	let response
-	if (req.headers.get("ex-snyk-token") === null) {
+	if (req.headers.get("ex-snyk-token") == null) {
 		response = res(ctx.status(400));
 
 	} else if (req.headers.get("ex-snyk-token") === "good-dummy-token") {
@@ -53,7 +54,7 @@ suite('testing the analysis module for sending api requests', () => {
 		async () => {
 			let fakeContent = 'i-am-manifest-content'
 			// stub the provideComponent function to return the fake provided data for our fake manifest
-			let componentProvideStub = sinon.stub()
+			let componentProvideStub = stub()
 			componentProvideStub.withArgs(fakeContent).returns(fakeProvided)
 			// fake providers hosts our stubbed provideStack function
 			let fakeProvider = {
@@ -71,7 +72,7 @@ suite('testing the analysis module for sending api requests', () => {
 	suite('testing the requestStack function', () => {
 		let fakeManifest = 'fake-file.typ'
 		// stub the provideStack function to return the fake provided data for our fake manifest
-		let stackProviderStub = sinon.stub()
+		let stackProviderStub = stub()
 		stackProviderStub.withArgs(fakeManifest).returns(fakeProvided)
 		// fake providers hosts our stubbed provideStack function
 		let fakeProvider = {
@@ -162,7 +163,7 @@ suite('testing the analysis module for sending api requests', () => {
 	suite('verify environment variables to token headers mechanism', () => {
 		let fakeManifest = 'fake-file.typ'
 		// stub the provideStack function to return the fake provided data for our fake manifest
-		let stackProviderStub = sinon.stub()
+		let stackProviderStub = stub()
 		stackProviderStub.withArgs(fakeManifest).returns(fakeProvided)
 		// fake providers hosts our stubbed provideStack function
 		let fakeProvider = {
@@ -205,7 +206,7 @@ suite('testing the analysis module for sending api requests', () => {
 
 	suite('verify proxy configuration', () => {
 		let fakeManifest = 'fake-file.typ'
-		let stackProviderStub = sinon.stub()
+		let stackProviderStub = stub()
 		stackProviderStub.withArgs(fakeManifest).returns(fakeProvided)
 		let fakeProvider = {
 			provideComponent: () => {},

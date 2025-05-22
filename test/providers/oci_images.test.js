@@ -1,6 +1,8 @@
-import { expect } from "chai";
 import fs from 'fs';
-import sinon from 'sinon'
+
+import { expect } from "chai";
+import { useFakeTimers } from "sinon";
+
 import { generateImageSBOM, parseImageRef } from '../../src/oci_image/utils.js';
 
 let clock;
@@ -34,4 +36,4 @@ suite('testing the OCI image data provider', () => {
 		}).timeout(10000)
 	})
 
-}).beforeAll(() => clock = sinon.useFakeTimers(new Date('2023-08-07T00:00:00.000Z'))).afterAll(()=> clock.restore());
+}).beforeAll(() => clock = useFakeTimers(new Date('2023-08-07T00:00:00.000Z'))).afterAll(()=> clock.restore());

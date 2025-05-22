@@ -1,6 +1,8 @@
-import { expect } from 'chai'
 import fs from 'fs'
-import sinon from "sinon";
+
+import { expect } from 'chai'
+import { useFakeTimers } from "sinon";
+
 import golangGoModules from "../../src/providers/golang_gomodules.js"
 
 
@@ -78,6 +80,6 @@ suite('testing the golang-go-modules data provider', () => {
 		}).timeout(process.env.GITHUB_ACTIONS ? 30000 : 10000)
 
 	})
-}).beforeAll(() => clock = sinon.useFakeTimers(new Date('2023-08-07T00:00:00.000Z'))).afterAll(()=> clock.restore());
+}).beforeAll(() => clock = useFakeTimers(new Date('2023-08-07T00:00:00.000Z'))).afterAll(()=> clock.restore());
 
 

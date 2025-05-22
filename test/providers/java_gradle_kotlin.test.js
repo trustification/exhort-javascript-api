@@ -1,6 +1,8 @@
-import { expect } from 'chai'
 import fs from 'fs'
-import sinon from "sinon";
+
+import { expect } from 'chai'
+import { useFakeTimers } from "sinon";
+
 import Java_gradle_kotlin from '../../src/providers/java_gradle_kotlin.js'
 
 let clock
@@ -89,5 +91,5 @@ suite('testing the java-gradle-kotlin data provider', () => {
 		// these test cases takes ~1400-2000 ms each pr >10000 in CI (for the first test-case)
 
 	})
-}).beforeAll(() => clock = sinon.useFakeTimers(new Date('2023-08-07T00:00:00.000Z'))).afterAll(()=> {clock.restore()});
+}).beforeAll(() => clock = useFakeTimers(new Date('2023-08-07T00:00:00.000Z'))).afterAll(()=> {clock.restore()});
 

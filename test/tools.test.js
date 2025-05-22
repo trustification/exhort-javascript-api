@@ -1,7 +1,8 @@
-import { getCustom, getCustomPath} from "../src/tools.js"
+import { expect } from 'chai'
 import esmock from 'esmock'
 import { afterEach } from 'mocha'
-import { expect } from 'chai'
+
+import { getCustom, getCustomPath} from "../src/tools.js"
 
 
 /**

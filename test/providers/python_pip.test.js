@@ -1,6 +1,8 @@
-import { expect } from 'chai'
 import fs from 'fs'
-import sinon from "sinon";
+
+import { expect } from 'chai'
+import { useFakeTimers } from "sinon";
+
 import pythonPip from "../../src/providers/python_pip.js"
 import {getCustomPath, invokeCommand } from "../../src/tools.js"
 
@@ -81,7 +83,7 @@ suite('testing the python-pip data provider', () => {
 		}).timeout(process.env.GITHUB_ACTIONS ? 15000 : 10000)
 	});
 
-}).beforeAll(() => clock = sinon.useFakeTimers(new Date('2023-10-01T00:00:00.000Z'))).afterAll(()=> clock.restore());
+}).beforeAll(() => clock = useFakeTimers(new Date('2023-10-01T00:00:00.000Z'))).afterAll(()=> clock.restore());
 
 suite('testing the python-pip data provider with virtual environment', () => {
 	[
@@ -112,4 +114,4 @@ suite('testing the python-pip data provider with virtual environment', () => {
 		}).timeout(process.env.GITHUB_ACTIONS ? 60000 : 30000)
 	})
 
-}).beforeAll(() => {clock = sinon.useFakeTimers(new Date('2023-10-01T00:00:00.000Z'))}).afterAll(()=> clock.restore());
+}).beforeAll(() => {clock = useFakeTimers(new Date('2023-10-01T00:00:00.000Z'))}).afterAll(()=> clock.restore());

@@ -2,8 +2,9 @@ import fs from 'node:fs'
 import os from "node:os";
 import path from 'node:path'
 
-import { getCustom, getCustomPath, invokeCommand, toPurl, toPurlFromString } from "../tools.js";
 import Sbom from '../sbom.js'
+import { getCustom, getCustomPath, invokeCommand, toPurl, toPurlFromString } from "../tools.js";
+
 import Manifest from './manifest.js';
 
 /** @typedef {import('../provider.js').Provider} Provider */

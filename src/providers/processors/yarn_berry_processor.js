@@ -1,7 +1,9 @@
-import { toPurl, toPurlFromString } from "../../tools.js";
-import Yarn_processor from "./yarn_processor.js";
-import { ecosystem } from "../base_javascript.js";
 import { EOL } from 'os';
+
+import { toPurl, toPurlFromString } from "../../tools.js";
+import { ecosystem } from "../base_javascript.js";
+
+import Yarn_processor from "./yarn_processor.js";
 
 /**
  * Processor for Yarn Berry package manager

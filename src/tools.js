@@ -1,5 +1,6 @@
-import { EOL } from "os";
 import { execFileSync } from "child_process";
+import { EOL } from "os";
+
 import { PackageURL } from "packageurl-js";
 
 export const RegexNotToBeLogged = /EXHORT_.*_TOKEN|ex-.*-token/

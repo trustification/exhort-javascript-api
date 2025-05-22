@@ -1,4 +1,5 @@
 import { expect } from 'chai'
+
 import { match } from "../src/provider.js"
 
 suite('testing the provider utility function', () => {

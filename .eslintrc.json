@@ -2,7 +2,8 @@
   "root": true,
   "extends": [
     "eslint:recommended",
-    "plugin:editorconfig/all"
+    "plugin:editorconfig/all",
+    "plugin:import/recommended"
   ],
   "parserOptions": {
     "ecmaVersion": 2022,
@@ -14,13 +15,28 @@
     "es6": true
   },
   "plugins": [
-    "editorconfig"
+    "editorconfig",
+    "import"
   ],
   "rules": {
     "curly": "warn",
     "eqeqeq": ["warn", "always", {"null": "never"}],
     "no-throw-literal": "warn",
-    "sort-imports": "warn"
+    "import/order": ["warn", {
+      "groups": ["builtin", "external", "internal", "parent", "sibling", "index"],
+      "newlines-between": "always",
+      "alphabetize": {
+        "order": "asc",
+        "caseInsensitive": true
+      }
+    }]
+  },
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "extensions": [".js"]
+      }
+    }
   },
   "ignorePatterns": [
     "integration"

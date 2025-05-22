@@ -1,5 +1,6 @@
-import index from "../../src/index.js"
 import { expect } from 'chai'
+
+import index from "../../src/index.js"
 
 const packageManagersDict =
 	{

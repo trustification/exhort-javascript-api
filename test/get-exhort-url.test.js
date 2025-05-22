@@ -1,4 +1,5 @@
 import { expect } from 'chai'
+
 import {exhortDefaultUrl, exhortDevDefaultUrl, testSelectExhortBackend} from "../src/index.js"
 
 suite('testing Select Exhort Backend function when EXHORT_DEV_MODE environment variable is True', () => {
