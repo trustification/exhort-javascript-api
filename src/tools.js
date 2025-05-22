@@ -1,5 +1,4 @@
 import { EOL } from "os";
-import os from 'os';
 import { execFileSync } from "child_process";
 import { PackageURL } from "packageurl-js";
 
@@ -75,7 +74,7 @@ export function environmentVariableIsPopulated(envVariableName) {
 }
 
 /**
- *
+ * Utility function for handling spaces in paths on Windows
  * @param {string} path - path to be checked if contains spaces
  * @return {string} a path with all spaces escaped or manipulated so it will be able to be part
  *                  of commands that will be invoked without errors in os' shell.
@@ -83,16 +82,8 @@ export function environmentVariableIsPopulated(envVariableName) {
 export function handleSpacesInPath(path) {
 	let transformedPath = path
 	// if operating system is windows
-	if (os.platform() === "win32") {
-		if(hasSpaces(path)) {
-			transformedPath = `"${path}"`
-		}
-	}
-	// linux, darwin..
-	else {
-		if(hasSpaces(path)) {
-			transformedPath = path.replaceAll(" ", "\\ ")
-		}
+	if(hasSpaces(path)) {
+		transformedPath = `"${path}"`
 	}
 	return transformedPath
 }
@@ -161,10 +152,9 @@ export function invokeCommand(bin, args, opts={}) {
 	// https://github.com/nodejs/node/issues/52681#issuecomment-2076426887
 	if (process.platform === 'win32') {
 		opts = {...opts, shell: true}
+		args = args.map(arg => handleSpacesInPath(arg))
+		bin = handleSpacesInPath(bin)
 	}
-	// Handle spaces in paths for all platforms
-	args = args.map(arg => handleSpacesInPath(arg))
-	bin = handleSpacesInPath(bin)
 
 	opts = {
 		...opts,
