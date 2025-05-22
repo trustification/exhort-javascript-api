@@ -331,7 +331,7 @@ function getDepsList(record) {
  * @param {[string]}path array representing the path of the current branch in dependency tree, starting with a root dependency - that is - a given dependency in requirements.txt
  */
 function bringAllDependencies(dependencies, dependencyName, cachedEnvironmentDeps, includeTransitive, path, usePipDepTree) {
-	if(dependencyName == null || dependencyName.trim() === "" ) {
+	if(dependencyName?.trim() === "" ) {
 		return
 	}
 	let record = cachedEnvironmentDeps[dependencyName.toLowerCase()]
