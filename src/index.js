@@ -7,7 +7,7 @@ import { getCustom } from "./tools.js";
 import.meta.dirname
 import * as url from 'url';
 
-export default { componentAnalysis, stackAnalysis, validateToken }
+export default { componentAnalysis, stackAnalysis, imageAnalysis, validateToken }
 
 export const exhortDevDefaultUrl = 'https://exhort.stage.devshift.net';
 
@@ -146,6 +146,39 @@ async function componentAnalysis(manifest, opts = {}) {
 	opts["manifest-type"] = path.basename(manifest)
 	let provider = match(manifest, availableProviders) // throws error if no matching provider
 	return await analysis.requestComponent(provider, manifest, theUrl, opts) // throws error request sending failed
+}
+
+/**
+ * @overload
+ * @param {Array<string>} imageRefs
+ * @param {true} html
+ * @param {object} [opts={}]
+ * @returns {Promise<string>}
+ * @throws {Error}
+ */
+
+/**
+ * @overload
+ * @param {Array<string>} imageRefs
+ * @param {false} html
+ * @param {object} [opts={}]
+ * @returns {Promise<import('@trustification/exhort-api-spec/model/v4/AnalysisReport').AnalysisReport}
+ * @throws {Error}
+ */
+
+/**
+ * Get image analysis report for a set of OCI image references.
+ * @overload
+ * @param {Array<string>} imageRefs - OCI image references
+ * @param {boolean} [html=false] - true will return a html string, false will return AnalysisReport
+ * @param {{}} [opts={}] - optional various options to pass along the application
+ * @returns {Promise<string|import('@trustification/exhort-api-spec/model/v4/AnalysisReport').AnalysisReport}
+ * @throws {Error} if manifest inaccessible, no matching provider, failed to get create content,
+ * 		or backend request failed
+ */
+async function imageAnalysis(imageRefs, html = false, opts = {}) {
+	theUrl = selectExhortBackend(opts)
+	return await analysis.requestImages(imageRefs, theUrl, opts)
 }
 
 /**
