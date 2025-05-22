@@ -1,9 +1,12 @@
-import { XMLParser } from 'fast-xml-parser'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import Sbom from '../sbom.js'
 import { EOL } from 'os'
+
+import { XMLParser } from 'fast-xml-parser'
+
+import Sbom from '../sbom.js'
+
 import Base_java, { ecosystem_maven } from "./base_java.js";
 
 

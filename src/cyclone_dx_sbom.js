@@ -1,4 +1,5 @@
 import {EOL} from "os";
+
 import {PackageURL} from "packageurl-js";
 
 /**

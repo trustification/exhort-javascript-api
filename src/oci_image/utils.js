@@ -1,7 +1,9 @@
-import { getCustomPath, invokeCommand } from '../tools.js';
-import { Platform } from './platform.js';
 import { delimiter, sep } from 'path';
+
+import { getCustomPath, invokeCommand } from '../tools.js';
+
 import { ImageRef } from './images.js';
+import { Platform } from './platform.js';
 
 // Constants
 const EXHORT_SYFT_CONFIG_PATH = "EXHORT_SYFT_CONFIG_PATH";
