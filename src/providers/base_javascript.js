@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import os from "node:os";
 import path from 'node:path'
 
-import { getCustomPath, invokeCommand, toPurl, toPurlFromString } from "../tools.js";
+import { getCustom, getCustomPath, invokeCommand, toPurl, toPurlFromString } from "../tools.js";
 import Sbom from '../sbom.js'
 import Manifest from './manifest.js';
 
@@ -314,10 +314,56 @@ export default class Base_javascript {
 			if(!opts.cwd) {
 				opts.cwd = path.dirname(this.#manifest.manifestPath);
 			}
-			return invokeCommand(this.#cmd, args, opts);
+
+			// Add version manager paths for JavaScript package managers
+			if (process.platform !== 'win32') {
+				const versionManagerPaths = [];
+
+				// Add fnm path if available
+				const fnmDir = getCustom('FNM_DIR', null, opts);
+				if (fnmDir) {
+					versionManagerPaths.push(`${fnmDir}/current/bin`);
+				}
+
+				// Add nvm path if available
+				const nvmDir = getCustom('NVM_DIR', null, opts);
+				if (nvmDir) {
+					versionManagerPaths.push(`${nvmDir}/current/bin`);
+				}
+
+				// Add local node_modules/.bin path
+				const localBinPath = path.join(opts.cwd, 'node_modules', '.bin');
+				if (fs.existsSync(localBinPath)) {
+					versionManagerPaths.push(localBinPath);
+				}
+
+				if (versionManagerPaths.length > 0) {
+					opts = {
+						...opts,
+						env: {
+							...opts.env,
+							PATH: `${versionManagerPaths.join(path.delimiter)}${path.delimiter}${process.env.PATH}`
+						}
+					};
+				}
+			}
+
+			// Try to find the command in the following order:
+			// 1. Custom path from environment/opts (via getCustomPath)
+			// 2. Local node_modules/.bin
+			// 3. Global installation
+			let cmd = this.#cmd;
+			if (!fs.existsSync(cmd)) {
+				const localCmd = path.join(opts.cwd, 'node_modules', '.bin', this._cmdName());
+				if (fs.existsSync(localCmd)) {
+					cmd = localCmd;
+				}
+			}
+
+			return invokeCommand(cmd, args, opts);
 		} catch (error) {
 			if (error.code === 'ENOENT') {
-				throw new Error(`${this.#cmd} is not accessible.`);
+				throw new Error(`${this.#cmd} is not accessible. Please ensure it is installed via npm, corepack, or your version manager.`);
 			}
 			if (error.code === 'EACCES') {
 				throw new Error(`Permission denied when executing ${this.#cmd}. Please check file permissions.`);

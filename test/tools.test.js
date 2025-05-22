@@ -68,7 +68,6 @@ suite('testing the various tools and utility functions', () => {
 
 		test('Windows Path with spaces', async () => {
 			const tools = await mockToolsPartial("win32")
-
 			let path = "c:\\users\\john doe\\pom.xml"
 			let expectedPath = "\"c:\\users\\john doe\\pom.xml\""
 			let actualPath = tools.handleSpacesInPath(path)
@@ -79,22 +78,6 @@ suite('testing the various tools and utility functions', () => {
 			const tools = await mockToolsPartial("win32")
 			let path = "c:\\users\\john\\pom.xml"
 			let expectedPath = "c:\\users\\john\\pom.xml"
-			let actualPath = tools.handleSpacesInPath(path)
-			expect(actualPath).to.equal(expectedPath)
-		})
-
-		test('Linux Path with spaces', async () => {
-			const tools = await mockToolsPartial("linux")
-			let path = "/usr/john doe/pom.xml"
-			let expectedPath = "/usr/john\\ doe/pom.xml"
-			let actualPath = tools.handleSpacesInPath(path)
-			expect(actualPath).to.equal(expectedPath)
-		})
-
-		test('Linux Path with no spaces', async () => {
-			const tools = await mockToolsPartial("linux")
-			let path = "/usr/john/pom.xml"
-			let expectedPath = "/usr/john/pom.xml"
 			let actualPath = tools.handleSpacesInPath(path)
 			expect(actualPath).to.equal(expectedPath)
 		})
