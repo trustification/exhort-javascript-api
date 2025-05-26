@@ -39,8 +39,11 @@ export default class Yarn_berry_processor extends Yarn_processor {
    * @returns {string} Properly formatted JSON string
    */
 	parseDepTreeOutput(output) {
-		// Transform output by removing line breaks and ensuring proper JSON array format
-		const outputArray = output.trim().split(EOL).join('').replaceAll('}{', '},{');
+		// Normalize line endings to EOL regardless of platform
+		const normalizedOutput = output.replace(/\r\n|\n/g, EOL);
+		const lines = normalizedOutput.split(EOL).filter(line => line.trim());
+		// Transform multiline JSON objects into a valid JSON array
+		const outputArray = lines.join('').replaceAll('}{', '},{');
 		return `[${outputArray}]`;
 	}
 
