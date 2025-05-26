@@ -127,6 +127,7 @@ export default class Base_Java {
 	 * Exists for stubbing in tests.
 	 * @param bin - the command to be invoked
 	 * @param args - the args to pass to the binary
+	 * @param {import('child_process').ExecFileOptionsWithStringEncoding} [opts={}]
 	 * @protected
 	 */
 	_invokeCommand(bin, args, opts={}) { return invokeCommand(bin, args, opts) }
@@ -138,6 +139,7 @@ export default class Base_Java {
 	 * @returns string
 	 */
 	selectToolBinary(manifestPath, opts) {
+		const manifestDir = path.dirname(manifestPath)
 		const toolPath = getCustomPath(this.globalBinary, opts)
 
 		const useWrapper = getWrapperPreference(toolPath, opts)
@@ -145,7 +147,7 @@ export default class Base_Java {
 			const wrapper = this.traverseForWrapper(manifestPath)
 			if (wrapper !== undefined) {
 				try {
-					this._invokeCommand(wrapper, ['--version'])
+					this._invokeCommand(wrapper, ['--version'], {cwd: manifestDir})
 				} catch (error) {
 					throw new Error(`failed to check for ${this.localWrapper}`, {cause: error})
 				}
@@ -154,7 +156,7 @@ export default class Base_Java {
 		}
 		// verify tool is accessible, if wrapper was not requested or not found
 		try {
-			this._invokeCommand(toolPath, ['--version'])
+			this._invokeCommand(toolPath, ['--version'], {cwd: manifestDir})
 		} catch (error) {
 			if (error.code === 'ENOENT') {
 				throw new Error((useWrapper ? `${this.localWrapper} not found and ` : '') + `${this.globalBinary === 'mvn' ? 'maven' : 'gradle'} not found at ${toolPath}`)

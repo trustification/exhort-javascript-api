@@ -76,11 +76,12 @@ export default class Java_maven extends Base_java {
 	 * @private
 	 */
 	#createSbomStackAnalysis(manifest, opts = {}) {
+		const manifestDir = path.dirname(manifest)
 		const mvn = this.selectToolBinary(manifest, opts)
 
 		// clean maven target
 		try {
-			this._invokeCommand(mvn, ['-q', 'clean', '-f', manifest])
+			this._invokeCommand(mvn, ['-q', 'clean'], {cwd: manifestDir})
 		} catch (error) {
 			throw new Error(`failed to clean maven target`, {cause: error})
 		}
@@ -89,7 +90,7 @@ export default class Java_maven extends Base_java {
 		let tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'exhort_'))
 		let tmpDepTree = path.join(tmpDir, 'mvn_deptree.txt')
 		// build initial command (dot outputType is not available for verbose mode)
-		let depTreeCmdArgs = ['-q', 'org.apache.maven.plugins:maven-dependency-plugin:3.6.0:tree', '-Dverbose', '-DoutputType=text', `-DoutputFile=${tmpDepTree}`, '-f', manifest]
+		let depTreeCmdArgs = ['-q', 'org.apache.maven.plugins:maven-dependency-plugin:3.6.0:tree', '-Dverbose', '-DoutputType=text', `-DoutputFile=${tmpDepTree}`]
 		// exclude ignored dependencies, exclude format is groupId:artifactId:scope:version.
 		// version and scope are marked as '*' if not specified (we do not use scope yet)
 		let ignoredDeps = new Array()
@@ -101,7 +102,7 @@ export default class Java_maven extends Base_java {
 		})
 		// execute dependency tree command
 		try {
-			this._invokeCommand(mvn, depTreeCmdArgs)
+			this._invokeCommand(mvn, depTreeCmdArgs, {cwd: manifestDir})
 		} catch (error) {
 			throw new Error(`failed creating maven dependency tree`, {cause: error})
 		}
@@ -144,22 +145,21 @@ export default class Java_maven extends Base_java {
 		const mvn = this.selectToolBinary(manifestPath, opts)
 
 		const tmpEffectivePom = path.resolve(path.join(path.dirname(manifestPath), 'effective-pom.xml'))
-		const targetPom = manifestPath
 
 		// create effective pom and save to temp file
 		try {
-			this._invokeCommand(mvn, ['-q', 'help:effective-pom', `-Doutput=${tmpEffectivePom}`, '-f', targetPom])
+			this._invokeCommand(mvn, ['-q', 'help:effective-pom', `-Doutput=${tmpEffectivePom}`], {cwd: path.dirname(manifestPath)})
 		} catch (error) {
 			throw new Error(`failed creating maven effective pom`, {cause: error})
 		}
 		// iterate over all dependencies in original pom and collect all ignored ones
-		let ignored = this.#getDependencies(targetPom).filter(d => d.ignore)
+		let ignored = this.#getDependencies(manifestPath).filter(d => d.ignore)
 		// iterate over all dependencies and create a package for every non-ignored one
 		/** @type [Dependency] */
 		let dependencies = this.#getDependencies(tmpEffectivePom)
 			.filter(d => !(this.#dependencyIn(d, ignored)) && !(this.#dependencyInExcludingVersion(d, ignored)))
 		let sbom = new Sbom();
-		let rootDependency = this.#getRootFromPom(tmpEffectivePom, targetPom);
+		let rootDependency = this.#getRootFromPom(tmpEffectivePom, manifestPath);
 		let purlRoot = this.toPurl(rootDependency.groupId, rootDependency.artifactId, rootDependency.version)
 		sbom.addRoot(purlRoot)
 		dependencies.forEach(dep => {
