@@ -129,11 +129,18 @@ function execSyft(imageRef) {
 		] : [])
 	];
 
-	return invokeCommand(syft, args, {
-		env: { ...process.env, ...envs },
-		// 10MB, this output can be large so we need more than default
-		maxBuffer: 1024 * 1024 * 10
-	})
+	try {
+		return invokeCommand(syft, args, {
+			env: { ...process.env, ...envs },
+			// 10MB, this output can be large so we need more than default
+			maxBuffer: 1024 * 1024 * 10
+		})
+	} catch (error) {
+		if (error.code === 'ENOENT') {
+			throw new Error(`syft binary not accessible at ${syft}`)
+		}
+		throw new Error(`failed to invoke syft to generate OCI image SBOM`, {cause: error})
+	}
 }
 
 /**
@@ -210,7 +217,15 @@ export function getImagePlatform() {
 function hostInfo(engine, info) {
 	const exec = getCustomPath(engine);
 
-	const output = invokeCommand(exec, ["info"]);
+	let output;
+	try {
+		output = invokeCommand(exec, ["info"]);
+	} catch (error) {
+		if (error.code === 'ENOENT') {
+			throw new Error(`${engine} binary not accessible at ${exec}`)
+		}
+		throw new Error(`failed to invoke ${engine} to fetch host info`, {cause: error})
+	}
 
 	const lines = output.split("\n");
 	for (const line of lines) {
@@ -437,7 +452,14 @@ function execSkopeoInspect(imageRef, raw) {
 		] : [])
 	]
 
-	return invokeCommand(skopeo, args);
+	try {
+		return invokeCommand(skopeo, args);
+	} catch (error) {
+		if (error.code === 'ENOENT') {
+			throw new Error(`skopeo binary not accessible at ${skopeo}`)
+		}
+		throw new Error(`failed to invoke skopeo to inspect OCI image(s)`, {cause: error})
+	}
 }
 
 /**
