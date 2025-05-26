@@ -4,10 +4,10 @@ import golangGomodulesProvider from './providers/golang_gomodules.js'
 import Java_gradle_groovy from "./providers/java_gradle_groovy.js";
 import Java_gradle_kotlin from "./providers/java_gradle_kotlin.js";
 import Java_maven from "./providers/java_maven.js";
-import pythonPipProvider from './providers/python_pip.js'
 import Javascript_npm from './providers/javascript_npm.js';
 import Javascript_pnpm from './providers/javascript_pnpm.js';
 import Javascript_yarn from './providers/javascript_yarn.js';
+import pythonPipProvider from './providers/python_pip.js'
 
 /** @typedef {{ecosystem: string, contentType: string, content: string}} Provided */
 /** @typedef {{isSupported: function(string): boolean, validateLockFile: function(string): void, provideComponent: function(string, {}): Provided, provideStack: function(string, {}): Provided}} Provider */

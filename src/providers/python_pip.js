@@ -1,13 +1,17 @@
 import fs from 'node:fs'
+import { EOL } from 'os'
+
+import { PackageURL } from 'packageurl-js'
+
+import Sbom from '../sbom.js'
 import {
 	environmentVariableIsPopulated,
 	getCustom,
 	getCustomPath,
 	invokeCommand
 } from "../tools.js";
-import Sbom from '../sbom.js'
-import { PackageURL } from 'packageurl-js'
-import { EOL } from 'os'
+
+
 import Python_controller from './python_controller.js'
 
 export default { isSupported, validateLockFile, provideComponent, provideStack }

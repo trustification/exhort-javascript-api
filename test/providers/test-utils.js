@@ -1,5 +1,6 @@
-import babelCore from "@babel/core";
 import fs from "fs";
+
+import babelCore from "@babel/core";
 
 async function dynamicImportProvider(path) {
 	return await import(path)

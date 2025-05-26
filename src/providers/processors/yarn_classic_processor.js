@@ -1,6 +1,7 @@
-import { ecosystem } from "../base_javascript.js";
-import Yarn_processor from "./yarn_processor.js";
 import { toPurl, toPurlFromString } from "../../tools.js";
+import { ecosystem } from "../base_javascript.js";
+
+import Yarn_processor from "./yarn_processor.js";
 
 /**
  * Processor for Yarn Classic package manager

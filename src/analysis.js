@@ -1,9 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import { EOL } from "os";
-import { RegexNotToBeLogged, getCustom } from "./tools.js";
+
 import { HttpsProxyAgent } from "https-proxy-agent";
+
 import { generateImageSBOM, parseImageRef } from "./oci_image/utils.js";
+import { RegexNotToBeLogged, getCustom } from "./tools.js";
 
 export default { requestComponent, requestStack, requestImages, validateToken }
 

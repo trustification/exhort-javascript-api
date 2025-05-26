@@ -1,9 +1,11 @@
-import { expect } from 'chai'
-import fs from 'fs'
-import sinon from "sinon";
-import { availableProviders, match } from '../../src/provider.js';
-import esmock from 'esmock';
 import { fail } from 'assert';
+import fs from 'fs'
+
+import { expect } from 'chai'
+import esmock from 'esmock';
+import { useFakeTimers } from "sinon";
+
+import { availableProviders, match } from '../../src/provider.js';
 import Manifest from '../../src/providers/manifest.js';
 
 let clock
@@ -216,4 +218,4 @@ suite('testing the javascript-npm data provider', async () => {
 	});
 
 
-}).beforeAll(() => clock = sinon.useFakeTimers(new Date('2023-08-07T00:00:00.000Z'))).afterAll(() => clock.restore());
+}).beforeAll(() => clock = useFakeTimers(new Date('2023-08-07T00:00:00.000Z'))).afterAll(() => clock.restore());

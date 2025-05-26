@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from 'node:path';
 import os, {EOL} from "os";
+
 import {environmentVariableIsPopulated,getCustom, invokeCommand} from "../tools.js";
 
 function getPipFreezeOutput() {
@@ -330,11 +331,11 @@ function getDepsList(record) {
  * @param {[string]}path array representing the path of the current branch in dependency tree, starting with a root dependency - that is - a given dependency in requirements.txt
  */
 function bringAllDependencies(dependencies, dependencyName, cachedEnvironmentDeps, includeTransitive, path, usePipDepTree) {
-	if(dependencyName === null || dependencyName === undefined || dependencyName.trim() === "" ) {
+	if(dependencyName?.trim() === "" ) {
 		return
 	}
 	let record = cachedEnvironmentDeps[dependencyName.toLowerCase()]
-	if(record === null || record  === undefined) {
+	if(record == null) {
 		throw new Error(`Package ${dependencyName} is not installed in your python environment, either install it (better to install requirements.txt altogether) or set the setting EXHORT_PYTHON_VIRTUAL_ENV=true to automatically install it in virtual environment (please note that this may slow down the analysis)`)
 	}
 	let depName

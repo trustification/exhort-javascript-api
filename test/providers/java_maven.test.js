@@ -1,9 +1,13 @@
-import { expect } from 'chai'
 import fs from 'fs'
-import sinon from "sinon";
-import Java_maven from '../../src/providers/java_maven.js'
-import esmock from 'esmock';
 import path from 'path';
+
+import { expect } from 'chai'
+import esmock from 'esmock';
+import { useFakeTimers } from "sinon";
+
+import Java_maven from '../../src/providers/java_maven.js'
+
+
 
 let clock
 
@@ -102,7 +106,7 @@ suite('testing the java-maven data provider', () => {
 		// these test cases takes ~1400-2000 ms each pr >10000 in CI (for the first test-case)
 
 	})
-}).beforeAll(() => clock = sinon.useFakeTimers(new Date('2023-08-07T00:00:00.000Z'))).afterAll(()=> {clock.restore()});
+}).beforeAll(() => clock = useFakeTimers(new Date('2023-08-07T00:00:00.000Z'))).afterAll(()=> {clock.restore()});
 
 suite('testing the java-maven data provider with modules', () => {
 	[
@@ -131,4 +135,4 @@ suite('testing the java-maven data provider with modules', () => {
 		// these test cases takes ~1400-2000 ms each pr >10000 in CI (for the first test-case)
 
 	})
-}).beforeAll(() => clock = sinon.useFakeTimers(new Date('2023-08-07T00:00:00.000Z'))).afterAll(()=> {clock.restore()});
+}).beforeAll(() => clock = useFakeTimers(new Date('2023-08-07T00:00:00.000Z'))).afterAll(()=> {clock.restore()});
