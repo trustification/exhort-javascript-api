@@ -191,12 +191,12 @@ export default class CycloneDxSbom {
 
 	/**
 	 * This method gets an array of dependencies to be ignored, and remove all of them from CycloneDx Sbom
-	 * @param {Array} dependencies to be removed from sbom
+	 * @param {Array[PackageURL]} dependencies to be removed from sbom
 	 * @return {CycloneDxSbom} without ignored dependencies
 	 */
 	filterIgnoredDeps(deps) {
 		deps.forEach(dep => {
-			let index = this.components.findIndex(component => component.name === dep);
+			let index = this.components.findIndex(component => component.name === dep.name && component.group === dep.namespace);
 			if (index === -1) {
 				return;
 			}

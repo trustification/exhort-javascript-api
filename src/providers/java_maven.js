@@ -90,16 +90,23 @@ export default class Java_maven extends Base_java {
 		let tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'exhort_'))
 		let tmpDepTree = path.join(tmpDir, 'mvn_deptree.txt')
 		// build initial command (dot outputType is not available for verbose mode)
-		let depTreeCmdArgs = ['-q', 'org.apache.maven.plugins:maven-dependency-plugin:3.6.0:tree', '-Dverbose', '-DoutputType=text', `-DoutputFile=${tmpDepTree}`]
+		let depTreeCmdArgs = ['-q', 'org.apache.maven.plugins:maven-dependency-plugin:3.6.0:tree',
+			'-Dscope=compile','-Dverbose',
+			'-DoutputType=text', `-DoutputFile=${tmpDepTree}`]
 		// exclude ignored dependencies, exclude format is groupId:artifactId:scope:version.
 		// version and scope are marked as '*' if not specified (we do not use scope yet)
 		let ignoredDeps = new Array()
+		let ignoredArgs = new Array()
 		this.#getDependencies(manifest).forEach(dep => {
 			if (dep.ignore) {
-				depTreeCmdArgs.push(`-Dexcludes=${dep['groupId']}:${dep['artifactId']}:${dep['scope']}:${dep['version']}`)
-				ignoredDeps.push(this.toPurl(dep.groupId, dep.artifactId, dep.version).toString())
+				ignoredArgs.push(`${dep['groupId']}:${dep['artifactId']}`)
+				//version is not reliable because we're not resolving the effective pom
+				ignoredDeps.push(this.toPurl(dep.groupId, dep.artifactId))
 			}
 		})
+		if(ignoredArgs.length > 0) {
+			depTreeCmdArgs.push(`-Dexcludes=${ignoredArgs.join(',')}`)
+		}
 		// execute dependency tree command
 		try {
 			this._invokeCommand(mvn, depTreeCmdArgs, {cwd: manifestDir})
@@ -111,7 +118,7 @@ export default class Java_maven extends Base_java {
 		if (process.env["EXHORT_DEBUG"] === "true") {
 			console.error("Dependency tree that will be used as input for creating the BOM =>" + EOL + EOL + content.toString())
 		}
-		let sbom = this.createSbomFileFromTextFormat(content.toString(), ignoredDeps,opts);
+		let sbom = this.createSbomFileFromTextFormat(content.toString(), ignoredDeps, opts);
 		// delete temp file and directory
 		fs.rmSync(tmpDir, {recursive: true, force: true})
 		// return dependency graph as string
@@ -132,7 +139,7 @@ export default class Java_maven extends Base_java {
 		let sbom = new Sbom();
 		sbom.addRoot(rootPurl);
 		this.parseDependencyTree(root, 0, lines.slice(1), sbom);
-		return sbom.filterIgnoredDepsIncludingVersion(ignoredDeps).getAsJsonString(opts);
+		return sbom.filterIgnoredDeps(ignoredDeps).getAsJsonString(opts);
 	}
 
 	/**
@@ -157,7 +164,7 @@ export default class Java_maven extends Base_java {
 		// iterate over all dependencies and create a package for every non-ignored one
 		/** @type [Dependency] */
 		let dependencies = this.#getDependencies(tmpEffectivePom)
-			.filter(d => !(this.#dependencyIn(d, ignored)) && !(this.#dependencyInExcludingVersion(d, ignored)))
+			.filter(d => !this.#dependencyIn(d, ignored))
 		let sbom = new Sbom();
 		let rootDependency = this.#getRootFromPom(tmpEffectivePom, manifestPath);
 		let purlRoot = this.toPurl(rootDependency.groupId, rootDependency.artifactId, rootDependency.version)
@@ -268,10 +275,6 @@ export default class Java_maven extends Base_java {
 	 * @private
 	 */
 	#dependencyIn(dep, deps) {
-		return deps.filter(d => dep.artifactId === d.artifactId && dep.groupId === d.groupId && dep.version === d.version && dep.scope === d.scope).length > 0
-	}
-
-	#dependencyInExcludingVersion(dep, deps) {
 		return deps.filter(d => dep.artifactId === d.artifactId && dep.groupId === d.groupId && dep.scope === d.scope).length > 0
 	}
 }

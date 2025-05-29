@@ -61,7 +61,6 @@ com.example:demo:jar:0.0.1-SNAPSHOT
 |     |  \- (org.springframework:spring-core:jar:5.2.10.RELEASE:compile - version managed from 5.2.10.RELEASE; omitted for duplicate)
 |     \- (org.springframework:spring-web:jar:5.2.10.RELEASE:compile - version managed from 5.2.10.RELEASE; omitted for duplicate)
 +- io.quarkus:quarkus-resteasy:jar:2.7.7.Final:compile
-|  +- (io.quarkus:quarkus-vertx-http:jar:2.7.7.Final:compile - omitted for conflict with 2.13.5.Final)
 |  \- io.quarkus:quarkus-resteasy-server-common:jar:2.7.7.Final:compile
 |     +- (io.quarkus:quarkus-core:jar:2.7.7.Final:compile - omitted for conflict with 2.13.5.Final)
 |     +- (io.quarkus:quarkus-arc:jar:2.7.7.Final:compile - omitted for conflict with 2.13.6.Final)
@@ -243,7 +242,6 @@ com.example:demo:jar:0.0.1-SNAPSHOT
 |  |  |  +- (io.netty:netty-handler:jar:4.1.53.Final:compile - version managed from 4.1.82.Final; omitted for duplicate)
 |  |  |  +- (jakarta.enterprise:jakarta.enterprise.cdi-api:jar:2.0.2:compile - omitted for duplicate)
 |  |  |  \- com.aayushatharva.brotli4j:brotli4j:jar:1.7.1:compile
-|  |  |     \- com.aayushatharva.brotli4j:native-linux-x86_64:jar:1.7.1:compile
 |  |  +- io.netty:netty-codec-haproxy:jar:4.1.53.Final:compile (version managed from 4.1.82.Final)
 |  |  |  +- (io.netty:netty-buffer:jar:4.1.53.Final:compile - version managed from 4.1.53.Final; omitted for duplicate)
 |  |  |  +- (io.netty:netty-transport:jar:4.1.53.Final:compile - version managed from 4.1.53.Final; omitted for duplicate)

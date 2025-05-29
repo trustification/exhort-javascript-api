@@ -187,7 +187,8 @@ suite('testing the javascript-npm data provider', async () => {
 			"nodemon",
 			"axios",
 			"jsdom"]);
-		expect(m.ignored).to.have.all.members(['jsonwebtoken']);
+		const ignoredNames = m.ignored.map(dep => dep.name);
+		expect(ignoredNames).to.have.all.members(['jsonwebtoken']);
 	});
 
 	test('loads a valid manifest without ignored dependencies', () => {
