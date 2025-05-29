@@ -130,7 +130,7 @@ function handleIgnoredDependencies(requirementTxtContent, sbom, opts ={}) {
 	let matchManifestVersions = getCustom("MATCH_MANIFEST_VERSIONS", "true", opts);
 	if(matchManifestVersions === "true") {
 		const ignoredDepsVersion = ignoredDeps.filter(dep => dep.version !== undefined);
-		sbom.filterIgnoredDepsIncludingVersion(ignoredDepsVersion)
+		sbom.filterIgnoredDepsIncludingVersion(ignoredDepsVersion.map(dep => dep.toString()))
 	} else {
 		// in case of version mismatch, need to parse the name of package from the purl, and remove the package name from sbom according to name only
 		// without version
