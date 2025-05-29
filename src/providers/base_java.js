@@ -175,22 +175,33 @@ export default class Base_Java {
 	 * @returns {string|undefined}
 	 */
 	traverseForWrapper(startingManifest, repoRoot = undefined) {
-		repoRoot = repoRoot || getGitRootDir(path.resolve(path.dirname(startingManifest))) || path.parse(path.resolve(startingManifest)).root
-
-		const wrapperName = this.localWrapper;
-		const wrapperPath = path.join(path.resolve(path.dirname(startingManifest)), wrapperName);
+		const normalizedManifest = this.normalizePath(startingManifest);
+		const currentDir = this.normalizePath(path.dirname(normalizedManifest));
+		repoRoot = repoRoot || getGitRootDir(currentDir) || path.parse(normalizedManifest).root;
+		const wrapperPath = path.join(currentDir, this.localWrapper);
 
 		try {
-			fs.accessSync(wrapperPath, fs.constants.X_OK)
-		} catch(error) {
-			if (error.code === 'ENOENT') {
-				if (path.resolve(path.dirname(startingManifest)) === repoRoot) {
-					return undefined
-				}
-				return this.traverseForWrapper(path.resolve(path.dirname(startingManifest)), repoRoot)
-			}
-			throw new Error(`failure searching for ${this.localWrapper}`, {cause: error})
+			fs.accessSync(wrapperPath, fs.constants.X_OK);
+			return wrapperPath;
 		}
-		return wrapperPath
+		catch (error) {
+			if (error.code === 'ENOENT') {
+				const rootDir = path.parse(currentDir).root;
+				if (currentDir === repoRoot || currentDir === rootDir) {
+					return undefined;
+				}
+				const parentDir = path.dirname(currentDir);
+				if (parentDir === currentDir || parentDir === rootDir) {
+					return undefined;
+				}
+				return this.traverseForWrapper(path.join(parentDir, path.basename(normalizedManifest)), repoRoot);
+			}
+			throw new Error(`failure searching for ${this.localWrapper}`, { cause: error });
+		}
+	}
+
+	normalizePath(thePath) {
+		const normalized = path.resolve(thePath).normalize();
+		return process.platform === 'win32' ? normalized.toLowerCase() : normalized;
 	}
 }
