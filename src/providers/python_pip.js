@@ -16,8 +16,6 @@ import Python_controller from './python_controller.js'
 
 export default { isSupported, validateLockFile, provideComponent, provideStack }
 
-const dummyVersionNotation = "dummy*=#?";
-
 /** @typedef {{name: string, version: string, dependencies: DependencyEntry[]}} DependencyEntry */
 
 /**
@@ -93,15 +91,12 @@ function addAllDependencies(source, dep, sbom) {
 function splitToNameVersion(nameVersion) {
 	let result = []
 	if(nameVersion.includes("==")) {
-		result = nameVersion.split("==")
-	} else {
-		const regex = /[^\w\s-_]/g;
-		let endIndex = nameVersion.search(regex);
-		result.push(nameVersion.substring(0, endIndex).trim())
-		result.push(dummyVersionNotation)
+		return nameVersion.split("==")
 	}
-
-	return `${result[0]};;${result[1]}`
+	const regex = /[^\w\s-_]/g;
+	let endIndex = nameVersion.search(regex);
+	result.push(nameVersion.substring(0, endIndex).trim())
+	return result;
 }
 
 /**
@@ -115,8 +110,12 @@ function getIgnoredDependencies(requirementTxtContent) {
 		.filter(line => line.includes("#exhortignore") || line.includes("# exhortignore"))
 		.map((line) => line.substring(0,line.indexOf("#")).trim())
 		.map((name) => {
-			let strings = splitToNameVersion(name).split(";;");
-			return toPurl(strings[0],strings[1])})
+			let nameVersion = splitToNameVersion(name);
+			if(nameVersion.length === 2) {
+				return toPurl(nameVersion[0],nameVersion[1])
+			}
+			return toPurl(nameVersion[0], undefined);
+		})
 }
 
 /**
@@ -128,20 +127,14 @@ function getIgnoredDependencies(requirementTxtContent) {
  */
 function handleIgnoredDependencies(requirementTxtContent, sbom, opts ={}) {
 	let ignoredDeps = getIgnoredDependencies(requirementTxtContent)
-	let ignoredDepsVersion = ignoredDeps
-		.filter(dep => !dep.toString().includes(dummyVersionNotation) )
-		.map(dep => dep.toString())
-	let ignoredDepsNoVersions = ignoredDeps
-		.filter(dep => dep.toString().includes(dummyVersionNotation))
-		.map(dep => dep.name)
-	sbom.filterIgnoredDeps(ignoredDepsNoVersions)
 	let matchManifestVersions = getCustom("MATCH_MANIFEST_VERSIONS", "true", opts);
 	if(matchManifestVersions === "true") {
-		sbom.filterIgnoredDepsIncludingVersion(ignoredDepsVersion)
+		const ignoredDepsVersion = ignoredDeps.filter(dep => dep.version !== undefined);
+		sbom.filterIgnoredDepsIncludingVersion(ignoredDepsVersion.map(dep => dep.toString()))
 	} else {
 		// in case of version mismatch, need to parse the name of package from the purl, and remove the package name from sbom according to name only
 		// without version
-		sbom.filterIgnoredDeps(ignoredDepsVersion.map((dep) => dep.split("@")[0].split("pkg:pypi/")[1]))
+		sbom.filterIgnoredDeps(ignoredDeps)
 	}
 }
 

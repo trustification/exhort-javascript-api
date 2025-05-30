@@ -1,5 +1,7 @@
 import fs from "fs";
 
+import { toPurl } from "../tools.js";
+
 const DEFAULT_VERSION = 'v0.0.0';
 export default class Manifest {
 
@@ -43,7 +45,7 @@ export default class Manifest {
 			return deps;
 		}
 		for(let i = 0; i < content.exhortignore.length; i++) {
-			deps.push(content.exhortignore[i]);
+			deps.push(toPurl("npm", content.exhortignore[i]));
 		}
 		return deps;
 	}

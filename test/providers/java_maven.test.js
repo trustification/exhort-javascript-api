@@ -64,6 +64,7 @@ suite('testing the java-maven data provider', () => {
 		"pom_deps_with_ignore_on_dependency",
 		"pom_deps_with_ignore_on_group",
 		"pom_deps_with_ignore_on_version",
+		"pom_deps_with_ignore_version_from_property",
 		"pom_deps_with_ignore_on_wrong",
 		"pom_deps_with_no_ignore",
 		"poms_deps_with_ignore_long",
