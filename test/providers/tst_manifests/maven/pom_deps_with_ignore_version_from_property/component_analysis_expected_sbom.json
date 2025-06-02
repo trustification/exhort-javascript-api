@@ -21,7 +21,26 @@
 			"purl": "pkg:maven/pom-with-deps-and-ignore/pom-with-dependency-not-ignored-for-tests@0.0.1",
 			"type": "application",
 			"bom-ref": "pkg:maven/pom-with-deps-and-ignore/pom-with-dependency-not-ignored-for-tests@0.0.1"
+		},
+		{
+			"group": "org.bouncycastle",
+			"name": "bcprov-jdk18on",
+			"version": "1.80",
+			"purl": "pkg:maven/org.bouncycastle/bcprov-jdk18on@1.80",
+			"type": "library",
+			"bom-ref": "pkg:maven/org.bouncycastle/bcprov-jdk18on@1.80"
 		}
 	],
-	"dependencies": []
+	"dependencies": [
+		{
+			"ref": "pkg:maven/pom-with-deps-and-ignore/pom-with-dependency-not-ignored-for-tests@0.0.1",
+			"dependsOn": [
+				"pkg:maven/org.bouncycastle/bcprov-jdk18on@1.80"
+			]
+		},
+		{
+			"ref": "pkg:maven/org.bouncycastle/bcprov-jdk18on@1.80",
+			"dependsOn": []
+		}
+	]
 }

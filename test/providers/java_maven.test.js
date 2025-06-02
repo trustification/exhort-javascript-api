@@ -137,3 +137,22 @@ suite('testing the java-maven data provider with modules', () => {
 
 	})
 }).beforeAll(() => clock = useFakeTimers(new Date('2023-08-07T00:00:00.000Z'))).afterAll(()=> {clock.restore()});
+
+suite('testing the java-maven version parsing in getDependencies', () => {
+	test('verify version parsing works correctly', async () => {
+		const testCase = 'pom_deps_with_ignore_version_from_property';
+		const javaMvnProvider = await createMockProvider(`test/providers/tst_manifests/maven/${testCase}`);
+
+		// Use provideComponent to test the version parsing through the public interface
+		const result = javaMvnProvider.provideComponent(`test/providers/tst_manifests/maven/${testCase}/pom.xml`);
+		const sbom = JSON.parse(result.content);
+
+		// Find the BouncyCastle dependency in the SBOM
+		const bouncyCastleDependency = sbom.dependencies.find(dep =>
+			dep.ref === 'pkg:maven/org.bouncycastle/bcprov-jdk18on@1.80'
+		);
+
+		expect(bouncyCastleDependency).to.exist;
+		expect(bouncyCastleDependency.ref).to.equal('pkg:maven/org.bouncycastle/bcprov-jdk18on@1.80');
+	});
+}).beforeAll(() => clock = useFakeTimers(new Date('2023-08-07T00:00:00.000Z'))).afterAll(()=> {clock.restore()});
