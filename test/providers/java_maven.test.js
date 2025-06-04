@@ -6,8 +6,8 @@ import esmock from 'esmock';
 import { useFakeTimers } from "sinon";
 
 import Java_maven from '../../src/providers/java_maven.js'
-
-
+import which from 'which';
+import { platform } from 'os';
 
 let clock
 
@@ -46,7 +46,8 @@ async function createMockProvider(testPath) {
 	return new Java_maven();
 }
 
-suite('testing the java-maven data provider', () => {
+const mvnPath = await which('mvn');
+suite('testing the java-maven data provider', async () => {
 
 	[
 		{name: 'pom.xml', expected: true},
@@ -55,6 +56,23 @@ suite('testing the java-maven data provider', () => {
 		test(`verify isSupported returns ${testCase.expected} for ${testCase.name}`, () => {
 			let javaMvnProvider = new Java_maven()
 			expect(javaMvnProvider.isSupported(testCase.name)).to.equal(testCase.expected)
+		})
+	});
+
+	[
+		{mvnPath: mvnPath, preferWrapper: false},
+		{mvnPath: mvnPath, preferWrapper: true},
+		{mvnPath: 'mvn', preferWrapper: false},
+		{mvnPath: 'mvn', preferWrapper: true},
+	].forEach(testCase => {
+		test(`verify tool selection with "${testCase.mvnPath}" and${testCase.preferWrapper ? ' ' : ' not '}preferring wrapper`, () => {
+			let javaMvnProvider = new Java_maven()
+			expect(javaMvnProvider.selectToolBinary(`test/providers/tst_manifests/maven/pom_with_mvn_wrapper/pom.xml`, {
+				'EXHORT_PREFER_MVNW': testCase.preferWrapper.toString(),
+				'EXHORT_MVN_PATH': testCase.mvnPath,
+			})).to.eq(testCase.preferWrapper ?
+				path.resolve(`test/providers/tst_manifests/maven/pom_with_mvn_wrapper/mvnw`) + (platform === 'win32' ? '.cmd' : '')
+				: testCase.mvnPath)
 		})
 	});
 

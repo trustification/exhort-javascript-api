@@ -142,7 +142,7 @@ export default class Base_Java {
 		const manifestDir = path.dirname(manifestPath)
 		const toolPath = getCustomPath(this.globalBinary, opts)
 
-		const useWrapper = getWrapperPreference(toolPath, opts)
+		const useWrapper = getWrapperPreference(this.globalBinary, opts)
 		if (useWrapper) {
 			const wrapper = this.traverseForWrapper(manifestPath)
 			if (wrapper !== undefined) {
