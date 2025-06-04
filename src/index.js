@@ -7,6 +7,9 @@ import { getCustom } from "./tools.js";
 import.meta.dirname
 import * as url from 'url';
 
+export { parseImageRef } from "./oci_image/utils.js";
+export { ImageRef } from "./oci_image/images.js";
+
 export default { componentAnalysis, stackAnalysis, imageAnalysis, validateToken }
 
 export const exhortDevDefaultUrl = 'https://exhort.stage.devshift.net';
