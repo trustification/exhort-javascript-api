@@ -309,7 +309,7 @@ export default class Java_gradle extends Base_java {
 	}
 
 	#prepareLinesForParsingDependencyTree(lines) {
-		return lines.filter(dep => dep.trim() !== "").map(dependency => dependency.replaceAll("---", "-").replaceAll("    ", "  "))
+		return lines.filter(dep => dep.trim() !== "" && !dep.endsWith(" FAILED")).map(dependency => dependency.replaceAll("---", "-").replaceAll("    ", "  "))
 			.map(dependency => dependency.replaceAll(/:(.*):(.*) -> (.*)$/g, ":$1:$3"))
 			.map(dependency => dependency.replaceAll(/:(.*)\W*->\W*(.*)$/g, ":$1:$2"))
 			.map(dependency => dependency.replaceAll(/(.*):(.*):(.*)$/g, "$1:$2:jar:$3"))
