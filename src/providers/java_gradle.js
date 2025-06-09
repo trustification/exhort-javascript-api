@@ -112,8 +112,8 @@ export default class Java_gradle extends Base_java {
 			return 1;
 		}
 		// Count the groups of 4 spaces preceded by a pipe or 5 spaces
-		match = line.match(/\|    |     /g);
-		if (!match) return -1;
+		match = line.match(/\| {4}| {5}/g);
+		if (!match) {return -1;}
 		return match.length + 1;
 	}
 
@@ -124,7 +124,7 @@ export default class Java_gradle extends Base_java {
 			.map(dependency => {
 				// Calculate depth from original line
 				const depth = this.#getIndentationLevel(dependency);
-				
+
 				// Now process the dependency line
 				let processedLine = dependency.replaceAll("|", "");
 				processedLine = processedLine.replaceAll(/\\---|\+---/g, "");
@@ -133,7 +133,7 @@ export default class Java_gradle extends Base_java {
 				processedLine = processedLine.replaceAll(/(.*):(.*):(.*)$/g, "$1:$2:jar:$3");
 				processedLine = processedLine.replaceAll(/(n)$/g, "");
 				processedLine = processedLine.replace(/\s*\(\*\)$/, '').trim();
-				
+
 				// Return both the processed line and its depth
 				return {
 					line: `${processedLine}:compile`,
@@ -157,30 +157,30 @@ export default class Java_gradle extends Base_java {
 
 		for (const {line, depth} of processedLines) {
 			if (line) {
-        const lastDepth = parentStack.length - 1;
+				const lastDepth = parentStack.length - 1;
 				if (depth <= lastDepth) {
 					// Going up - pop parents until we reach the correct level
 					parentStack = parentStack.slice(0, depth);
 				}
-				
+
 				const currentParent = parentStack[depth - 1];
 				const purl = this.parseDep(line);
 				purl.scope = scope;
-				
+
 				// Create a unique key for this dependency
 				const depKey = `${currentParent.namespace}:${currentParent.name}:${currentParent.version}->${purl.namespace}:${purl.name}:${purl.version}`;
-				
+
 				// Add dependency to SBOM if not already processed
 				if (!processedDeps.has(depKey)) {
 					processedDeps.add(depKey);
-          sbom.addDependency(currentParent, purl, scope);
+					sbom.addDependency(currentParent, purl, scope);
 				}
-        parentStack.push(purl);
+				parentStack.push(purl);
 			}
 		}
 	}
 
-  /**
+	/**
 	 * Create a Dot Graph dependency tree for a manifest path.
 	 * @param {string} manifest - path for pom.xml
 	 * @param {{}} [opts={}] - optional various options to pass along the application
@@ -193,14 +193,14 @@ export default class Java_gradle extends Base_java {
 		let rootPurl = this.parseDep(root)
 		sbom.addRoot(rootPurl)
 		let ignoredDeps = this.#getIgnoredDeps(manifestPath);
-		
+
 		const [runtimeConfig, compileConfig] = this.#extractConfigurations(content);
 
 		const processedDeps = new Set();
-		
+
 		this.#processDependencyTree(runtimeConfig, rootPurl, sbom, processedDeps, 'required');
 		this.#processDependencyTree(compileConfig, rootPurl, sbom, processedDeps, 'optional');
-		
+
 		return sbom.filterIgnoredDepsIncludingVersion(ignoredDeps).getAsJsonString(opts);
 	}
 
@@ -319,7 +319,7 @@ export default class Java_gradle extends Base_java {
 			}
 
 			// If we're not collecting or no config is set, skip
-			if (!collecting || !currentConfig) continue;
+			if (!collecting || !currentConfig) {continue;}
 
 			// Check for end of configuration
 			if (line.trim() === '') {
@@ -334,7 +334,7 @@ export default class Java_gradle extends Base_java {
 
 		return [configs.runtimeClasspath, configs.compileClasspath];
 	}
-  
+
 	/**
 	 *
 	 * @param content {string} - content of the dependency tree received from gradle dependencies command
@@ -347,23 +347,23 @@ export default class Java_gradle extends Base_java {
 		let rootPurl = this.parseDep(root)
 		sbom.addRoot(rootPurl)
 		let ignoredDeps = this.#getIgnoredDeps(manifestPath);
-		
+
 		const [runtimeConfig, compileConfig] = this.#extractConfigurations(content);
 
-    let directDependencies = new Map();
-    this.#processDirectDependencies(runtimeConfig, directDependencies, 'required');
-    this.#processDirectDependencies(compileConfig, directDependencies, 'optional');
-    
-    directDependencies.forEach((scope, dep) => {
-      const purl = this.parseDep(dep);
-      purl.scope = scope;
-      sbom.addDependency(rootPurl, purl, scope);
-    });
-		
+		let directDependencies = new Map();
+		this.#processDirectDependencies(runtimeConfig, directDependencies, 'required');
+		this.#processDirectDependencies(compileConfig, directDependencies, 'optional');
+
+		directDependencies.forEach((scope, dep) => {
+			const purl = this.parseDep(dep);
+			purl.scope = scope;
+			sbom.addDependency(rootPurl, purl, scope);
+		});
+
 		return sbom.filterIgnoredDepsIncludingVersion(ignoredDeps).getAsJsonString(opts);
 	}
 
-  #processDirectDependencies(config, directDependencies, scope) {
+	#processDirectDependencies(config, directDependencies, scope) {
 		const lines = this.#prepareLinesForParsingDependencyTree(config);
 		lines.forEach(({line, depth}) => {
 			if (depth === 1 && !directDependencies.has(line)) {

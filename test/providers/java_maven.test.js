@@ -1,13 +1,13 @@
 import fs from 'fs'
+import { platform } from 'os';
 import path from 'path';
 
 import { expect } from 'chai'
 import esmock from 'esmock';
 import { useFakeTimers } from "sinon";
+import which from 'which';
 
 import Java_maven from '../../src/providers/java_maven.js'
-import which from 'which';
-import { platform } from 'os';
 
 let clock
 
