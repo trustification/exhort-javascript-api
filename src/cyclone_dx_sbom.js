@@ -6,10 +6,11 @@ import {PackageURL} from "packageurl-js";
  *
  * @param component {PackageURL}
  * @param type type of package - application or library
- * @return {{"bom-ref": string, name, purl: string, type, version}}
+ * @param scope scope of the component - runtime or compile
+ * @return {{"bom-ref": string, name, purl: string, type, version, scope}}
  * @private
  */
-function getComponent(component, type) {
+function getComponent(component, type, scope) {
 	let componentObject;
 	if(component instanceof PackageURL)
 	{
@@ -20,7 +21,8 @@ function getComponent(component, type) {
 				"version": component.version,
 				"purl": component.toString(),
 				"type": type,
-				"bom-ref": component.toString()
+				"bom-ref": component.toString(),
+				"scope": scope
 			}
 		}
 		else
@@ -30,7 +32,8 @@ function getComponent(component, type) {
 				"version": component.version,
 				"purl": component.toString(),
 				"type": type,
-				"bom-ref": component.toString()
+				"bom-ref": component.toString(),
+				"scope": scope
 			}
 		}
 	}
@@ -94,7 +97,7 @@ export default class CycloneDxSbom {
 	 * @param {PackageURL} targetRef - The target component (dependency)
 	 * @return {CycloneDxSbom} The updated SBOM
 	 */
-	addDependency(sourceRef, targetRef) {
+	addDependency(sourceRef, targetRef, scope) {
 		const sourcePurl = sourceRef.toString();
 		const targetPurl = targetRef.toString();
 
@@ -102,7 +105,7 @@ export default class CycloneDxSbom {
 		[sourceRef, targetRef].forEach((ref, index) => {
 			const purl = index === 0 ? sourcePurl : targetPurl;
 			if (this.getComponentIndex(purl) < 0) {
-				this.components.push(getComponent(ref, "library"));
+				this.components.push(getComponent(ref, "library", scope));
 			}
 		});
 

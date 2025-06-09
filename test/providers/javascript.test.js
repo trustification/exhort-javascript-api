@@ -7,75 +7,9 @@ import { useFakeTimers } from "sinon";
 
 import { availableProviders, match } from '../../src/provider.js';
 import Manifest from '../../src/providers/manifest.js';
+import { compareSboms } from '../utils/sbom_utils.js';
 
 let clock
-
-function compareSboms(actualSbom, expectedSbom) {
-	// Parse the SBOMs if they're strings
-	const expected = typeof expectedSbom === 'string' ? JSON.parse(expectedSbom) : expectedSbom;
-	const actual = typeof actualSbom === 'string' ? JSON.parse(actualSbom) : actualSbom;
-
-	// Helper function to get component names
-	const getComponentNames = (components) => components.map(c => c.name).sort();
-
-	// Compare components
-	const expectedComponents = getComponentNames(expected.components);
-	const actualComponents = getComponentNames(actual.components);
-
-	const missingComponents = expectedComponents.filter(c => !actualComponents.includes(c));
-	const extraComponents = actualComponents.filter(c => !expectedComponents.includes(c));
-
-	const componentDependencyDiffs = {};
-
-	// Compare dependencies for each component
-	expected.components.forEach(expectedComponent => {
-		const actualComponent = actual.components.find(c => c.name === expectedComponent.name);
-		if (actualComponent) {
-			const expectedDeps = expectedComponent.dependsOn || [];
-			const actualDeps = actualComponent.dependsOn || [];
-
-			const missingDeps = expectedDeps.filter(d => !actualDeps.includes(d));
-			const extraDeps = actualDeps.filter(d => !expectedDeps.includes(d));
-
-			if (missingDeps.length > 0 || extraDeps.length > 0) {
-				componentDependencyDiffs[expectedComponent.name] = {
-					missing: missingDeps,
-					unexpected: extraDeps
-				};
-			}
-		}
-	});
-
-	// Perform assertions with meaningful error messages
-	if (missingComponents.length > 0) {
-		throw new Error(`Missing components in actual SBOM: ${missingComponents.join(', ')}`);
-	}
-	if (extraComponents.length > 0) {
-		throw new Error(`Unexpected components in actual SBOM: ${extraComponents.join(', ')}`);
-	}
-
-	Object.entries(componentDependencyDiffs).forEach(([component, diffs]) => {
-		if (diffs.missing.length > 0) {
-			throw new Error(`Component ${component} is missing dependencies: ${diffs.missing.join(', ')}`);
-		}
-		if (diffs.unexpected.length > 0) {
-			throw new Error(`Component ${component} has unexpected dependencies: ${diffs.unexpected.join(', ')}`);
-		}
-	});
-
-	// Compare metadata
-	const actualEcosystem = actual.metadata?.component?.ecosystem;
-	const expectedEcosystem = expected.metadata?.component?.ecosystem;
-	if (actualEcosystem !== expectedEcosystem) {
-		throw new Error(`Ecosystem mismatch. Expected: ${expectedEcosystem}, Actual: ${actualEcosystem}`);
-	}
-
-	const actualContentType = actual.metadata?.component?.contentType;
-	const expectedContentType = expected.metadata?.component?.contentType;
-	if (actualContentType !== expectedContentType) {
-		throw new Error(`Content type mismatch. Expected: ${expectedContentType}, Actual: ${actualContentType}`);
-	}
-}
 
 async function mockProvider(providerName, listingOutput, version) {
 

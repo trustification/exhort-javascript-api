@@ -1,0 +1,14 @@
+{
+  "require": ["esmock"],
+  "loader": "esmock",
+  "node-option": [
+    "experimental-specifier-resolution=node",
+    "experimental-loader=esmock"
+  ],
+  "extension": ["js"],
+  "ui": "tdd",
+  "check-leaks": false,
+  "color": true,
+  "fail-zero": true,
+  "recursive": true
+} 

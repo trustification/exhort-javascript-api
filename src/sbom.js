@@ -49,8 +49,8 @@ export default class Sbom {
 	 * @param {PackageURL} targetRef current dependency to add to Dependencies list of component sourceRef
 	 * @return Sbom
 	 */
-	addDependency(sourceRef, targetRef){
-		return this.sbomModel.addDependency(sourceRef, targetRef)
+	addDependency(sourceRef, targetRef, scope){
+		return this.sbomModel.addDependency(sourceRef, targetRef, scope)
 	}
 
 	/**
