@@ -2,7 +2,8 @@
 name: Bug Report
 description: File a bug report
 type: "Bug"
-lables: ["needs triage"]
+labels: ["needs triage"]
+projects: ["trustification/10"]
 body:
   - type: markdown
     attributes:
