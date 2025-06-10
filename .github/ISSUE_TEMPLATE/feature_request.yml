@@ -3,6 +3,7 @@ name: Feature request
 description: Suggest an idea for this project
 type: "Feature"
 labels: ["needs triage"]
+projects: ["trustification/10"]
 body:
   - type: markdown
     attributes:
