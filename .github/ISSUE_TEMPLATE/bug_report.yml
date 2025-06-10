@@ -1,8 +1,8 @@
 ---
 name: Bug Report
 description: File a bug report
-type: ["Bug"]
-
+type: "Bug"
+lables: ["needs triage"]
 body:
   - type: markdown
     attributes:
