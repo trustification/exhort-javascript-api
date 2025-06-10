@@ -917,10 +917,10 @@
     },
     {
       "type" : "library",
-      "bom-ref" : "pkg:npm/fsevents%40patch%3Afsevents@2.3.3",
+      "bom-ref" : "pkg:npm/fsevents%40patch:fsevents@2.3.3",
       "name" : "fsevents@patch:fsevents",
       "version" : "2.3.3",
-      "purl" : "pkg:npm/fsevents%40patch%3Afsevents@2.3.3"
+      "purl" : "pkg:npm/fsevents%40patch:fsevents@2.3.3"
     },
     {
       "type" : "library",
@@ -2581,7 +2581,7 @@
       "dependsOn" : [ ]
     },
     {
-      "ref" : "pkg:npm/fsevents%40patch%3Afsevents@2.3.3",
+      "ref" : "pkg:npm/fsevents%40patch:fsevents@2.3.3",
       "dependsOn" : [
         "pkg:npm/node-gyp@11.2.0"
       ]
