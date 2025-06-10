@@ -2,7 +2,7 @@
 name: Feature request
 description: Suggest an idea for this project
 type: "Feature"
-lables: ["needs triage"]
+labels: ["needs triage"]
 body:
   - type: markdown
     attributes:
