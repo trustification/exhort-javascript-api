@@ -1,5 +1,5 @@
 # first stage
-FROM registry.access.redhat.com/ubi9/nodejs-20 as builder
+FROM registry.access.redhat.com/ubi9/nodejs-20 AS builder
 
 # use privilaged user
 USER root
@@ -13,7 +13,7 @@ RUN curl -kL https://download.oracle.com/java/21/archive/jdk-21.0.1_linux-x64_bi
     && tar xvzf /tmp/java-package.tar.gz -C /usr/
 
 # install Maven package manager
-RUN curl -kL https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz -o /tmp/maven-package.tar.gz \
+RUN curl -kL https://archive.apache.org/dist/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz -o /tmp/maven-package.tar.gz \
     && tar xvzf /tmp/maven-package.tar.gz -C /usr/
 
 # install golang package manager
@@ -47,7 +47,7 @@ USER default
 # second stage
 FROM registry.access.redhat.com/ubi9/nodejs-20-minimal
 
-LABEL org.opencontainers.image.source https://github.com/trustification/exhort-javascript-api
+LABEL org.opencontainers.image.source=https://github.com/trustification/exhort-javascript-api
 
 # assign rhda source for exhort tracking purposes
 ENV RHDA_SOURCE=''
