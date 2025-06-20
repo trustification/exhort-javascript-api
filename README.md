@@ -482,12 +482,14 @@ This increasing the chances and the probability that the automatic installation 
 ###### Usage
 A New setting is introduced - `EXHORT_PYTHON_INSTALL_BEST_EFFORTS` (as both env variable/key in `options` object)
 1. `EXHORT_PYTHON_INSTALL_BEST_EFFORTS`="false" - install requirements.txt while respecting declared versions for all packages.
-2. `EXHORT_PYTHON_INSTALL_BEST_EFFORTS`="true" - install all packages from requirements.txt, not respecting the declared version, but trying to install a version tailored for the used python version, when using this setting,you must set setting `MATCH_MANIFEST_VERSIONS`="false"
+2. `EXHORT_PYTHON_INSTALL_BEST_EFFORTS`="true" - install all packages from requirements.txt, not respecting the declared version, but trying to install a version tailored for the used python version. When using this setting, you must set setting `MATCH_MANIFEST_VERSIONS` to 'false'.
 
 ##### Using `pipdeptree`
-By Default, The API algorithm will use native commands of PIP installer as data source to build the dependency tree.
-It's also possible, to use lightweight Python PIP utility [pipdeptree](https://pypi.org/project/pipdeptree/) as data source instead, in order to activate this,
-Need to set environment variable/option - `EXHORT_PIP_USE_DEP_TREE` to true.
+By default, The API algorithm will use native commands of PIP installer as data source to build the dependency tree.
+It's also possible to use the lightweight Python PIP utility [pipdeptree](https://pypi.org/project/pipdeptree/) as data source instead. In order to activate this, you need to set the environment variable/option `EXHORT_PIP_USE_DEP_TREE` to 'true'.
+
+#### Toggle Red Hat Trusted Content recommendations
+Both the HTML-based report and JSON response will by default contain recommendations for migrating to Red Hat-based Trusted Content repositories. This feature can be disabled by setting `EXHORT_RECOMMENDATIONS_ENABLED` to 'false' via environment variables or options.
 
 <!-- Badge links -->
 [0]: https://img.shields.io/github/v/release/trustification/exhort-javascript-api?color=green&label=latest
@@ -500,6 +502,6 @@ Need to set environment variable/option - `EXHORT_PIP_USE_DEP_TREE` to true.
 
 
 - For maven pom.xml, it has been noticed that using java 17 might cause stack analysis to hang forever.
-  This is caused by maven [`dependency` Plugin](https://maven.apache.org/plugins/maven-dependency-plugin/) bug when running with JDK/JRE' JVM version 17.
+  This is caused by maven [`dependency` plugin](https://maven.apache.org/plugins/maven-dependency-plugin/) bug when running with JDK/JRE' JVM version 17.
 
   To overcome this, you can use any other java version (14,20,21, etc..). ( best way is to install JDK/JRE version different from 17 , and set the location of the installation in environment variable `JAVA_HOME` so maven will use it.)
