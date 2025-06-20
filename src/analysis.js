@@ -15,9 +15,9 @@ const rhdaOperationTypeHeader = "rhda-operation-type"
 
 /**
  * Adds proxy agent configuration to fetch options if a proxy URL is specified
- * @param {Object} options - The base fetch options
- * @param {Object} opts - The exhort options that may contain proxy configuration
- * @returns {Object} The fetch options with proxy agent if applicable
+ * @param {RequestInit} options - The base fetch options
+ * @param {import("index.js").Options} opts - The exhort options that may contain proxy configuration
+ * @returns {RequestInit} The fetch options with proxy agent if applicable
  */
 function addProxyAgent(options, opts) {
 	const proxyUrl = getCustom('EXHORT_PROXY_URL', null, opts);
@@ -33,15 +33,15 @@ function addProxyAgent(options, opts) {
  * @param {string} manifest - path for the manifest
  * @param {string} url - the backend url to send the request to
  * @param {boolean} [html=false] - true will return 'text/html', false will return 'application/json'
- * @param {{}} [opts={}] - optional various options to pass along the application
+ * @param {import("index.js").Options} [opts={}] - optional various options to pass along the application
  * @returns {Promise<string|import('@trustification/exhort-api-spec/model/v4/AnalysisReport').AnalysisReport>}
  */
 async function requestStack(provider, manifest, url, html = false, opts = {}) {
 	opts["source-manifest"] = Buffer.from(fs.readFileSync(manifest).toString()).toString('base64')
 	opts["manifest-type"] = path.parse(manifest).base
 	let provided = provider.provideStack(manifest, opts) // throws error if content providing failed
-	opts["source-manifest"]= ""
-	opts[rhdaOperationTypeHeader.toUpperCase().replaceAll("-","_")] = "stack-analysis"
+	opts["source-manifest"] = ""
+	opts[rhdaOperationTypeHeader.toUpperCase().replaceAll("-", "_")] = "stack-analysis"
 	let startTime = new Date()
 	let EndTime
 	if (process.env["EXHORT_DEBUG"] === "true") {
@@ -58,9 +58,14 @@ async function requestStack(provider, manifest, url, html = false, opts = {}) {
 		body: provided.content
 	}, opts);
 
-	let resp = await fetch(`${url}/api/v4/analysis`, fetchOptions)
+	const finalUrl = new URL(`${url}/api/v4/analysis`);
+	if (opts['EXHORT_RECOMMENDATIONS_ENABLED'] === 'false') {
+		finalUrl.searchParams.append('recommend', 'false');
+	}
+
+	let resp = await fetch(finalUrl, fetchOptions)
 	let result
-	if(resp.status === 200) {
+	if (resp.status === 200) {
 		if (!html) {
 			result = await resp.json()
 		} else {
@@ -91,7 +96,7 @@ async function requestStack(provider, manifest, url, html = false, opts = {}) {
  * @param {import('./provider').Provider} provider - the provided data for constructing the request
  * @param {string} manifest - path for the manifest
  * @param {string} url - the backend url to send the request to
- * @param {{}} [opts={}] - optional various options to pass along the application
+ * @param {import("index.js").Options} [opts={}] - optional various options to pass along the application
  * @returns {Promise<import('@trustification/exhort-api-spec/model/v4/AnalysisReport').AnalysisReport>}
  */
 async function requestComponent(provider, manifest, url, opts = {}) {
@@ -99,7 +104,7 @@ async function requestComponent(provider, manifest, url, opts = {}) {
 
 	let provided = provider.provideComponent(manifest, opts) // throws error if content providing failed
 	opts["source-manifest"] = ""
-	opts[rhdaOperationTypeHeader.toUpperCase().replaceAll("-","_")] = "component-analysis"
+	opts[rhdaOperationTypeHeader.toUpperCase().replaceAll("-", "_")] = "component-analysis"
 	if (process.env["EXHORT_DEBUG"] === "true") {
 		console.log("Starting time of sending component analysis request to exhort server= " + new Date())
 	}
@@ -114,9 +119,14 @@ async function requestComponent(provider, manifest, url, opts = {}) {
 		body: provided.content
 	}, opts);
 
-	let resp = await fetch(`${url}/api/v4/analysis`, fetchOptions)
+	const finalUrl = new URL(`${url}/api/v4/analysis`);
+	if (opts['EXHORT_RECOMMENDATIONS_ENABLED'] === 'false') {
+		finalUrl.searchParams.append('recommend', 'false');
+	}
+
+	let resp = await fetch(finalUrl, fetchOptions)
 	let result
-	if(resp.status === 200) {
+	if (resp.status === 200) {
 		result = await resp.json()
 		if (process.env["EXHORT_DEBUG"] === "true") {
 			let exRequestId = resp.headers.get("ex-request-id");
@@ -140,7 +150,7 @@ async function requestComponent(provider, manifest, url, opts = {}) {
  *
  * @param {Array<string>} imageRefs
  * @param {string} url
- * @param {{}} [opts={}] - optional various options to pass along the application
+ * @param {import("index.js").Options} [opts={}] - optional various options to pass along the application
  * @returns {Promise<string|Object.<string, import('@trustification/exhort-api-spec/model/v4/AnalysisReport').AnalysisReport>>}
  */
 async function requestImages(imageRefs, url, html = false, opts = {}) {
@@ -150,7 +160,12 @@ async function requestImages(imageRefs, url, html = false, opts = {}) {
 		imageSboms[parsedImageRef.getPackageURL().toString()] = generateImageSBOM(parsedImageRef)
 	}
 
-	const resp = await fetch(`${url}/api/v4/batch-analysis`, {
+	const finalUrl = new URL(`${url}/api/v4/batch-analysis`);
+	if (opts['EXHORT_RECOMMENDATIONS_ENABLED'] === 'false') {
+		finalUrl.searchParams.append('recommend', 'false');
+	}
+
+	const resp = await fetch(finalUrl, {
 		method: 'POST',
 		headers: {
 			'Accept': html ? 'text/html' : 'application/json',
@@ -160,7 +175,7 @@ async function requestImages(imageRefs, url, html = false, opts = {}) {
 		body: JSON.stringify(imageSboms),
 	})
 
-	if(resp.status === 200) {
+	if (resp.status === 200) {
 		let result;
 		if (!html) {
 			result = await resp.json()
@@ -185,7 +200,7 @@ async function requestImages(imageRefs, url, html = false, opts = {}) {
 /**
  *
  * @param url the backend url to send the request to
- * @param {{}} [opts={}] - optional various options to pass headers for t he validateToken Request
+ * @param {import("index.js").Options} [opts={}] - optional various options to pass headers for t he validateToken Request
  * @return {Promise<number>} return the HTTP status Code of the response from the validate token request.
  */
 async function validateToken(url, opts = {}) {
@@ -210,10 +225,10 @@ async function validateToken(url, opts = {}) {
  *
  * @param {string} headerName - the header name to populate in request
  * @param headers
- * @param {{}} [opts={}] - optional various options to pass along the application
+ * @param {import("index.js").Options} [opts={}] - optional various options to pass along the application
  * @private
  */
-function setRhdaHeader(headerName,headers,opts) {
+function setRhdaHeader(headerName, headers, opts) {
 	let rhdaHeaderValue = getCustom(headerName.toUpperCase().replaceAll("-", "_"), null, opts);
 	if (rhdaHeaderValue) {
 		headers[headerName] = rhdaHeaderValue
@@ -222,31 +237,29 @@ function setRhdaHeader(headerName,headers,opts) {
 
 /**
  * Utility function for fetching vendor tokens
- * @param {{}} [opts={}] - optional various options to pass along the application
+ * @param {import("index.js").Options} [opts={}] - optional various options to pass along the application
  * @returns {{}}
  */
 function getTokenHeaders(opts = {}) {
-	let supportedTokens = ['snyk','oss-index']
+	let supportedTokens = ['snyk', 'oss-index']
 	let headers = {}
 	supportedTokens.forEach(vendor => {
-		let token = getCustom(`EXHORT_${vendor.replace("-","_").toUpperCase()}_TOKEN`, null, opts);
+		let token = getCustom(`EXHORT_${vendor.replace("-", "_").toUpperCase()}_TOKEN`, null, opts);
 		if (token) {
 			headers[`ex-${vendor}-token`] = token
 		}
-		let user = getCustom(`EXHORT_${vendor.replace("-","_").toUpperCase()}_USER`, null, opts);
+		let user = getCustom(`EXHORT_${vendor.replace("-", "_").toUpperCase()}_USER`, null, opts);
 		if (user) {
 			headers[`ex-${vendor}-user`] = user
 		}
 	})
-	setRhdaHeader(rhdaTokenHeader,headers, opts);
-	setRhdaHeader(rhdaSourceHeader,headers, opts);
-	setRhdaHeader(rhdaOperationTypeHeader, headers,opts);
-	if (process.env["EXHORT_DEBUG"] === "true")
-	{
+	setRhdaHeader(rhdaTokenHeader, headers, opts);
+	setRhdaHeader(rhdaSourceHeader, headers, opts);
+	setRhdaHeader(rhdaOperationTypeHeader, headers, opts);
+	if (process.env["EXHORT_DEBUG"] === "true") {
 		console.log("Headers Values to be sent to exhort:" + EOL)
 		for (const headerKey in headers) {
-			if(!headerKey.match(RegexNotToBeLogged))
-			{
+			if (!headerKey.match(RegexNotToBeLogged)) {
 				console.log(`${headerKey}: ${headers[headerKey]}`)
 			}
 		}

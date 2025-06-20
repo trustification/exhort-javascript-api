@@ -18,6 +18,40 @@ export const exhortDevDefaultUrl = 'https://exhort.stage.devshift.net';
 export const exhortDefaultUrl = "https://rhda.rhcloud.com";
 
 /**
+ * @typedef {{
+ * EXHORT_DOCKER_PATH?: string | undefined,
+ * EXHORT_GO_MVS_LOGIC_ENABLED?: string | undefined,
+ * EXHORT_GO_PATH?: string | undefined,
+ * EXHORT_GRADLE_PATH?: string | undefined,
+ * EXHORT_IMAGE_PLATFORM?: string | undefined,
+ * EXHORT_MVN_PATH?: string | undefined,
+ * EXHORT_PIP_PATH?: string | undefined,
+ * EXHORT_PIP_USE_DEP_TREE?: string | undefined,
+ * EXHORT_PIP3_PATH?: string | undefined,
+ * EXHORT_PNPM_PATH?: string | undefined,
+ * EXHORT_PODMAN_PATH?: string | undefined,
+ * EXHORT_PREFER_GRADLEW?: string | undefined,
+ * EXHORT_PREFER_MVNW?: string | undefined,
+ * EXHORT_PROXY_URL?: string | undefined,
+ * EXHORT_PYTHON_INSTALL_BEST_EFFORTS?: string | undefined,
+ * EXHORT_PYTHON_PATH?: string | undefined,
+ * EXHORT_PYTHON_VIRTUAL_ENV?: string | undefined,
+ * EXHORT_PYTHON3_PATH?: string | undefined,
+ * EXHORT_RECOMMENDATIONS_ENABLED?: string | undefined,
+ * EXHORT_SKOPEO_CONFIG_PATH?: string | undefined,
+ * EXHORT_SKOPEO_PATH?: string | undefined,
+ * EXHORT_SYFT_CONFIG_PATH?: string | undefined,
+ * EXHORT_SYFT_PATH?: string | undefined,
+ * EXHORT_YARN_PATH?: string | undefined,
+ * MATCH_MANIFEST_VERSIONS?: string | undefined,
+ * RHDA_SOURCE?: string | undefined,
+ * RHDA_TOKEN?: string | undefined,
+ * [key: string]: string | undefined,
+ * }} Options
+ */
+
+
+/**
  * Logs messages to the console if the EXHORT_DEBUG environment variable is set to "true".
  * @param {string} alongsideText - The text to prepend to the log message.
  * @param {any} valueToBePrinted - The value to log.
@@ -105,7 +139,7 @@ let theUrl
  * @overload
  * @param {string} manifest
  * @param {true} html
- * @param {object} [opts={}]
+ * @param {Options} [opts={}]
  * @returns {Promise<string>}
  * @throws {Error}
  */
@@ -114,7 +148,7 @@ let theUrl
  * @overload
  * @param {string} manifest
  * @param {false} html
- * @param {object} [opts={}]
+ * @param {Options} [opts={}]
  * @returns {Promise<import('@trustification/exhort-api-spec/model/v4/AnalysisReport').AnalysisReport>}
  * @throws {Error}
  */
@@ -124,7 +158,7 @@ let theUrl
  * @overload
  * @param {string} manifest - path for the manifest
  * @param {boolean} [html=false] - true will return a html string, false will return AnalysisReport object.
- * @param {object} [opts={}] - optional various options to pass along the application
+ * @param {Options} [opts={}] - optional various options to pass along the application
  * @returns {Promise<string|import('@trustification/exhort-api-spec/model/v4/AnalysisReport').AnalysisReport>}
  * @throws {Error} if manifest inaccessible, no matching provider, failed to get create content,
  * 		or backend request failed
@@ -139,7 +173,7 @@ async function stackAnalysis(manifest, html = false, opts = {}) {
 /**
  * Get component analysis report for a manifest content.
  * @param {string} manifest - path to the manifest
- * @param {object} [opts={}] - optional various options to pass along the application
+ * @param {Options} [opts={}] - optional various options to pass along the application
  * @returns {Promise<import('@trustification/exhort-api-spec/model/v4/AnalysisReport').AnalysisReport>}
  * @throws {Error} if no matching provider, failed to get create content, or backend request failed
  */
@@ -155,7 +189,7 @@ async function componentAnalysis(manifest, opts = {}) {
  * @overload
  * @param {Array<string>} imageRefs
  * @param {true} html
- * @param {object} [opts={}]
+ * @param {Options} [opts={}]
  * @returns {Promise<string>}
  * @throws {Error}
  */
@@ -164,7 +198,7 @@ async function componentAnalysis(manifest, opts = {}) {
  * @overload
  * @param {Array<string>} imageRefs
  * @param {false} html
- * @param {object} [opts={}]
+ * @param {Options} [opts={}]
  * @returns {Promise<Object.<string, import('@trustification/exhort-api-spec/model/v4/AnalysisReport').AnalysisReport>>}
  * @throws {Error}
  */
@@ -174,7 +208,7 @@ async function componentAnalysis(manifest, opts = {}) {
  * @overload
  * @param {Array<string>} imageRefs - OCI image references
  * @param {boolean} [html=false] - true will return a html string, false will return AnalysisReport
- * @param {{}} [opts={}] - optional various options to pass along the application
+ * @param {Options} [opts={}] - optional various options to pass along the application
  * @returns {Promise<string|Object.<string, import('@trustification/exhort-api-spec/model/v4/AnalysisReport').AnalysisReport>>}
  * @throws {Error} if manifest inaccessible, no matching provider, failed to get create content,
  * 		or backend request failed
@@ -186,7 +220,7 @@ async function imageAnalysis(imageRefs, html = false, opts = {}) {
 
 /**
  * Validates the Exhort token.
- * @param {object} [opts={}] - Optional parameters, potentially including token override.
+ * @param {Options} [opts={}] - Optional parameters, potentially including token override.
  * @returns {Promise<object>} A promise that resolves with the validation result from the backend.
  * @throws {Error} if the backend request failed.
  */

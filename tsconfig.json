@@ -18,6 +18,8 @@
 		"module": "esnext",
 		"outDir": "dist",
 		"target": "esnext",
-		"resolveJsonModule": true
+		"resolveJsonModule": true,
+		"exactOptionalPropertyTypes": true,
+		"strictNullChecks": true
 	}
 }
