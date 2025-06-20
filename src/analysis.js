@@ -59,7 +59,9 @@ async function requestStack(provider, manifest, url, html = false, opts = {}) {
 	}, opts);
 
 	const finalUrl = new URL(`${url}/api/v4/analysis`);
-	finalUrl.searchParams.append('recommend', opts['EXHORT_RECOMMENDATIONS_ENABLED'] === 'true' ? 'true' : 'false');
+	if (opts['EXHORT_RECOMMENDATIONS_ENABLED'] === 'false') {
+		finalUrl.searchParams.append('recommend', 'false');
+	}
 
 	let resp = await fetch(finalUrl, fetchOptions)
 	let result
@@ -118,7 +120,9 @@ async function requestComponent(provider, manifest, url, opts = {}) {
 	}, opts);
 
 	const finalUrl = new URL(`${url}/api/v4/analysis`);
-	finalUrl.searchParams.append('recommend', opts['EXHORT_RECOMMENDATIONS_ENABLED'] === 'true' ? 'true' : 'false');
+	if (opts['EXHORT_RECOMMENDATIONS_ENABLED'] === 'false') {
+		finalUrl.searchParams.append('recommend', 'false');
+	}
 
 	let resp = await fetch(finalUrl, fetchOptions)
 	let result
@@ -157,7 +161,9 @@ async function requestImages(imageRefs, url, html = false, opts = {}) {
 	}
 
 	const finalUrl = new URL(`${url}/api/v4/batch-analysis`);
-	finalUrl.searchParams.append('recommend', opts['EXHORT_RECOMMENDATIONS_ENABLED'] === 'true' ? 'true' : 'false');
+	if (opts['EXHORT_RECOMMENDATIONS_ENABLED'] === 'false') {
+		finalUrl.searchParams.append('recommend', 'false');
+	}
 
 	const resp = await fetch(finalUrl, {
 		method: 'POST',
