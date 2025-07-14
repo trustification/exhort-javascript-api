@@ -491,6 +491,14 @@ It's also possible to use the lightweight Python PIP utility [pipdeptree](https:
 #### Toggle Red Hat Trusted Content recommendations
 Both the HTML-based report and JSON response will by default contain recommendations for migrating to Red Hat-based Trusted Content repositories. This feature can be disabled by setting `EXHORT_RECOMMENDATIONS_ENABLED` to 'false' via environment variables or options.
 
+#### Additional CLI arguments
+For some ecosystems we support passing additional CLI arguments to the underlying tools. The following table outlines the supported ecosystems and the environment variable/option that configures this. Note that the arguments are expected to be in the format of a JSON array.
+
+|Ecosystem|Key            |
+|---------|---------------|
+|Maven    |EXHORT_MVN_ARGS|
+
+
 <!-- Badge links -->
 [0]: https://img.shields.io/github/v/release/trustification/exhort-javascript-api?color=green&label=latest
 [1]: https://img.shields.io/github/v/release/trustification/exhort-javascript-api?color=yellow&include_prereleases&label=early-access
