@@ -6,6 +6,7 @@ import { EOL } from 'os'
 import { XMLParser } from 'fast-xml-parser'
 
 import Sbom from '../sbom.js'
+import { getCustom } from '../tools.js'
 
 import Base_java, { ecosystem_maven } from "./base_java.js";
 
@@ -27,14 +28,13 @@ export default class Java_maven extends Base_java {
 	 * @param {string} manifestName - the subject manifest name-type
 	 * @returns {boolean} - return true if `pom.xml` is the manifest name-type
 	 */
-
 	isSupported(manifestName) {
 		return 'pom.xml' === manifestName
 	}
 
 	/**
 	 * @param {string} manifestDir - the directory where the manifest lies
- 	*/
+	 */
 	validateLockFile() { return true; }
 
 	/**
@@ -43,8 +43,6 @@ export default class Java_maven extends Base_java {
 	 * @param {{}} [opts={}] - optional various options to pass along the application
 	 * @returns {Provided}
 	 */
-
-
 	provideStack(manifest, opts = {}) {
 		return {
 			ecosystem: ecosystem_maven,
@@ -59,7 +57,6 @@ export default class Java_maven extends Base_java {
 	 * @param {{}} [opts={}] - optional various options to pass along the application
 	 * @returns {Provided}
 	 */
-
 	provideComponent(manifest, opts = {}) {
 		return {
 			ecosystem: ecosystem_maven,
@@ -78,12 +75,16 @@ export default class Java_maven extends Base_java {
 	#createSbomStackAnalysis(manifest, opts = {}) {
 		const manifestDir = path.dirname(manifest)
 		const mvn = this.selectToolBinary(manifest, opts)
+		const mvnArgs = JSON.parse(getCustom('EXHORT_MVN_ARGS', '[]', opts));
+		if (!Array.isArray(mvnArgs)) {
+			throw new Error(`configured maven args is not an array, is a ${typeof mvnArgs}`)
+		}
 
 		// clean maven target
 		try {
-			this._invokeCommand(mvn, ['-q', 'clean'], {cwd: manifestDir})
+			this._invokeCommand(mvn, ['-q', 'clean', ...mvnArgs], { cwd: manifestDir })
 		} catch (error) {
-			throw new Error(`failed to clean maven target`, {cause: error})
+			throw new Error(`failed to clean maven target`, { cause: error })
 		}
 
 		// create dependency graph in a temp file
@@ -91,7 +92,7 @@ export default class Java_maven extends Base_java {
 		let tmpDepTree = path.join(tmpDir, 'mvn_deptree.txt')
 		// build initial command (dot outputType is not available for verbose mode)
 		let depTreeCmdArgs = ['-q', 'org.apache.maven.plugins:maven-dependency-plugin:3.6.0:tree',
-			'-Dscope=compile','-Dverbose',
+			'-Dscope=compile', '-Dverbose',
 			'-DoutputType=text', `-DoutputFile=${tmpDepTree}`]
 		// exclude ignored dependencies, exclude format is groupId:artifactId:scope:version.
 		// version and scope are marked as '*' if not specified (we do not use scope yet)
@@ -104,14 +105,14 @@ export default class Java_maven extends Base_java {
 				ignoredDeps.push(this.toPurl(dep.groupId, dep.artifactId))
 			}
 		})
-		if(ignoredArgs.length > 0) {
+		if (ignoredArgs.length > 0) {
 			depTreeCmdArgs.push(`-Dexcludes=${ignoredArgs.join(',')}`)
 		}
 		// execute dependency tree command
 		try {
-			this._invokeCommand(mvn, depTreeCmdArgs, {cwd: manifestDir})
+			this._invokeCommand(mvn, [...depTreeCmdArgs, ...mvnArgs], { cwd: manifestDir })
 		} catch (error) {
-			throw new Error(`failed creating maven dependency tree`, {cause: error})
+			throw new Error(`failed creating maven dependency tree`, { cause: error })
 		}
 		// read dependency tree from temp file
 		let content = fs.readFileSync(tmpDepTree)
@@ -120,7 +121,7 @@ export default class Java_maven extends Base_java {
 		}
 		let sbom = this.createSbomFileFromTextFormat(content.toString(), ignoredDeps, opts);
 		// delete temp file and directory
-		fs.rmSync(tmpDir, {recursive: true, force: true})
+		fs.rmSync(tmpDir, { recursive: true, force: true })
 		// return dependency graph as string
 		return sbom
 	}
@@ -150,14 +151,18 @@ export default class Java_maven extends Base_java {
 	 */
 	#getSbomForComponentAnalysis(manifestPath, opts = {}) {
 		const mvn = this.selectToolBinary(manifestPath, opts)
+		const mvnArgs = JSON.parse(getCustom('EXHORT_MVN_ARGS', '[]', opts));
+		if (!Array.isArray(mvnArgs)) {
+			throw new Error(`configured maven args is not an array, is a ${typeof mvnArgs}`)
+		}
 
 		const tmpEffectivePom = path.resolve(path.join(path.dirname(manifestPath), 'effective-pom.xml'))
 
 		// create effective pom and save to temp file
 		try {
-			this._invokeCommand(mvn, ['-q', 'help:effective-pom', `-Doutput=${tmpEffectivePom}`], {cwd: path.dirname(manifestPath)})
+			this._invokeCommand(mvn, ['-q', 'help:effective-pom', `-Doutput=${tmpEffectivePom}`, ...mvnArgs], { cwd: path.dirname(manifestPath) })
 		} catch (error) {
-			throw new Error(`failed creating maven effective pom`, {cause: error})
+			throw new Error(`failed creating maven effective pom`, { cause: error })
 		}
 		// iterate over all dependencies in original pom and collect all ignored ones
 		let ignored = this.#getDependencies(manifestPath).filter(d => d.ignore)
