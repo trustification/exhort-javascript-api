@@ -1,6 +1,6 @@
 import { delimiter, sep } from 'path';
 
-import { getCustomPath, invokeCommand } from '../tools.js';
+import { getCustom, getCustomPath, invokeCommand } from '../tools.js';
 
 import { ImageRef } from './images.js';
 import { Platform } from './platform.js';
@@ -54,10 +54,11 @@ const variantMapping = {
 /**
  *
  * @param {import('./images').ImageRef} imageRef
+ * @param {import("../index.js").Options} [opts={}] - optional various options to pass along the application
  * @returns {{}}
  */
-export function generateImageSBOM(imageRef) {
-	const output = execSyft(imageRef);
+export function generateImageSBOM(imageRef, opts = {}) {
+	const output = execSyft(imageRef, opts);
 
 	const node = JSON.parse(output);
 	if (node['metadata'] != null) {
@@ -73,30 +74,32 @@ export function generateImageSBOM(imageRef) {
 /**
  *
  * @param {string} image
+ * @param {import("../index.js").Options} [opts={}] - optional various options to pass along the application
  * @returns {ImageRef}
  */
-export function parseImageRef(image) {
+export function parseImageRef(image, opts) {
 	const parts = image.split('^^')
 	if (parts[0].trim() === image) {
-		return new ImageRef(image, null)
+		return new ImageRef(image, null, opts);
 	} else if (parts.length === 2) {
-		return new ImageRef(parts[0], parts[1])
+		return new ImageRef(parts[0], parts[1], opts);
 	} else {
 		throw new Error(`Failed to parse OCI image ref "${image}", should be in the format "image^^architecture" or "image"`)
 	}
 }
 
 /**
-* Executes Syft to generate SBOM
-* @param {import('./images').ImageRef} imageRef - The image reference
-*/
-function execSyft(imageRef) {
-	const syft = getCustomPath("syft");
-	const docker = getCustomPath("docker");
-	const podman = getCustomPath("podman");
+ * Executes Syft to generate SBOM
+ * @param {import('./images').ImageRef} imageRef - The image reference
+ * @param {import("../index.js").Options} [opts={}] - optional various options to pass along the application
+ */
+function execSyft(imageRef, opts = {}) {
+	const syft = getCustomPath("syft", opts);
+	const docker = getCustomPath("docker", opts);
+	const podman = getCustomPath("podman", opts);
 
-	const syftConfigPath = process.env[EXHORT_SYFT_CONFIG_PATH] ?? '';
-	const imageSource = process.env[EXHORT_SYFT_IMAGE_SOURCE] ?? '';
+	const syftConfigPath = getCustom(EXHORT_SYFT_CONFIG_PATH, "", opts);
+	const imageSource = getCustom(EXHORT_SYFT_IMAGE_SOURCE, "", opts);
 	// Confirm image source exists, this will throw an error if not
 	getImageSource(imageSource);
 
@@ -119,14 +122,8 @@ function execSyft(imageRef) {
 		"-o",
 		"cyclonedx-json@1.5",
 		"-q",
-		...(syftConfigPath ? [
-			"-c",
-			syftConfigPath,
-		] : []),
-		...(imageSource ? [
-			"--from",
-			imageSource,
-		] : [])
+		...(syftConfigPath ? ["-c", syftConfigPath] : []),
+		...(imageSource ? ["--from", imageSource] : []),
 	];
 
 	try {
@@ -144,11 +141,11 @@ function execSyft(imageRef) {
 }
 
 /**
-* Gets the environment variables for Syft
-* @param {string} dockerPath - The Docker path
-* @param {string} podmanPath - The Podman path
-* @returns {Array<string>} - The environment variables
-*/
+ * Gets the environment variables for Syft
+ * @param {string} dockerPath - The Docker path
+ * @param {string} podmanPath - The Podman path
+ * @returns {Array<string>} - The environment variables
+ */
 function getSyftEnvs(dockerPath, podmanPath) {
 	let path = null;
 	if (dockerPath && podmanPath) {
@@ -171,34 +168,35 @@ function getSyftEnvs(dockerPath, podmanPath) {
 }
 
 /**
-* Gets the platform information for an image
-* @returns {Platform|null} - The platform information or null
-*/
-export function getImagePlatform() {
-	const platform = process.env[EXHORT_IMAGE_PLATFORM];
+ * Gets the platform information for an image
+ * @param {import("../index.js").Options} [opts={}] - optional various options to pass along the application
+ * @returns {Platform|null} - The platform information or null
+ */
+export function getImagePlatform(opts = {}) {
+	const platform = getCustom(EXHORT_IMAGE_PLATFORM, null, opts);
 	if (platform) {
 		return Platform.fromString(platform)
 	}
 
-	const imageSource = process.env[EXHORT_SYFT_IMAGE_SOURCE] ?? '';
+	const imageSource = getCustom(EXHORT_SYFT_IMAGE_SOURCE, "", opts);
 	const source = getImageSource(imageSource);
 
-	let os = process.env[EXHORT_IMAGE_OS];
+	let os = getCustom(EXHORT_IMAGE_OS, null, opts);
 	if (!os) {
-		os = source.getOs();
+		os = source.getOs(opts);
 	}
-	let arch = process.env[EXHORT_IMAGE_ARCH];
+	let arch = getCustom(EXHORT_IMAGE_ARCH, null, opts);
 	if (!arch) {
-		arch = source.getArch();
+		arch = source.getArch(opts);
 	}
 	if (os && arch) {
 		if (!Platform.isVariantRequired(os, arch)) {
 			return Platform.fromComponents(os, arch, null);
 		}
 
-		let variant = process.env[EXHORT_IMAGE_VARIANT];
+		let variant = getCustom(EXHORT_IMAGE_VARIANT, null, opts);
 		if (!variant) {
-			variant = source.getVariant();
+			variant = source.getVariant(opts);
 		}
 		if (variant) {
 			return Platform.fromComponents(os, arch, variant);
@@ -209,13 +207,14 @@ export function getImagePlatform() {
 }
 
 /**
-* Gets information about a host from a container engine
-* @param {string} engine - The container engine name
-* @param {string} info - The information to retrieve
-* @returns {string} - The host information
-*/
-function hostInfo(engine, info) {
-	const exec = getCustomPath(engine);
+ * Gets information about a host from a container engine
+ * @param {string} engine - The container engine name
+ * @param {string} info - The information to retrieve
+ * @param {import("../index.js").Options} [opts={}] - optional various options to pass along the application
+ * @returns {string} - The host information
+ */
+function hostInfo(engine, info, opts = {}) {
+	const exec = getCustomPath(engine, opts);
 
 	let output;
 	try {
@@ -239,83 +238,91 @@ function hostInfo(engine, info) {
 
 /**
  * Gets the OS information from Docker
+ * @param {import("../index.js").Options} [opts={}] - optional various options to pass along the application
  * @returns {string} - The OS information
  */
-function dockerGetOs() {
-	return hostInfo("docker", "OSType");
+function dockerGetOs(opts = {}) {
+	return hostInfo("docker", "OSType", opts);
 }
 
 /**
  * Gets the architecture information from Docker
+ * @param {import("../index.js").Options} [opts={}] - optional various options to pass along the application
  * @returns {string} - The architecture information
  */
-function dockerGetArch() {
-	let arch = hostInfo("docker", "Architecture");
+function dockerGetArch(opts = {}) {
+	let arch = hostInfo("docker", "Architecture", opts);
 	arch = archMapping[arch];
 	return arch || "";
 }
 
 /**
  * Gets the variant information from Docker
+ * @param {import("../index.js").Options} [opts={}] - optional various options to pass along the application
  * @returns {string} - The variant information
  */
-function dockerGetVariant() {
-	let variant = hostInfo("docker", "Architecture");
+function dockerGetVariant(opts = {}) {
+	let variant = hostInfo("docker", "Architecture", opts);
 	variant = variantMapping[variant];
 	return variant || "";
 }
 
 /**
  * Gets the OS information from Podman
+ * @param {import("../index.js").Options} [opts={}] - optional various options to pass along the application
  * @returns {string} - The OS information
  */
-function podmanGetOs() {
-	return hostInfo("podman", "os");
+function podmanGetOs(opts = {}) {
+	return hostInfo("podman", "os", opts);
 }
 
 /**
  * Gets the architecture information from Podman
+ * @param {import("../index.js").Options} [opts={}] - optional various options to pass along the application
  * @returns {string} - The architecture information
  */
-function podmanGetArch() {
-	return hostInfo("podman", "arch");
+function podmanGetArch(opts = {}) {
+	return hostInfo("podman", "arch", opts);
 }
 
 /**
  * Gets the variant information from Podman
+ * @param {import("../index.js").Options} [opts={}] - optional various options to pass along the application
  * @returns {string} - The variant information
  */
-function podmanGetVariant() {
-	return hostInfo("podman", "variant");
+function podmanGetVariant(opts = {}) {
+	return hostInfo("podman", "variant", opts);
 }
 
 /**
  * Gets information from Docker or Podman
- * @param {function(): string} dockerSupplier - function to get information from Docker
- * @param {function(): string} podmanSupplier - function to get information from Podman
+ * @param {function(Object): string} dockerSupplier - function to get information from Docker
+ * @param {function(Object): string} podmanSupplier - function to get information from Podman
+ * @param {import("../index.js").Options} [opts={}] - optional various options to pass along the application
  * @returns {string} - The information
  */
-function dockerPodmanInfo(dockerSupplier, podmanSupplier) {
-	return dockerSupplier() ?? podmanSupplier();
+function dockerPodmanInfo(dockerSupplier, podmanSupplier, opts = {}) {
+	return dockerSupplier(opts) ?? podmanSupplier(opts);
 }
 
 /**
  * Gets the digests for an image
  * @param {import('./images').ImageRef} imageRef - The image reference
+ * @param {import("../index.js").Options} [opts={}] - optional various options to pass along the application
  * @returns {Object.<string, string>} - The image digests
  * @throws {Error} If the image info is invalid
  */
-export function getImageDigests(imageRef) {
-	const output = execSkopeoInspect(imageRef, true);
+export function getImageDigests(imageRef, opts = {}) {
+	const output = execSkopeoInspect(imageRef, true, opts);
 
 	const node = JSON.parse(output);
 	if (node.mediaType) {
 		const mediaType = node.mediaType;
-		if (typeof mediaType === 'string') {
+		if (typeof mediaType === "string") {
 			switch (mediaType) {
 			case MEDIA_TYPE_OCI1_MANIFEST:
 			case MEDIA_TYPE_DOCKER2_MANIFEST:
-				return getSingleImageDigest(imageRef);
+				return getSingleImageDigest(imageRef, opts);
 
 			case MEDIA_TYPE_OCI1_MANIFEST_LIST:
 			case MEDIA_TYPE_DOCKER2_MANIFEST_LIST:
@@ -393,7 +400,6 @@ function filterPlatform(manifestNode) {
 		if (platformNode.architecture && platformNode.os &&
 			typeof platformNode.architecture === 'string' &&
 			typeof platformNode.os === 'string') {
-
 			try {
 				if (platformNode.variant && typeof platformNode.variant === 'string') {
 					Platform.fromComponents(platformNode.os, platformNode.architecture, platformNode.variant);
@@ -412,10 +418,11 @@ function filterPlatform(manifestNode) {
 /**
  * Gets digest for a single image
  * @param {import('./images').ImageRef} imageRef - The image reference
+ * @param {import("../index.js").Options} [opts={}] - optional various options to pass along the application
  * @returns {Object.<string, string>} - The image digest
  */
-function getSingleImageDigest(imageRef) {
-	const output = execSkopeoInspect(imageRef, false);
+function getSingleImageDigest(imageRef, opts = {}) {
+	const output = execSkopeoInspect(imageRef, false, opts);
 
 	const node = JSON.parse(output);
 
@@ -431,26 +438,21 @@ function getSingleImageDigest(imageRef) {
  * Executes Skopeo inspect
  * @param {import('./images').ImageRef} imageRef - The image reference
  * @param {boolean} raw - Whether to use raw output
+ * @param {import("../index.js").Options} [opts={}] - optional various options to pass along the application
  */
-function execSkopeoInspect(imageRef, raw) {
-	const skopeo = getCustomPath("skopeo");
+function execSkopeoInspect(imageRef, raw, opts = {}) {
+	const skopeo = getCustomPath("skopeo", opts);
 
-	const configPath = process.env[EXHORT_SKOPEO_CONFIG_PATH];
-	const daemonHost = process.env[EXHORT_IMAGE_SERVICE_ENDPOINT];
+	const configPath = getCustom(EXHORT_SKOPEO_CONFIG_PATH, null, opts);
+	const daemonHost = getCustom(EXHORT_IMAGE_SERVICE_ENDPOINT, null, opts);
 
 	const args = [
 		"inspect",
 		raw ? "--raw" : "",
 		`docker://${imageRef.image.getFullName()}`,
-		...(configPath ? [
-			"--authfile",
-			configPath,
-		] : []),
-		...(daemonHost ? [
-			"--daemon-host",
-			daemonHost,
-		] : [])
-	]
+		...(configPath ? ["--authfile", configPath] : []),
+		...(daemonHost ? ["--daemon-host", daemonHost] : []),
+	];
 
 	try {
 		return invokeCommand(skopeo, args);
@@ -470,27 +472,56 @@ function execSkopeoInspect(imageRef, raw) {
  * @property {function(): string} getVariant
  */
 
-/** @type {Object.<string, SyftImageSource}} */
-const SyftImageSource = {
-	'': {
-		getOs() { return dockerPodmanInfo(dockerGetOs, podmanGetOs); },
-		getArch() { return dockerPodmanInfo(dockerGetArch, podmanGetArch); },
-		getVariant() { return dockerPodmanInfo(dockerGetVariant, podmanGetVariant); }
-	},
-	'registry': {
-		getOs() { return dockerPodmanInfo(dockerGetOs, podmanGetOs); },
-		getArch() { return dockerPodmanInfo(dockerGetArch, podmanGetArch); },
-		getVariant() { return dockerPodmanInfo(dockerGetVariant, podmanGetVariant); }
-	},
-	'docker': {
-		getOs() { return dockerGetOs(); },
-		getArch() { return dockerGetArch(); },
-		getVariant() { return dockerGetVariant(); }
-	},
-	'podman': {
-		getOs() { return podmanGetOs(); },
-		getArch() { return podmanGetArch(); },
-		getVariant() { return podmanGetVariant(); }
+/**
+ * @typedef SyftImageSourceType
+ * @type {object}
+ * @property {function(Object): string} getOs
+ * @property {function(Object): string} getArch
+ * @property {function(Object): string} getVariant
+ */
+
+/** @type {function(string): SyftImageSourceType} */
+const SyftImageSource = (name) => {
+	switch (name) {
+	case "":
+	case "registry":
+		return {
+			getOs(opts = {}) {
+				return dockerPodmanInfo(dockerGetOs, podmanGetOs, opts);
+			},
+			getArch(opts = {}) {
+				return dockerPodmanInfo(dockerGetArch, podmanGetArch, opts);
+			},
+			getVariant(opts = {}) {
+				return dockerPodmanInfo(dockerGetVariant, podmanGetVariant, opts);
+			},
+		};
+	case "docker":
+		return {
+			getOs(opts = {}) {
+				return dockerGetOs(opts);
+			},
+			getArch(opts = {}) {
+				return dockerGetArch(opts);
+			},
+			getVariant(opts = {}) {
+				return dockerGetVariant(opts);
+			},
+		};
+	case "podman":
+		return {
+			getOs(opts = {}) {
+				return podmanGetOs(opts);
+			},
+			getArch(opts = {}) {
+				return podmanGetArch(opts);
+			},
+			getVariant(opts = {}) {
+				return podmanGetVariant(opts);
+			},
+		};
+	default:
+		return null;
 	}
 };
 
@@ -501,7 +532,7 @@ const SyftImageSource = {
  * @throws {Error} If the image source is not valid
  */
 function getImageSource(name) {
-	const source = SyftImageSource[name];
+	const source = SyftImageSource(name);
 	if (!source) {
 		throw new Error(`The image source for syft is not valid: ${name}`);
 	}

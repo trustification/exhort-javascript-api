@@ -216,24 +216,25 @@ export class ImageRef {
 	/**
 	 * @param {string} image
 	 * @param {string} [platform]
+	 * @param {import("index.js").Options} [opts={}]
 	 */
-	constructor(image, platform) {
+	constructor(image, platform, opts) {
 		this.image = new Image(image);
 
 		if (platform != null) {
 			this.platform = Platform.fromString(platform);
 		}
 
-		this.checkImageDigest();
+		this.checkImageDigest(opts);
 	}
 
 	/**
 	 * @private
 	 */
-	checkImageDigest() {
+	checkImageDigest(opts) {
 		if (this.image.digest == null) {
 			try {
-				const digests = getImageDigests(this);
+				const digests = getImageDigests(this, opts);
 				if (digests.size === 0) {
 					throw new Error("Failed to get any image digest");
 				}
@@ -241,7 +242,7 @@ export class ImageRef {
 					this.image.digest = digests[Platform.EMPTY.toString()];
 				} else {
 					if (this.platform == null) {
-						this.platform = getImagePlatform();
+						this.platform = getImagePlatform(opts);
 					}
 					if (this.platform == null) {
 						throw new Error(`Failed to get image platform for image digest`);
