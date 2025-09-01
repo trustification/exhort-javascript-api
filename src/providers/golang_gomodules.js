@@ -258,17 +258,22 @@ function getSBOM(manifest, opts = {}, includeTransitive) {
 	}
 	let manifestDir = path.dirname(manifest)
 	try {
-		var goGraphOutput = invokeCommand(goBin, ['mod', 'graph'], {cwd: manifestDir}).toString()
+		var goGraphOutput = invokeCommand(goBin, ['mod', 'graph'], {cwd: manifestDir}).toString().trim()
 	} catch(error) {
 		throw new Error('failed to invoke go binary for module graph', {cause: error})
 	}
+
+	try {
+		var goModEditOutput = JSON.parse(invokeCommand(goBin, ["mod", "edit", "-json"], {cwd: manifestDir}).toString().trim())
+	} catch(error) {
+		throw new Error('failed to determine root module name', {cause: error})
+	}
+
 	let ignoredDeps = getIgnoredDeps(manifest);
 	let allIgnoredDeps = ignoredDeps.map((dep) => dep.toString())
 	let sbom = new Sbom();
-	let rows = goGraphOutput.split(getLineSeparatorGolang()).filter(line => {
-		return !line.includes(' go@');
-	});
-	let root = getParentVertexFromEdge(rows[0])
+	let rows = goGraphOutput.split(getLineSeparatorGolang()).filter(line => !line.includes(' go@'));
+	let root = getParentVertexFromEdge(goModEditOutput['Module']['Path'])
 	let matchManifestVersions = getCustom("MATCH_MANIFEST_VERSIONS", "false", opts);
 	if(matchManifestVersions === "true") {
 		performManifestVersionsCheck(root, rows, manifest)
@@ -278,7 +283,7 @@ function getSBOM(manifest, opts = {}, includeTransitive) {
 	sbom.addRoot(mainModule)
 	const exhortGoMvsLogicEnabled = getCustom("EXHORT_GO_MVS_LOGIC_ENABLED", "false", opts)
 	if(includeTransitive && exhortGoMvsLogicEnabled === "true") {
-		rows = getFinalPackagesVersionsForModule(rows,manifest,goBin)
+		rows = getFinalPackagesVersionsForModule(rows, manifest, goBin)
 	}
 	if (includeTransitive) {
 		let currentParent = ""
