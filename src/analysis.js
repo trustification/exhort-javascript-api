@@ -156,8 +156,8 @@ async function requestComponent(provider, manifest, url, opts = {}) {
 async function requestImages(imageRefs, url, html = false, opts = {}) {
 	const imageSboms = {}
 	for (const image of imageRefs) {
-		const parsedImageRef = parseImageRef(image)
-		imageSboms[parsedImageRef.getPackageURL().toString()] = generateImageSBOM(parsedImageRef)
+		const parsedImageRef = parseImageRef(image, opts)
+		imageSboms[parsedImageRef.getPackageURL().toString()] = generateImageSBOM(parsedImageRef, opts)
 	}
 
 	const finalUrl = new URL(`${url}/api/v4/batch-analysis`);

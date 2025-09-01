@@ -13,16 +13,12 @@ export const RegexNotToBeLogged = /EXHORT_.*_TOKEN|ex-.*-token/
 export function logValueFromObjects(key,opts, defValue) {
 	if(key in opts) {
 		console.log(`value of option with key ${key} = ${opts[key]} ${EOL}`)
-	}
-	else
-	{
+	} else {
 		console.log(`key ${key} doesn't exists on opts object ${EOL}`)
 	}
 	if(key in process.env) {
 		console.log(`value of environment variable ${key} = ${process.env[key]} ${EOL}`)
-	}
-	else
-	{
+	} else {
 		console.log(`environment variable ${key} doesn't exists ${EOL}`)
 	}
 	console.log(`default value for ${key} = ${defValue} ${EOL}`)
