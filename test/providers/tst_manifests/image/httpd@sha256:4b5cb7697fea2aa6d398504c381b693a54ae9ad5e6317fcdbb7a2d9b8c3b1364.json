@@ -11727,6 +11727,10 @@
                 }
             ],
             "properties": [
+				{
+					"name": "syft:distro:extendedSupport",
+					"value": "false"
+				},
                 {
                     "name": "syft:distro:id",
                     "value": "debian"
