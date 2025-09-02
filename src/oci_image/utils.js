@@ -302,7 +302,7 @@ function podmanGetVariant(opts = {}) {
  * @returns {string} - The information
  */
 function dockerPodmanInfo(dockerSupplier, podmanSupplier, opts = {}) {
-	return dockerSupplier(opts) ?? podmanSupplier(opts);
+	return dockerSupplier(opts) || podmanSupplier(opts);
 }
 
 /**
