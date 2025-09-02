@@ -95,6 +95,9 @@ function splitToNameVersion(nameVersion) {
 	}
 	const regex = /[^\w\s-_]/g;
 	let endIndex = nameVersion.search(regex);
+	if(endIndex === -1) {
+		return [nameVersion.trim()]
+	}
 	result.push(nameVersion.substring(0, endIndex).trim())
 	return result;
 }
