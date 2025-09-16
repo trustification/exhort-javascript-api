@@ -1,8 +1,8 @@
 # Exhort JavaScript API<br/>![latest-no-snapshot][0] ![latest-snapshot][1]
 
-* Looking for the OpenAPI Spec? Try [Exhort API Spec](https://github.com/trustification/exhort-api-spec)
-* Looking for our Java API? Try [Exhort Java API](https://github.com/trustification/exhort-java-api).
-* Looking for our Backend implementation? Try [Exhort](https://github.com/trustification/exhort).
+* Looking for the OpenAPI Spec? Try [Exhort API Spec](https://github.com/guacsec/trustify-da-api-spec)
+* Looking for our Java API? Try [Exhort Java API](https://github.com/guacsec/exhort-java-api).
+* Looking for our Backend implementation? Try [Exhort](https://github.com/guacsec/exhort).
 
 The _Exhort JavaScript API_ module is deployed to _GitHub Package Registry_.
 
@@ -31,10 +31,11 @@ See [GH Docs](https://docs.github.com/en/packages/working-with-a-github-packages
 
 <h3>Usage</h3>
 <p>
-Configuring <em>NPM</em> to look in <em>GHPR</em> for the <em>trustification</em> namespace is done by adding
-<code>@trustification:registry=https://npm.pkg.github.com</code> to <em>.npmrc</em> in the project root or user home.
+Configuring <em>NPM</em> to look in <em>GHPR</em> for the <em>guacsec</em> namespace is done by adding
+<code>@guacsec:registry=https://npm.pkg.github.com</code> to <em>.npmrc</em> in the project root or user home.
 
 ```shell
+echo "@guacsec:registry=https://npm.pkg.github.com" >> .npmrc
 echo "@trustification:registry=https://npm.pkg.github.com" >> .npmrc
 ```
 </p>
@@ -44,11 +45,11 @@ echo "@trustification:registry=https://npm.pkg.github.com" >> .npmrc
 Use as ESM Module from an ESM module
 
 ```shell
-npm install @trustification/exhort-javascript-api
+npm install @guacsec/exhort-javascript-api
 ```
 
 ```javascript
-import exhort from '@trustification/exhort-javascript-api'
+import exhort from '@guacsec/exhort-javascript-api'
 import fs from 'node:fs'
 
 // Get stack analysis in JSON format
@@ -65,14 +66,14 @@ let componentAnalysis = await exhort.componentAnalysis('/path/to/pom.xml')
 Use as ESM Module from Common-JS module
 
 ```shell
-npm install @trustification/exhort-javascript-api
+npm install @guacsec/exhort-javascript-api
 ```
 
 ```javascript
 async function loadExhort()
 {
 // dynamic import is the only way to import ESM module into commonJS module
-  const { default: exhort } = await import('@trustification/exhort-javascript-api');
+  const { default: exhort } = await import('@guacsec/exhort-javascript-api');
   return exhort
 }
 const runExhort = (manifestPath) => {
@@ -98,7 +99,7 @@ Use as CLI Script
 <summary>Click for help menu</summary>
 
 ```shell
-$ npx @trustification/exhort-javascript-api help
+$ npx @guacsec/exhort-javascript-api help
 
 Usage: exhort-javascript-api {component|stack}
 
@@ -113,16 +114,16 @@ Options:
 
 ```shell
 # get stack analysis in json format
-$ npx @trustification/exhort-javascript-api stack /path/to/pom.xml
+$ npx @guacsec/exhort-javascript-api stack /path/to/pom.xml
 
 # get stack analysis in json format (summary only)
-$ npx @trustification/exhort-javascript-api stack /path/to/pom.xml --summary
+$ npx @guacsec/exhort-javascript-api stack /path/to/pom.xml --summary
 
 # get stack analysis in html format format
-$ npx @trustification/exhort-javascript-api stack /path/to/pom.xml --html
+$ npx @guacsec/exhort-javascript-api stack /path/to/pom.xml --html
 
 # get component analysis
-$ npx @trustification/exhort-javascript-api component /path/to/pom.xml
+$ npx @guacsec/exhort-javascript-api component /path/to/pom.xml
 ```
 </li>
 
@@ -130,7 +131,7 @@ $ npx @trustification/exhort-javascript-api component /path/to/pom.xml
 Use as Global Binary
 
 ```shell
-npm install --global @trustification/exhort-javascript-api
+npm install --global @guacsec/exhort-javascript-api
 ```
 
 ```shell
@@ -206,7 +207,7 @@ Excluding a package from any analysis can be achieved by marking the package for
 
 <em>Golang</em> users can add in go.mod a comment with //exhortignore next to the package to be ignored, or to "piggyback" on existing comment ( e.g - //indirect) , for example:
 ```go
-module github.com/trustification/SaaSi/deployer
+module github.com/guacsec/SaaSi/deployer
 
 go 1.19
 
@@ -295,7 +296,7 @@ for various customization.
 However, <em>ESM Module</em> users, can opt for customizing programmatically:
 
 ```javascript
-import exhort from '@trustification/exhort-javascript-api'
+import exhort from '@guacsec/exhort-javascript-api'
 import fs from 'node:fs'
 
 let options = {
@@ -499,8 +500,8 @@ For some ecosystems we support passing additional CLI arguments to the underlyin
 
 
 <!-- Badge links -->
-[0]: https://img.shields.io/github/v/release/trustification/exhort-javascript-api?color=green&label=latest
-[1]: https://img.shields.io/github/v/release/trustification/exhort-javascript-api?color=yellow&include_prereleases&label=early-access
+[0]: https://img.shields.io/github/v/release/guacsec/exhort-javascript-api?color=green&label=latest
+[1]: https://img.shields.io/github/v/release/guacsec/exhort-javascript-api?color=yellow&include_prereleases&label=early-access
 
 ### Known Issues
 

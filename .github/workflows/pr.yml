@@ -35,6 +35,7 @@ jobs:
 
       - name: Create .npmrc
         run: |
+          echo "@guacsec:registry=https://npm.pkg.github.com" >> .npmrc
           echo "@trustification:registry=https://npm.pkg.github.com" >> .npmrc
 
       - name: Enable Corepack
