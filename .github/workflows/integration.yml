@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   call-shared:
-    uses: trustification/exhort-integration-tests/.github/workflows/integration.yml@main
+    uses: guacsec/exhort-integration-tests/.github/workflows/integration.yml@main
     with:
       language: javascript
       repo-url: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
