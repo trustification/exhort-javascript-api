@@ -1,7 +1,7 @@
 import { EOL } from 'os';
 
 import { toPurl, toPurlFromString } from "../../tools.js";
-import { ecosystem } from "../base_javascript.js";
+import { purlType } from "../base_javascript.js";
 
 import Yarn_processor from "./yarn_processor.js";
 
@@ -64,7 +64,7 @@ export default class Yarn_berry_processor extends Yarn_processor {
 					const idx = depName.lastIndexOf('@');
 					const name = depName.substring(0, idx);
 					const version = dep.children.Version;
-					return [name, toPurl(ecosystem, name, version)];
+					return [name, toPurl(purlType, name, version)];
 				}
 			)
 		);
@@ -120,12 +120,12 @@ export default class Yarn_berry_processor extends Yarn_processor {
 
 		const matches = Yarn_berry_processor.LOCATOR_PATTERN.exec(locator);
 		if (matches) {
-			return toPurl(ecosystem, matches[1], matches[2]);
+			return toPurl(purlType, matches[1], matches[2]);
 		}
 
 		const virtualMatches = Yarn_berry_processor.VIRTUAL_LOCATOR_PATTERN.exec(locator);
 		if (virtualMatches) {
-			return toPurl(ecosystem, virtualMatches[1], virtualMatches[2]);
+			return toPurl(purlType, virtualMatches[1], virtualMatches[2]);
 		}
 
 		return undefined;
@@ -145,6 +145,6 @@ export default class Yarn_berry_processor extends Yarn_processor {
 
 		const name = depName.substring(0, depName.lastIndexOf('@'));
 		const version = node.children.Version;
-		return toPurl(ecosystem, name, version);
+		return toPurl(purlType, name, version);
 	}
 }

@@ -12,6 +12,7 @@ export default { requestComponent, requestStack, requestImages, validateToken }
 const rhdaTokenHeader = "rhda-token";
 const rhdaSourceHeader = "rhda-source"
 const rhdaOperationTypeHeader = "rhda-operation-type"
+const rhdaPackageManagerHeader = "rhda-pkg-manager"
 
 /**
  * Adds proxy agent configuration to fetch options if a proxy URL is specified
@@ -29,7 +30,7 @@ function addProxyAgent(options, opts) {
 
 /**
  * Send a stack analysis request and get the report as 'text/html' or 'application/json'.
- * @param {import('./provider').Provider | import('./providers/base_java.js').default } provider - the provided data for constructing the request
+ * @param {import('./provider').Provider} provider - the provided data for constructing the request
  * @param {string} manifest - path for the manifest
  * @param {string} url - the backend url to send the request to
  * @param {boolean} [html=false] - true will return 'text/html', false will return 'application/json'
@@ -43,17 +44,18 @@ async function requestStack(provider, manifest, url, html = false, opts = {}) {
 	opts["source-manifest"] = ""
 	opts[rhdaOperationTypeHeader.toUpperCase().replaceAll("-", "_")] = "stack-analysis"
 	let startTime = new Date()
-	let EndTime
+	let endTime
 	if (process.env["EXHORT_DEBUG"] === "true") {
 		console.log("Starting time of sending stack analysis request to exhort server= " + startTime)
 	}
+	opts[rhdaPackageManagerHeader.toUpperCase().replaceAll("-", "_")] = provided.ecosystem
 
 	const fetchOptions = addProxyAgent({
 		method: 'POST',
 		headers: {
 			'Accept': html ? 'text/html' : 'application/json',
 			'Content-Type': provided.contentType,
-			...getTokenHeaders(opts)
+			...getTokenHeaders(opts),
 		},
 		body: provided.content
 	}, opts);
@@ -76,11 +78,11 @@ async function requestStack(provider, manifest, url, html = false, opts = {}) {
 			if (exRequestId) {
 				console.log("Unique Identifier associated with this request - ex-request-id=" + exRequestId)
 			}
-			EndTime = new Date()
+			endTime = new Date()
 			console.log("Response body received from exhort server : " + EOL + EOL)
 			console.log(console.log(JSON.stringify(result, null, 4)))
-			console.log("Ending time of sending stack analysis request to exhort server= " + EndTime)
-			let time = (EndTime - startTime) / 1000
+			console.log("Ending time of sending stack analysis request to exhort server= " + endTime)
+			let time = (endTime - startTime) / 1000
 			console.log("Total Time in seconds: " + time)
 
 		}
@@ -108,6 +110,7 @@ async function requestComponent(provider, manifest, url, opts = {}) {
 	if (process.env["EXHORT_DEBUG"] === "true") {
 		console.log("Starting time of sending component analysis request to exhort server= " + new Date())
 	}
+	opts[rhdaPackageManagerHeader.toUpperCase().replaceAll("-", "_")] = provided.ecosystem
 
 	const fetchOptions = addProxyAgent({
 		method: 'POST',
@@ -256,6 +259,8 @@ function getTokenHeaders(opts = {}) {
 	setRhdaHeader(rhdaTokenHeader, headers, opts);
 	setRhdaHeader(rhdaSourceHeader, headers, opts);
 	setRhdaHeader(rhdaOperationTypeHeader, headers, opts);
+	setRhdaHeader(rhdaPackageManagerHeader, headers, opts)
+
 	if (process.env["EXHORT_DEBUG"] === "true") {
 		console.log("Headers Values to be sent to exhort:" + EOL)
 		for (const headerKey in headers) {

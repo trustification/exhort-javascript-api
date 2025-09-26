@@ -1,5 +1,5 @@
 import { toPurl, toPurlFromString } from "../../tools.js";
-import { ecosystem } from "../base_javascript.js";
+import { purlType } from "../base_javascript.js";
 
 import Yarn_processor from "./yarn_processor.js";
 
@@ -52,7 +52,7 @@ export default class Yarn_classic_processor extends Yarn_processor {
 					const idx = depName.lastIndexOf('@');
 					const name = depName.substring(0, idx);
 					const version = idx !== -1 ? depName.substring(idx + 1) : '';
-					return [name, toPurl(ecosystem, name, version)];
+					return [name, toPurl(purlType, name, version)];
 				}
 			)
 		)
@@ -119,7 +119,7 @@ class NodeMetaData {
 		const idx = this.nodeName.lastIndexOf('@');
 		this.name = this.nodeName.substring(0, idx);
 		this.version = idx !== -1 ? this.nodeName.substring(idx + 1) : '';
-		this.purl = toPurl(ecosystem, this.name, this.version);
+		this.purl = toPurl(purlType, this.name, this.version);
 		const shadowNode = node.shadow;
 		this.shadow = shadowNode ? shadowNode : false;
 	}
