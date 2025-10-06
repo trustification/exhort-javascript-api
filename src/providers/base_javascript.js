@@ -15,7 +15,7 @@ import Manifest from './manifest.js';
  * The ecosystem identifier for JavaScript/npm packages
  * @type {string}
  */
-export const ecosystem = 'npm';
+export const purlType = 'npm';
 
 /**
  * Base class for JavaScript package manager providers.
@@ -28,6 +28,8 @@ export default class Base_javascript {
 	#manifest;
 	/** @type {string} */
 	#cmd;
+	/** @type {string} */
+	#ecosystem;
 
 	/**
    * Sets up the provider with the manifest path and options
@@ -38,15 +40,25 @@ export default class Base_javascript {
 	_setUp(manifestPath, opts) {
 		this.#cmd = getCustomPath(this._cmdName(), opts);
 		this.#manifest = new Manifest(manifestPath);
+		this.#ecosystem = purlType;
 	}
 
 	/**
-   * Gets the current manifest object
-   * @returns {Manifest} The manifest object
-   * @protected
-   */
+	 * Gets the current manifest object
+	 * @returns {Manifest} The manifest object
+	 * @protected
+	 */
 	_getManifest() {
 		return this.#manifest;
+	}
+
+	/**
+    * Sets the ecosystem value
+    * @param {string} ecosystem - The ecosystem identifier
+    * @protected
+    */
+	_setEcosystem(ecosystem) {
+		this.#ecosystem = ecosystem;
 	}
 
 	/**
@@ -117,7 +129,7 @@ export default class Base_javascript {
 	provideStack(manifestPath, opts = {}) {
 		this._setUp(manifestPath, opts);
 		return {
-			ecosystem,
+			ecosystem: this.#ecosystem,
 			content: this.#getSBOM(opts),
 			contentType: 'application/vnd.cyclonedx+json'
 		}
@@ -132,7 +144,7 @@ export default class Base_javascript {
 	provideComponent(manifestPath, opts = {}) {
 		this._setUp(manifestPath, opts);
 		return {
-			ecosystem,
+			ecosystem: this.#ecosystem,
 			content: this.#getDirectDependencySbom(opts),
 			contentType: 'application/vnd.cyclonedx+json'
 		}
@@ -163,7 +175,7 @@ export default class Base_javascript {
 	#getSBOM(opts = {}) {
 		const depsObject = this._buildDependencyTree(true);
 
-		let mainComponent = toPurl(ecosystem, this.#manifest.name, this.#manifest.version);
+		let mainComponent = toPurl(purlType, this.#manifest.name, this.#manifest.version);
 
 		let sbom = new Sbom();
 		sbom.addRoot(mainComponent);
@@ -185,8 +197,8 @@ export default class Base_javascript {
 		Object.entries(dependencies)
 			.forEach(entry => {
 				const [name, artifact] = entry;
-				const target = toPurl(ecosystem, name, artifact.version);
-				const rootPurl = toPurl(ecosystem, this.#manifest.name, this.#manifest.version);
+				const target = toPurl(purlType, name, artifact.version);
+				const rootPurl = toPurl(purlType, this.#manifest.name, this.#manifest.version);
 				sbom.addDependency(rootPurl, target);
 				this.#addDependenciesOf(sbom, target, artifact);
 			});
@@ -205,7 +217,7 @@ export default class Base_javascript {
 			.forEach(entry => {
 				const [name, depArtifact] = entry;
 				if(depArtifact.version !== undefined) {
-					const target = toPurl(ecosystem, name, depArtifact.version);
+					const target = toPurl(purlType, name, depArtifact.version);
 					sbom.addDependency(from, target);
 					this.#addDependenciesOf(sbom, target, depArtifact);
 				}
@@ -220,7 +232,7 @@ export default class Base_javascript {
    */
 	#getDirectDependencySbom(opts = {}) {
 		const depTree = this._buildDependencyTree(false);
-		let mainComponent = toPurl(ecosystem, this.#manifest.name, this.#manifest.version);
+		let mainComponent = toPurl(purlType, this.#manifest.name, this.#manifest.version);
 
 		let sbom = new Sbom();
 		sbom.addRoot(mainComponent);
@@ -251,7 +263,7 @@ export default class Base_javascript {
 
 		return new Map(
 			Object.entries(depTree.dependencies).map(
-				([key, value]) => [key, toPurl(ecosystem, key, value.version)]
+				([key, value]) => [key, toPurl(purlType, key, value.version)]
 			)
 		);
 	}

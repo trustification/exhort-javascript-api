@@ -35,6 +35,7 @@ export default class Javascript_yarn extends Base_javascript {
 		}
 
 		const isClassic = matches[1] === '1';
+		this._setEcosystem(isClassic ? 'yarn-classic' : 'yarn-berry');
 		this.#processor = isClassic ? new Yarn_classic_processor(this._getManifest()) : new Yarn_berry_processor(this._getManifest());
 	}
 
