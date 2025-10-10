@@ -46,6 +46,7 @@ export const exhortDefaultUrl = "https://rhda.rhcloud.com";
  * MATCH_MANIFEST_VERSIONS?: string | undefined,
  * RHDA_SOURCE?: string | undefined,
  * RHDA_TOKEN?: string | undefined,
+ * RHDA_TELEMETRY_ID?: string | undefined,
  * [key: string]: string | undefined,
  * }} Options
  */

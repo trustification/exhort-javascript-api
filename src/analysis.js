@@ -10,6 +10,7 @@ import { RegexNotToBeLogged, getCustom } from "./tools.js";
 export default { requestComponent, requestStack, requestImages, validateToken }
 
 const rhdaTokenHeader = "rhda-token";
+const rhdaTelemetryId = "rhda-telemetry-id";
 const rhdaSourceHeader = "rhda-source"
 const rhdaOperationTypeHeader = "rhda-operation-type"
 const rhdaPackageManagerHeader = "rhda-pkg-manager"
@@ -260,6 +261,7 @@ function getTokenHeaders(opts = {}) {
 	setRhdaHeader(rhdaSourceHeader, headers, opts);
 	setRhdaHeader(rhdaOperationTypeHeader, headers, opts);
 	setRhdaHeader(rhdaPackageManagerHeader, headers, opts)
+	setRhdaHeader(rhdaTelemetryId, headers, opts);
 
 	if (process.env["EXHORT_DEBUG"] === "true") {
 		console.log("Headers Values to be sent to exhort:" + EOL)
