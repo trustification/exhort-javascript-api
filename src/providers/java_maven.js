@@ -243,6 +243,10 @@ export default class Java_maven extends Base_java {
 		if (pomJson['project']) {
 			if (pomJson['project']['dependencies'] !== undefined) {
 				pomXml = pomJson['project']['dependencies']['dependency']
+				if(pomJson['project']['dependencyManagement']) {
+					let pomXmlDependencyManagement = pomJson['project']['dependencyManagement']['dependencies']['dependency']
+					pomXml = pomXml.concat(pomXmlDependencyManagement)
+				}
 			} else {
 				pomXml = []
 			}
