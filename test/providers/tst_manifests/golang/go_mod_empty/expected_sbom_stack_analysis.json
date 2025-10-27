@@ -1,52 +1,27 @@
 {
-  "bomFormat": "CycloneDX",
-  "specVersion": "1.4",
-  "version": 1,
-  "metadata": {
-    "timestamp": "2023-08-07T00:00:00.000Z",
-    "component": {
-      "group": "github.com/sample",
-      "name": "empty-module",
-      "version": "v0.0.0",
-      "purl": "pkg:golang/github.com/sample/empty-module@v0.0.0",
-      "type": "application",
-      "bom-ref": "pkg:golang/github.com/sample/empty-module@v0.0.0"
-    }
-  },
-  "components": [
-    {
-      "group": "github.com/sample",
-      "name": "empty-module",
-      "version": "v0.0.0",
-      "purl": "pkg:golang/github.com/sample/empty-module@v0.0.0",
-      "type": "application",
-      "bom-ref": "pkg:golang/github.com/sample/empty-module@v0.0.0"
+    "bomFormat": "CycloneDX",
+    "specVersion": "1.4",
+    "version": 1,
+    "metadata": {
+        "timestamp": "2023-08-07T00:00:00.000Z",
+        "component": {
+            "group": "github.com/sample",
+            "name": "empty-module",
+            "version": "v0.0.0",
+            "purl": "pkg:golang/github.com/sample/empty-module@v0.0.0",
+            "type": "application",
+            "bom-ref": "pkg:golang/github.com/sample/empty-module@v0.0.0"
+        }
     },
-    {
-      "name": "go",
-      "version": "1.24",
-      "purl": "pkg:golang/go@1.24",
-      "type": "library",
-      "bom-ref": "pkg:golang/go@1.24"
-    },
-    {
-      "name": "toolchain",
-      "version": "go1.24",
-      "purl": "pkg:golang/toolchain@go1.24",
-      "type": "library",
-      "bom-ref": "pkg:golang/toolchain@go1.24"
-    }
-  ],
-  "dependencies": [
-    {
-      "ref": "pkg:golang/go@1.24",
-      "dependsOn": [
-        "pkg:golang/toolchain@go1.24"
-      ]
-    },
-    {
-      "ref": "pkg:golang/toolchain@go1.24",
-      "dependsOn": []
-    }
-  ]
+    "components": [
+        {
+            "group": "github.com/sample",
+            "name": "empty-module",
+            "version": "v0.0.0",
+            "purl": "pkg:golang/github.com/sample/empty-module@v0.0.0",
+            "type": "application",
+            "bom-ref": "pkg:golang/github.com/sample/empty-module@v0.0.0"
+        }
+    ],
+    "dependencies": []
 }
