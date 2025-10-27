@@ -24,6 +24,7 @@ export default { isSupported, validateLockFile, provideComponent, provideStack }
  */
 const ecosystem = 'golang'
 const defaultMainModuleVersion = "v0.0.0";
+
 /**
  * @param {string} manifestName - the subject manifest name-type
  * @returns {boolean} - return true if `pom.xml` is the manifest name-type
@@ -281,7 +282,7 @@ function getSBOM(manifest, opts = {}, includeTransitive) {
 
 	const mainModule = toPurl(root, "@")
 	sbom.addRoot(mainModule)
-	const exhortGoMvsLogicEnabled = getCustom("EXHORT_GO_MVS_LOGIC_ENABLED", "false", opts)
+	const exhortGoMvsLogicEnabled = getCustom("EXHORT_GO_MVS_LOGIC_ENABLED", "true", opts)
 	if(includeTransitive && exhortGoMvsLogicEnabled === "true") {
 		rows = getFinalPackagesVersionsForModule(rows, manifest, goBin)
 	}
@@ -377,15 +378,25 @@ function getFinalPackagesVersionsForModule(rows,manifestPath,goBin) {
 		let childName = getPackageName(child)
 		let parentFinalVersion = finalVersionModules[parentName]
 		let childFinalVersion =  finalVersionModules[childName]
-		// if this condition will be uncommented, there will be several differences between sbom and go list -m all listing...
-		// let parentOriginalVersion = getVersionOfPackage(parent)
-		// if( parentOriginalVersion !== undefined && parentOriginalVersion === parentFinalVersion) {
-		if (parentName !== parent) {
-			finalVersionModulesArray.push(`${parentName}@${parentFinalVersion} ${childName}@${childFinalVersion}`)
+
+		// Handle special cases for go and toolchain modules that aren't in go list -m all
+		if (isSpecialGoModule(parentName) || isSpecialGoModule(childName)) {
+			// For go and toolchain modules, use the original versions from the graph
+			let parentVersion = getVersionOfPackage(parent)
+			let childVersion = getVersionOfPackage(child)
+			if (parentName !== parent) {
+				finalVersionModulesArray.push(`${parentName}@${parentVersion} ${childName}@${childVersion}`)
+			} else {
+				finalVersionModulesArray.push(`${parentName} ${childName}@${childVersion}`)
+			}
 		} else {
-			finalVersionModulesArray.push(`${parentName} ${childName}@${childFinalVersion}`)
+			// For regular modules, use MVS logic
+			if (parentName !== parent) {
+				finalVersionModulesArray.push(`${parentName}@${parentFinalVersion} ${childName}@${childFinalVersion}`)
+			} else {
+				finalVersionModulesArray.push(`${parentName} ${childName}@${childFinalVersion}`)
+			}
 		}
-		// }
 	})
 
 	return finalVersionModulesArray
@@ -399,6 +410,27 @@ function getFinalPackagesVersionsForModule(rows,manifestPath,goBin) {
  */
 function getPackageName(fullPackage) {
 	return fullPackage.split("@")[0]
+}
+
+/**
+ * Check if a module name is a special Go module (go or toolchain)
+ * @param {string} moduleName - the module name to check
+ * @return {boolean} true if it's a special Go module
+ * @private
+ */
+function isSpecialGoModule(moduleName) {
+	return moduleName === 'go' || moduleName === 'toolchain';
+}
+
+/**
+ *
+ * @param {string} fullPackage - full package with its name and version
+ * @return -{string} package version only
+ * @private
+ */
+function getVersionOfPackage(fullPackage) {
+	let parts = fullPackage.split("@")
+	return parts.length > 1 ? parts[1] : undefined
 }
 
 function getLineSeparatorGolang() {

@@ -56,7 +56,7 @@ ENV EXHORT_PIP_FREEZE=''
 # contains pip show data for all packages, base64 encoded
 ENV EXHORT_PIP_SHOW=''
 # indicate whether to use the Minimal version selection (MVS) algorithm to select a set of module versions to use when building Go packages.
-ENV EXHORT_GO_MVS_LOGIC_ENABLED='false'
+ENV EXHORT_GO_MVS_LOGIC_ENABLED='true'
 
 # Copy java executable from the builder stage
 COPY --from=builder /usr/jdk-21.0.1/ /usr/jdk-21.0.1/
