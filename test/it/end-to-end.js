@@ -22,8 +22,10 @@ function getParsedKeyFromHtml(html, key,keyLength) {
 }
 
 function extractTotalsGeneralOrFromProvider(providedDataForStack, provider) {
-	if(providedDataForStack.providers[provider].sources.length > 0) {
-		return providedDataForStack.providers[provider].sources[provider].summary.total;
+	if(providedDataForStack.providers[provider].sources && Object.keys(providedDataForStack.providers[provider].sources).length > 0) {
+		// Get the first source (e.g., "osv") and return its summary total
+		const firstSource = Object.keys(providedDataForStack.providers[provider].sources)[0];
+		return providedDataForStack.providers[provider].sources[firstSource].summary.total;
 	} else {
 		return providedDataForStack.scanned.total;
 	}
@@ -53,7 +55,7 @@ suite('Integration Tests', () => {
 			let pomPath = `test/it/test_manifests/${packageManager}/${manifestName}`
 			let providedDataForStack = await index.stackAnalysis(pomPath)
 			console.log(JSON.stringify(providedDataForStack,null , 4))
-			let providers = ["trustify"]
+			let providers = ["rhtpa"]
 			providers.forEach(provider => expect(extractTotalsGeneralOrFromProvider(providedDataForStack, provider)).greaterThan(0))
 			// TODO: if sources doesn't exist, add "scanned" instead
 			// python transitive count for stack analysis is awaiting fix in exhort backend
@@ -85,7 +87,7 @@ suite('Integration Tests', () => {
 				reportParsedFromHtml = JSON.parse("{" + startOfJson.substring(0,startOfJson.indexOf("};") + 1))
 				reportParsedFromHtml = reportParsedFromHtml.report
 			} finally {
-				parsedStatusFromProvider = reportParsedFromHtml.providers["trustify"].status
+				parsedStatusFromProvider = reportParsedFromHtml.providers["rhtpa"].status
 				expect(parsedStatusFromProvider.code).equals(200)
 				parsedScannedFromHtml = reportParsedFromHtml.scanned
 				expect( typeof html).equals("string")
@@ -102,7 +104,7 @@ suite('Integration Tests', () => {
 
 			expect(analysisReport.scanned.total).greaterThan(0)
 			expect(analysisReport.scanned.transitive).equal(0)
-			let providers = ["trustify"]
+			let providers = ["rhtpa"]
 			providers.forEach(provider => expect(extractTotalsGeneralOrFromProvider(analysisReport, provider)).greaterThan(0))
 			providers.forEach(provider => expect(analysisReport.providers[provider].status.code).equals(200))
 		}).timeout(20000);
