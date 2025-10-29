@@ -10,5 +10,6 @@
   "check-leaks": false,
   "color": true,
   "fail-zero": true,
-  "recursive": true
+  "recursive": true,
+  "reporter-options": ["maxDiffSize=0"]
 } 
