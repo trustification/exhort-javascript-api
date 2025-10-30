@@ -22,8 +22,10 @@ function getParsedKeyFromHtml(html, key,keyLength) {
 }
 
 function extractTotalsGeneralOrFromProvider(providedDataForStack, provider) {
-	if(providedDataForStack.providers[provider].sources.length > 0) {
-		return providedDataForStack.providers[provider].sources[provider].summary.total;
+	if(providedDataForStack.providers[provider].sources && Object.keys(providedDataForStack.providers[provider].sources).length > 0) {
+		// Get the first source (e.g., "osv") and return its summary total
+		const firstSource = Object.keys(providedDataForStack.providers[provider].sources)[0];
+		return providedDataForStack.providers[provider].sources[firstSource].summary.total;
 	} else {
 		return providedDataForStack.scanned.total;
 	}
@@ -53,7 +55,7 @@ suite('Integration Tests', () => {
 			let pomPath = `test/it/test_manifests/${packageManager}/${manifestName}`
 			let providedDataForStack = await index.stackAnalysis(pomPath)
 			console.log(JSON.stringify(providedDataForStack,null , 4))
-			let providers = ["tpa"]
+			let providers = ["rhtpa"]
 			providers.forEach(provider => expect(extractTotalsGeneralOrFromProvider(providedDataForStack, provider)).greaterThan(0))
 			// TODO: if sources doesn't exist, add "scanned" instead
 			// python transitive count for stack analysis is awaiting fix in exhort backend
@@ -74,7 +76,7 @@ suite('Integration Tests', () => {
 			}
 			let reportParsedFromHtml
 			let parsedSummaryFromHtml
-			let parsedStatusFromHtmlOsvNvd
+			let parsedStatusFromProvider
 			let parsedScannedFromHtml
 			try {
 				reportParsedFromHtml = JSON.parse(html.substring(html.indexOf("\"report\" :") + 10, html.search(/([}](\s*)){5}/) + html.substring(html.search(/([}](\s*)){5}/)).indexOf(",")))
@@ -85,8 +87,8 @@ suite('Integration Tests', () => {
 				reportParsedFromHtml = JSON.parse("{" + startOfJson.substring(0,startOfJson.indexOf("};") + 1))
 				reportParsedFromHtml = reportParsedFromHtml.report
 			} finally {
-				parsedStatusFromHtmlOsvNvd = reportParsedFromHtml.providers["tpa"].status
-				expect(parsedStatusFromHtmlOsvNvd.code).equals(200)
+				parsedStatusFromProvider = reportParsedFromHtml.providers["rhtpa"].status
+				expect(parsedStatusFromProvider.code).equals(200)
 				parsedScannedFromHtml = reportParsedFromHtml.scanned
 				expect( typeof html).equals("string")
 				expect(html).include("html").include("svg")
@@ -102,7 +104,7 @@ suite('Integration Tests', () => {
 
 			expect(analysisReport.scanned.total).greaterThan(0)
 			expect(analysisReport.scanned.transitive).equal(0)
-			let providers = ["tpa"]
+			let providers = ["rhtpa"]
 			providers.forEach(provider => expect(extractTotalsGeneralOrFromProvider(analysisReport, provider)).greaterThan(0))
 			providers.forEach(provider => expect(analysisReport.providers[provider].status.code).equals(200))
 		}).timeout(20000);

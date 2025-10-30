@@ -10773,7 +10773,7 @@
             ]
         },
         {
-            "bom-ref": "pkg:deb/debian/perl-base@5.28.1-6%2Bdeb10u1?arch=amd64&distro=debian-10&package-id=12ef1f27f6a6900d&upstream=perl",
+            "bom-ref": "pkg:deb/debian/perl-base@5.28.1-6%2Bdeb10u1?arch=amd64&distro=debian-10&package-id=b9e426935a3c0ab8&upstream=perl",
             "type": "library",
             "publisher": "Niko Tyni <ntyni@debian.org>",
             "name": "perl-base",
@@ -10822,11 +10822,6 @@
                 {
                     "license": {
                         "name": "Artistic"
-                    }
-                },
-                {
-                    "license": {
-                        "name": "Artistic-dist"
                     }
                 },
                 {
@@ -10907,6 +10902,11 @@
                 {
                     "license": {
                         "name": "Unicode"
+                    }
+                },
+                {
+                    "license": {
+                        "name": "Artistic-dist"
                     }
                 }
             ],
@@ -54707,7 +54707,7 @@
         {
             "ref": "pkg:deb/debian/debconf@1.5.71?arch=all&distro=debian-10&package-id=fe38a53949ca2b50",
             "dependsOn": [
-                "pkg:deb/debian/perl-base@5.28.1-6%2Bdeb10u1?arch=amd64&distro=debian-10&package-id=12ef1f27f6a6900d&upstream=perl"
+                "pkg:deb/debian/perl-base@5.28.1-6%2Bdeb10u1?arch=amd64&distro=debian-10&package-id=b9e426935a3c0ab8&upstream=perl"
             ]
         },
         {
@@ -54796,7 +54796,7 @@
         {
             "ref": "pkg:deb/debian/init-system-helpers@1.56%2Bnmu1?arch=all&distro=debian-10&package-id=4a3347396c872902",
             "dependsOn": [
-                "pkg:deb/debian/perl-base@5.28.1-6%2Bdeb10u1?arch=amd64&distro=debian-10&package-id=12ef1f27f6a6900d&upstream=perl"
+                "pkg:deb/debian/perl-base@5.28.1-6%2Bdeb10u1?arch=amd64&distro=debian-10&package-id=b9e426935a3c0ab8&upstream=perl"
             ]
         },
         {
@@ -55382,7 +55382,7 @@
             ]
         },
         {
-            "ref": "pkg:deb/debian/perl-base@5.28.1-6%2Bdeb10u1?arch=amd64&distro=debian-10&package-id=12ef1f27f6a6900d&upstream=perl",
+            "ref": "pkg:deb/debian/perl-base@5.28.1-6%2Bdeb10u1?arch=amd64&distro=debian-10&package-id=b9e426935a3c0ab8&upstream=perl",
             "dependsOn": [
                 "pkg:deb/debian/dpkg@1.19.7?arch=amd64&distro=debian-10&package-id=da9ff9a377f09d63",
                 "pkg:deb/debian/libc6@2.28-10?arch=amd64&distro=debian-10&package-id=3885776e13200a70&upstream=glibc"
