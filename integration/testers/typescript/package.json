@@ -10,7 +10,7 @@
 		"compile": "tsc -p tsconfig.json"
 	},
 	"dependencies": {
-		"@trustification/exhort-javascript-api": "file:../../../"
+		"@guacsec/exhort-javascript-api": "file:../../../"
 	},
 	"devDependencies": {
 		"typescript": "^5.1.3"

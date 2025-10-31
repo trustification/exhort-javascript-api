@@ -150,7 +150,7 @@ let theUrl
  * @param {string} manifest
  * @param {false} html
  * @param {Options} [opts={}]
- * @returns {Promise<import('@trustification/exhort-api-spec/model/v4/AnalysisReport').AnalysisReport>}
+ * @returns {Promise<import('@guacsec/trustify-da-api-spec/model/v4/AnalysisReport').AnalysisReport>}
  * @throws {Error}
  */
 
@@ -160,7 +160,7 @@ let theUrl
  * @param {string} manifest - path for the manifest
  * @param {boolean} [html=false] - true will return a html string, false will return AnalysisReport object.
  * @param {Options} [opts={}] - optional various options to pass along the application
- * @returns {Promise<string|import('@trustification/exhort-api-spec/model/v4/AnalysisReport').AnalysisReport>}
+ * @returns {Promise<string|import('@guacsec/trustify-da-api-spec/model/v4/AnalysisReport').AnalysisReport>}
  * @throws {Error} if manifest inaccessible, no matching provider, failed to get create content,
  * 		or backend request failed
  */
@@ -175,7 +175,7 @@ async function stackAnalysis(manifest, html = false, opts = {}) {
  * Get component analysis report for a manifest content.
  * @param {string} manifest - path to the manifest
  * @param {Options} [opts={}] - optional various options to pass along the application
- * @returns {Promise<import('@trustification/exhort-api-spec/model/v4/AnalysisReport').AnalysisReport>}
+ * @returns {Promise<import('@guacsec/trustify-da-api-spec/model/v4/AnalysisReport').AnalysisReport>}
  * @throws {Error} if no matching provider, failed to get create content, or backend request failed
  */
 async function componentAnalysis(manifest, opts = {}) {
@@ -200,7 +200,7 @@ async function componentAnalysis(manifest, opts = {}) {
  * @param {Array<string>} imageRefs
  * @param {false} html
  * @param {Options} [opts={}]
- * @returns {Promise<Object.<string, import('@trustification/exhort-api-spec/model/v4/AnalysisReport').AnalysisReport>>}
+ * @returns {Promise<Object.<string, import('@guacsec/trustify-da-api-spec/model/v4/AnalysisReport').AnalysisReport>>}
  * @throws {Error}
  */
 
@@ -210,7 +210,7 @@ async function componentAnalysis(manifest, opts = {}) {
  * @param {Array<string>} imageRefs - OCI image references
  * @param {boolean} [html=false] - true will return a html string, false will return AnalysisReport
  * @param {Options} [opts={}] - optional various options to pass along the application
- * @returns {Promise<string|Object.<string, import('@trustification/exhort-api-spec/model/v4/AnalysisReport').AnalysisReport>>}
+ * @returns {Promise<string|Object.<string, import('@guacsec/trustify-da-api-spec/model/v4/AnalysisReport').AnalysisReport>>}
  * @throws {Error} if manifest inaccessible, no matching provider, failed to get create content,
  * 		or backend request failed
  */

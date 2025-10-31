@@ -28,7 +28,7 @@ COPY configs/.npmrc .
 # replace placeholder with the actual environment variable
 RUN sed -i "s/__PACKAGE_REGISTRY_ACCESS_TOKEN__/${PACKAGE_REGISTRY_ACCESS_TOKEN}/g" ./.npmrc
 # install Exhort javascript API
-RUN npm install --global @trustification/exhort-javascript-api@${EXHORT_JAVASCRIPT_API_VERSION}
+RUN npm install --global @guacsec/exhort-javascript-api@${EXHORT_JAVASCRIPT_API_VERSION}
 
 # add RHDA script
 COPY scripts/rhda.sh /rhda.sh
@@ -47,7 +47,7 @@ USER default
 # second stage
 FROM registry.access.redhat.com/ubi9/nodejs-20-minimal
 
-LABEL org.opencontainers.image.source=https://github.com/trustification/exhort-javascript-api
+LABEL org.opencontainers.image.source=https://github.com/guacsec/exhort-javascript-api
 
 # assign rhda source for exhort tracking purposes
 ENV RHDA_SOURCE=''

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import exhort from '@trustification/exhort-javascript-api'
+import exhort from '@guacsec/exhort-javascript-api'
 import process from 'node:process'
-import { AnalysisReport } from '@trustification/exhort-api-spec/model/v4/AnalysisReport'
+import { AnalysisReport } from '@guacsec/trustify-da-api-spec/model/v4/AnalysisReport'
 
 const [,, ...args] = process.argv
 
